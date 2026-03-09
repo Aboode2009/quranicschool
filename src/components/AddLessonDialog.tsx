@@ -16,7 +16,7 @@ interface AddLessonDialogProps {
   addLabel?: string;
 }
 
-const AddLessonDialog = ({ open, onClose, onAdd }: AddLessonDialogProps) => {
+const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد", namePlaceholder = "اسم المحاضرة", addLabel = "إضافة" }: AddLessonDialogProps) => {
   const [lessonName, setLessonName] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [notes, setNotes] = useState("");
