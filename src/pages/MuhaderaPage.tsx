@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, Plus } from "lucide-react";
-import LessonCard from "@/components/LessonCard";
+import { BookOpen, Plus, ChevronLeft } from "lucide-react";
 import AddLessonDialog from "@/components/AddLessonDialog";
+import LessonAttendancePage from "./LessonAttendancePage";
 import { getLessonsFromStorage, saveLessonsToStorage } from "@/lib/quran-data";
 import type { Lesson } from "@/lib/quran-data";
 
 const MuhaderaPage = () => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [showAdd, setShowAdd] = useState(false);
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
 
   useEffect(() => {
     setLessons(getLessonsFromStorage());
@@ -22,13 +23,21 @@ const MuhaderaPage = () => {
     setLessons((prev) => [lesson, ...prev]);
   };
 
+  // Show attendance page when a lesson is selected
+  if (selectedLesson) {
+    return (
+      <LessonAttendancePage
+        lesson={selectedLesson}
+        onBack={() => setSelectedLesson(null)}
+      />
+    );
+  }
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-4 pt-3 pb-2">
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-2xl font-bold text-foreground">المحاضرة</h1>
-        </div>
+        <h1 className="text-2xl font-bold text-foreground mb-3">المحاضرة</h1>
       </div>
 
       {/* Lessons list */}
@@ -36,11 +45,33 @@ const MuhaderaPage = () => {
         <div className="flex flex-col gap-2.5">
           <AnimatePresence mode="popLayout">
             {lessons.map((lesson, i) => (
-              <LessonCard
+              <motion.div
                 key={lesson.id}
-                lesson={lesson}
-                index={i}
-              />
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: i * 0.03 }}
+                layout
+                onClick={() => setSelectedLesson(lesson)}
+                className="ios-card px-4 py-3.5 flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform"
+              >
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <BookOpen className="w-4.5 h-4.5 text-primary" strokeWidth={1.8} />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <p className="text-[15px] font-semibold leading-tight text-foreground">
+                    {lesson.surahName}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {lesson.date}
+                  </p>
+                  {lesson.notes && (
+                    <p className="text-xs text-muted-foreground/70 mt-1 truncate">{lesson.notes}</p>
+                  )}
+                </div>
+
+                <ChevronLeft className="w-4 h-4 text-muted-foreground shrink-0" />
+              </motion.div>
             ))}
           </AnimatePresence>
 
