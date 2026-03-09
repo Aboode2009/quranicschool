@@ -26,51 +26,34 @@ const fadeUp = {
 };
 
 const DashboardPage = ({ onNavigate }: DashboardProps) => {
-  const [currentTime] = useState(new Date());
-
-  const greeting = () => {
-    const h = currentTime.getHours();
-    if (h < 12) return "صباح الخير ☀️";
-    if (h < 17) return "مساء النور 🌤️";
-    return "مساء الخير 🌙";
-  };
-
   const navCards = [
     {
       id: "muhadera" as TabId,
       title: "المحاضرة",
       desc: "إدارة الدروس والمحاضرات",
       icon: BookOpen,
-      gradient: "from-[hsl(211,100%,50%)] to-[hsl(211,100%,65%)]",
-      iconBg: "bg-[hsl(211,100%,50%)]/15",
-      iconColor: "text-primary",
+      bg: "bg-gradient-to-br from-[#1a73e8] to-[#4fc3f7]",
     },
     {
       id: "warasha" as TabId,
       title: "الورشة",
       desc: "إدارة ورش العمل",
       icon: Users,
-      gradient: "from-[hsl(280,70%,55%)] to-[hsl(280,70%,70%)]",
-      iconBg: "bg-[hsl(280,70%,55%)]/15",
-      iconColor: "text-[hsl(280,70%,55%)]",
+      bg: "bg-gradient-to-br from-[#e84040] to-[#ff8a65]",
     },
     {
       id: "attendance" as TabId,
       title: "الأسماء",
       desc: "متابعة الحضور والأسماء",
       icon: UserCheck,
-      gradient: "from-[hsl(155,55%,30%)] to-[hsl(155,55%,45%)]",
-      iconBg: "bg-accent/15",
-      iconColor: "text-accent",
+      bg: "bg-gradient-to-br from-[#7c4dff] to-[#b388ff]",
     },
     {
       id: "settings" as TabId,
       title: "الإعدادات",
       desc: "إعدادات التطبيق والمالية",
       icon: Settings,
-      gradient: "from-[hsl(0,0%,35%)] to-[hsl(0,0%,50%)]",
-      iconBg: "bg-muted-foreground/15",
-      iconColor: "text-muted-foreground",
+      bg: "bg-gradient-to-br from-[#00897b] to-[#4db6ac]",
     },
   ];
 
