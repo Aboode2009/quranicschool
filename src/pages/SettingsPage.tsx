@@ -493,6 +493,12 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
                       </div>
                     </div>
                   )}
+                  {note.lecture_notes && (
+                    <div className="bg-secondary/50 rounded-xl p-3 mb-2">
+                      <p className="text-[11px] text-muted-foreground font-semibold mb-1">ملاحظات المحاضرة</p>
+                      <p className="text-[13px] text-foreground whitespace-pre-wrap">{note.lecture_notes}</p>
+                    </div>
+                  )}
                   {note.workshop_name && (
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
