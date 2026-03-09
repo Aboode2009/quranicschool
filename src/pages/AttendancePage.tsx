@@ -180,49 +180,14 @@ const AttendancePage = () => {
     setExpandedSection(prev => prev === section ? null : section);
   };
 
+  const openDetailView = (items: AttendanceRecord[], type: "present" | "absent", label: string) => {
+    setDetailView({ items, type, label });
+  };
+
   const title = activeCategory === "muhadera" ? "أسماء المحاضرة" : "أسماء الورشة";
   const subtitle = "اضغط على الاسم لعرض الإحصائيات";
 
-  // Record list component
-  const RecordList = ({ items, type }: { items: AttendanceRecord[]; type: "present" | "absent" }) => (
-    <AnimatePresence>
-      <motion.div
-        initial={{ height: 0, opacity: 0 }}
-        animate={{ height: "auto", opacity: 1 }}
-        exit={{ height: 0, opacity: 0 }}
-        className="flex flex-col gap-1.5 mt-2"
-      >
-        {items.length === 0 ? (
-          <p className="text-xs text-muted-foreground text-center py-2">لا توجد سجلات</p>
-        ) : (
-          items.map((rec, i) => (
-            <motion.div
-              key={rec.lesson_name + i}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.03 }}
-              className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2"
-            >
-              <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">
-                  {getLessonDisplayName(rec.lesson_name)}
-                </p>
-                <p className="text-xs text-muted-foreground">{rec.lesson_date}</p>
-              </div>
-              {type === "absent" && rec.excuse && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 shrink-0">
-                  {rec.excuse === "with_excuse" ? "بعذر" : "بدون عذر"}
-                </span>
-              )}
-            </motion.div>
-          ))
-        )}
-      </motion.div>
-    </AnimatePresence>
-  );
-
-  // Stat card component
+  // Stat card component - now opens full page
   const StatCard = ({
     sectionKey, count, label, colorClass, bgClass, items, type
   }: {
@@ -230,23 +195,81 @@ const AttendancePage = () => {
     colorClass: string; bgClass: string;
     items: AttendanceRecord[]; type: "present" | "absent";
   }) => {
-    const isExpanded = expandedSection === sectionKey;
     return (
       <div
-        className={`rounded-xl ${bgClass} p-3 cursor-pointer transition-all`}
-        onClick={() => toggleSection(sectionKey)}
+        className={`rounded-xl ${bgClass} p-3 cursor-pointer transition-all active:scale-[0.97]`}
+        onClick={() => openDetailView(items, type, label)}
       >
-        <div className="flex items-center justify-between">
-          <div className="text-center flex-1">
-            <p className={`text-2xl font-bold ${colorClass}`}>{count}</p>
-            <p className="text-xs text-muted-foreground mt-1">{label}</p>
-          </div>
-          <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+        <div className="text-center">
+          <p className={`text-2xl font-bold ${colorClass}`}>{count}</p>
+          <p className="text-xs text-muted-foreground mt-1">{label}</p>
         </div>
-        {isExpanded && <RecordList items={items} type={type} />}
       </div>
     );
   };
+
+  // Detail full-page view for records
+  if (detailView && selectedPerson) {
+    return (
+      <div className="flex flex-col h-full" dir="rtl">
+        <div className="px-4 pt-3 pb-2">
+          <button
+            onClick={() => setDetailView(null)}
+            className="flex items-center gap-1 text-primary text-sm font-medium mb-3"
+          >
+            <ChevronLeft className="w-4 h-4 rotate-180" />
+            <span>رجوع</span>
+          </button>
+          <h1 className="text-xl font-bold text-foreground">
+            {detailView.label} - {selectedPerson.name}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {detailView.items.length} سجل
+          </p>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 pb-4">
+          {detailView.items.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+              <Calendar className="w-10 h-10 mb-3 opacity-30" />
+              <p className="text-base font-medium">لا توجد سجلات</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 mt-3">
+              {detailView.items.map((rec, i) => (
+                <motion.div
+                  key={rec.lesson_name + i}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.03 }}
+                  className="ios-card px-4 py-3.5 flex items-center gap-3"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Calendar className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] font-semibold text-foreground truncate">
+                      {getLessonDisplayName(rec.lesson_name)}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{rec.lesson_date}</p>
+                  </div>
+                  {detailView.type === "absent" && rec.excuse && (
+                    <span className={`text-xs px-2.5 py-1 rounded-full shrink-0 font-medium ${
+                      rec.excuse === "with_excuse" 
+                        ? "bg-amber-100 text-amber-700" 
+                        : "bg-destructive/10 text-destructive"
+                    }`}>
+                      {rec.excuse === "with_excuse" ? "بعذر" : "بدون عذر"}
+                    </span>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   // Profile detail view
   if (selectedPerson) {
