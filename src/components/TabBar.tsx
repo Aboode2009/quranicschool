@@ -1,6 +1,6 @@
-import { BookOpen, Users, Settings, UserCheck } from "lucide-react";
+import { BookOpen, Users, Settings, UserCheck, LayoutDashboard } from "lucide-react";
 
-type TabId = "muhadera" | "warasha" | "settings" | "attendance";
+type TabId = "dashboard" | "muhadera" | "warasha" | "settings" | "attendance";
 
 interface TabBarProps {
   activeTab: TabId;
@@ -8,6 +8,7 @@ interface TabBarProps {
 }
 
 const tabs = [
+  { id: "dashboard" as const, label: "الرئيسية", icon: LayoutDashboard },
   { id: "muhadera" as const, label: "محاضرة", icon: BookOpen },
   { id: "attendance" as const, label: "الأسماء", icon: UserCheck },
   { id: "warasha" as const, label: "ورشة", icon: Users },
@@ -17,7 +18,7 @@ const tabs = [
 const TabBar = ({ activeTab, onTabChange }: TabBarProps) => {
   return (
     <div className="ios-nav border-t border-ios-separator bg-card/95 backdrop-blur-xl">
-      <div className="flex items-center justify-around px-2 pb-safe">
+      <div className="flex items-center justify-around px-1 pb-safe">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -26,7 +27,7 @@ const TabBar = ({ activeTab, onTabChange }: TabBarProps) => {
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className="flex flex-col items-center gap-1 py-2 px-6 transition-colors"
+              className="flex flex-col items-center gap-1 py-2 px-3 transition-colors"
             >
               <Icon
                 className={`w-6 h-6 transition-colors ${
