@@ -27,29 +27,7 @@ const fadeUp = {
 };
 
 const DashboardPage = ({ onNavigate }: DashboardProps) => {
-  const [peopleCount, setPeopleCount] = useState(0);
-  const [totalIncome, setTotalIncome] = useState(0);
-  const [totalExpense, setTotalExpense] = useState(0);
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    fetchStats();
-    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const fetchStats = async () => {
-    const [{ count }, { data: incomeData }, { data: expenseData }] = await Promise.all([
-      supabase.from("people").select("*", { count: "exact", head: true }),
-      supabase.from("finances").select("amount").eq("type", "income"),
-      supabase.from("finances").select("amount").eq("type", "expense"),
-    ]);
-    setPeopleCount(count || 0);
-    setTotalIncome((incomeData || []).reduce((s, r) => s + Number(r.amount), 0));
-    setTotalExpense((expenseData || []).reduce((s, r) => s + Number(r.amount), 0));
-  };
-
-  const netBalance = totalIncome - totalExpense;
+  const [currentTime] = useState(new Date());
 
   const greeting = () => {
     const h = currentTime.getHours();
