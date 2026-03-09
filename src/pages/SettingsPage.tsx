@@ -669,6 +669,7 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
         note={selectedNote}
         onBack={() => setSelectedNote(null)}
         onDelete={deleteNote}
+        onUpdate={updateNote}
       />
     );
   }
