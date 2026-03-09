@@ -275,7 +275,7 @@ const FinancePage = ({ onBack }: { onBack: () => void }) => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[15px] font-semibold text-foreground truncate">{rec.description}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{rec.date}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{formatSyriacDateString(rec.date)}</p>
                   </div>
                   <p className={`text-sm font-bold shrink-0 ${
                     activeTab === "income" ? "text-accent" : "text-destructive"
