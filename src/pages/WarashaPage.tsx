@@ -25,10 +25,9 @@ const WarashaPage = () => {
 
   if (selectedWorkshop) {
     return (
-      <LessonAttendancePage
+      <WorkshopAttendancePage
         lesson={selectedWorkshop}
         onBack={() => setSelectedWorkshop(null)}
-        category="warasha"
       />
     );
   }
