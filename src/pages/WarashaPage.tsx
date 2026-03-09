@@ -5,6 +5,7 @@ import AddLessonDialog from "@/components/AddLessonDialog";
 import WorkshopAttendancePage from "./WorkshopAttendancePage";
 import { getWorkshopsFromStorage, saveWorkshopsToStorage, generateId } from "@/lib/quran-data";
 import type { Lesson } from "@/lib/quran-data";
+import { formatSyriacDateString } from "@/lib/syriac-locale";
 
 const WarashaPage = () => {
   const [workshops, setWorkshops] = useState<Lesson[]>([]);
