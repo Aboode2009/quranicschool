@@ -16,6 +16,7 @@ interface WorkshopDetail {
   status: Status;
   readMaterial: boolean;
   listenedLecture: boolean;
+  excuse?: "with_excuse" | "without_excuse";
 }
 
 interface WorkshopAttendancePageProps {
@@ -64,6 +65,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
         status: r.is_present ? "present" : (r.is_present === false && attData ? "absent" : null),
         readMaterial: r.read_material || false,
         listenedLecture: r.listened_lecture || false,
+        excuse: r.excuse || undefined,
       };
     });
 
@@ -77,6 +79,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
       [personId]: {
         ...prev[personId],
         status,
+        excuse: status === "absent" ? "without_excuse" : undefined,
       },
     }));
     setExpandedPerson(personId);
@@ -104,8 +107,9 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
         lesson_name: lesson.id,
         lesson_date: new Date().toISOString().split("T")[0],
         is_present: detail?.status === "present",
-        read_material: detail?.readMaterial || false,
-        listened_lecture: detail?.listenedLecture || false,
+        read_material: detail?.status === "present" ? (detail?.readMaterial || false) : false,
+        listened_lecture: detail?.status === "present" ? (detail?.listenedLecture || false) : false,
+        excuse: detail?.status === "absent" ? (detail?.excuse || null) : null,
       };
     });
 
@@ -123,11 +127,13 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
 
   const statusLabel = (detail: WorkshopDetail) => {
     if (!detail?.status) return "لم يُحدد";
-    const parts: string[] = [];
-    parts.push(detail.status === "present" ? "حاضر" : "غائب");
-    if (detail.readMaterial) parts.push("قرأ المادة");
-    if (detail.listenedLecture) parts.push("سمع المحاضرة");
-    return parts.join(" · ");
+    if (detail.status === "present") {
+      const parts: string[] = ["حاضر"];
+      if (detail.readMaterial) parts.push("قرأ المادة");
+      if (detail.listenedLecture) parts.push("سمع المحاضرة");
+      return parts.join(" · ");
+    }
+    return detail.excuse === "with_excuse" ? "غائب بعذر" : "غائب بدون عذر";
   };
 
   const statusColor = (detail: WorkshopDetail) => {
@@ -250,55 +256,91 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
                               </div>
                             </div>
 
-                            {/* Read material */}
-                            <div>
-                              <p className="text-[11px] font-medium text-muted-foreground mb-1.5">هل قرأ المادة؟</p>
-                              <div className="flex gap-2">
-                                <Chip
-                                  label="نعم"
-                                  active={detail.readMaterial === true}
-                                  activeClass="bg-primary text-primary-foreground"
-                                  onClick={() => setAttendance((prev) => ({
-                                    ...prev,
-                                    [person.id]: { ...prev[person.id], readMaterial: true },
-                                  }))}
-                                />
-                                <Chip
-                                  label="لا"
-                                  active={detail.readMaterial === false}
-                                  activeClass="bg-destructive text-destructive-foreground"
-                                  onClick={() => setAttendance((prev) => ({
-                                    ...prev,
-                                    [person.id]: { ...prev[person.id], readMaterial: false },
-                                  }))}
-                                />
-                              </div>
-                            </div>
+                            {/* Read material & Listened - only when present */}
+                            {detail.status === "present" && (
+                              <motion.div
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-3"
+                              >
+                                <div>
+                                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">هل قرأ المادة؟</p>
+                                  <div className="flex gap-2">
+                                    <Chip
+                                      label="نعم"
+                                      active={detail.readMaterial === true}
+                                      activeClass="bg-primary text-primary-foreground"
+                                      onClick={() => setAttendance((prev) => ({
+                                        ...prev,
+                                        [person.id]: { ...prev[person.id], readMaterial: true },
+                                      }))}
+                                    />
+                                    <Chip
+                                      label="لا"
+                                      active={detail.readMaterial === false}
+                                      activeClass="bg-destructive text-destructive-foreground"
+                                      onClick={() => setAttendance((prev) => ({
+                                        ...prev,
+                                        [person.id]: { ...prev[person.id], readMaterial: false },
+                                      }))}
+                                    />
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">هل سمع المحاضرة؟</p>
+                                  <div className="flex gap-2">
+                                    <Chip
+                                      label="نعم"
+                                      active={detail.listenedLecture === true}
+                                      activeClass="bg-primary text-primary-foreground"
+                                      onClick={() => setAttendance((prev) => ({
+                                        ...prev,
+                                        [person.id]: { ...prev[person.id], listenedLecture: true },
+                                      }))}
+                                    />
+                                    <Chip
+                                      label="لا"
+                                      active={detail.listenedLecture === false}
+                                      activeClass="bg-destructive text-destructive-foreground"
+                                      onClick={() => setAttendance((prev) => ({
+                                        ...prev,
+                                        [person.id]: { ...prev[person.id], listenedLecture: false },
+                                      }))}
+                                    />
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
 
-                            {/* Listened lecture */}
-                            <div>
-                              <p className="text-[11px] font-medium text-muted-foreground mb-1.5">هل سمع المحاضرة؟</p>
-                              <div className="flex gap-2">
-                                <Chip
-                                  label="نعم"
-                                  active={detail.listenedLecture === true}
-                                  activeClass="bg-primary text-primary-foreground"
-                                  onClick={() => setAttendance((prev) => ({
-                                    ...prev,
-                                    [person.id]: { ...prev[person.id], listenedLecture: true },
-                                  }))}
-                                />
-                                <Chip
-                                  label="لا"
-                                  active={detail.listenedLecture === false}
-                                  activeClass="bg-destructive text-destructive-foreground"
-                                  onClick={() => setAttendance((prev) => ({
-                                    ...prev,
-                                    [person.id]: { ...prev[person.id], listenedLecture: false },
-                                  }))}
-                                />
-                              </div>
-                            </div>
+                            {/* Excuse - only when absent */}
+                            {detail.status === "absent" && (
+                              <motion.div
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                              >
+                                <p className="text-[11px] font-medium text-muted-foreground mb-1.5">نوع الغياب</p>
+                                <div className="flex gap-2">
+                                  <Chip
+                                    label="بعذر"
+                                    active={detail.excuse === "with_excuse"}
+                                    activeClass="bg-accent text-accent-foreground"
+                                    onClick={() => setAttendance((prev) => ({
+                                      ...prev,
+                                      [person.id]: { ...prev[person.id], excuse: "with_excuse" },
+                                    }))}
+                                  />
+                                  <Chip
+                                    label="بدون عذر"
+                                    active={detail.excuse === "without_excuse"}
+                                    activeClass="bg-destructive text-destructive-foreground"
+                                    onClick={() => setAttendance((prev) => ({
+                                      ...prev,
+                                      [person.id]: { ...prev[person.id], excuse: "without_excuse" },
+                                    }))}
+                                  />
+                                </div>
+                              </motion.div>
+                            )}
                           </div>
                         </motion.div>
                       )}
