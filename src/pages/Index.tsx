@@ -12,7 +12,7 @@ const Index = () => {
     <div className="flex flex-col h-screen bg-background font-body overflow-hidden">
       <main className="flex-1 overflow-hidden">
         {activeTab === "muhadera" && <MuhaderaPage />}
-        {activeTab === "attendance" && <AttendancePage />}
+        {activeTab === "attendance" && <AttendancePage category="muhadera" title="أسماء المحاضرة" subtitle="قائمة الأشخاص المسجلين في المحاضرة" />}
         {activeTab === "warasha" && <WarashaPage />}
         {activeTab === "taqyeem" && <TaqyeemPage />}
       </main>

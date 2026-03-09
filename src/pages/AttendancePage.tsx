@@ -9,19 +9,26 @@ interface Person {
   name: string;
 }
 
-const AttendancePage = () => {
+interface AttendancePageProps {
+  category?: string;
+  title?: string;
+  subtitle?: string;
+}
+
+const AttendancePage = ({ category = "muhadera", title = "الأسماء", subtitle = "قائمة الأشخاص المسجلين" }: AttendancePageProps) => {
   const [people, setPeople] = useState<Person[]>([]);
   const [newName, setNewName] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchPeople();
-  }, []);
+  }, [category]);
 
   const fetchPeople = async () => {
     const { data, error } = await supabase
       .from("people")
       .select("id, name")
+      .eq("category", category)
       .order("created_at", { ascending: true });
 
     if (error) {
@@ -38,7 +45,7 @@ const AttendancePage = () => {
 
     const { data, error } = await supabase
       .from("people")
-      .insert({ name: trimmed })
+      .insert({ name: trimmed, category })
       .select()
       .single();
 
@@ -65,8 +72,8 @@ const AttendancePage = () => {
     <div className="flex flex-col h-full" dir="rtl">
       {/* Header */}
       <div className="px-4 pt-3 pb-2">
-        <h1 className="text-2xl font-bold text-foreground mb-1">الأسماء</h1>
-        <p className="text-sm text-muted-foreground">قائمة الأشخاص المسجلين</p>
+        <h1 className="text-2xl font-bold text-foreground mb-1">{title}</h1>
+        <p className="text-sm text-muted-foreground">{subtitle}</p>
       </div>
 
       {/* List */}
