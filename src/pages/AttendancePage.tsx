@@ -9,26 +9,22 @@ interface Person {
   name: string;
 }
 
-interface AttendancePageProps {
-  category?: string;
-  title?: string;
-  subtitle?: string;
-}
-
-const AttendancePage = ({ category = "muhadera", title = "الأسماء", subtitle = "قائمة الأشخاص المسجلين" }: AttendancePageProps) => {
+const AttendancePage = () => {
+  const [activeCategory, setActiveCategory] = useState<"muhadera" | "warasha">("muhadera");
   const [people, setPeople] = useState<Person[]>([]);
   const [newName, setNewName] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchPeople();
-  }, [category]);
+  }, [activeCategory]);
 
   const fetchPeople = async () => {
+    setLoading(true);
     const { data, error } = await supabase
       .from("people")
       .select("id, name")
-      .eq("category", category)
+      .eq("category", activeCategory)
       .order("created_at", { ascending: true });
 
     if (error) {
@@ -45,7 +41,7 @@ const AttendancePage = ({ category = "muhadera", title = "الأسماء", subti
 
     const { data, error } = await supabase
       .from("people")
-      .insert({ name: trimmed, category })
+      .insert({ name: trimmed, category: activeCategory })
       .select()
       .single();
 
@@ -68,12 +64,39 @@ const AttendancePage = ({ category = "muhadera", title = "الأسماء", subti
     }
   };
 
+  const title = activeCategory === "muhadera" ? "أسماء المحاضرة" : "أسماء الورشة";
+  const subtitle = activeCategory === "muhadera" ? "قائمة الأشخاص المسجلين في المحاضرة" : "قائمة الأشخاص المسجلين في الورشة";
+
   return (
     <div className="flex flex-col h-full" dir="rtl">
       {/* Header */}
       <div className="px-4 pt-3 pb-2">
         <h1 className="text-2xl font-bold text-foreground mb-1">{title}</h1>
-        <p className="text-sm text-muted-foreground">{subtitle}</p>
+        <p className="text-sm text-muted-foreground mb-3">{subtitle}</p>
+
+        {/* Category toggle */}
+        <div className="flex gap-2 p-1 rounded-xl bg-secondary">
+          <button
+            onClick={() => setActiveCategory("muhadera")}
+            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
+              activeCategory === "muhadera"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground"
+            }`}
+          >
+            المحاضرة
+          </button>
+          <button
+            onClick={() => setActiveCategory("warasha")}
+            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
+              activeCategory === "warasha"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground"
+            }`}
+          >
+            الورشة
+          </button>
+        </div>
       </div>
 
       {/* List */}
