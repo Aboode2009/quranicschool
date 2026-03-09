@@ -22,18 +22,6 @@ const MuhaderaPage = () => {
     setLessons((prev) => [lesson, ...prev]);
   };
 
-  const updateStatus = (id: string, status: Lesson["status"]) => {
-    setLessons((prev) => prev.map((l) => (l.id === id ? { ...l, status } : l)));
-  };
-
-  const deleteLesson = (id: string) => {
-    setLessons((prev) => {
-      const updated = prev.filter((l) => l.id !== id);
-      saveLessonsToStorage(updated);
-      return updated;
-    });
-  };
-
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
