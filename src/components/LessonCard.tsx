@@ -69,10 +69,10 @@ const LessonCard = ({ lesson, index, onStatusChange, onDelete }: LessonCardProps
         <p className={`text-[15px] font-semibold leading-tight ${
           lesson.status === "completed" ? "text-muted-foreground line-through" : "text-foreground"
         }`}>
-          سورة {lesson.surahName}
+          {lesson.surahName}
         </p>
         <p className="text-xs text-muted-foreground mt-0.5">
-          الآيات {lesson.fromAyah} – {lesson.toAyah} · {lesson.date}
+          {lesson.date}
         </p>
         {lesson.notes && (
           <p className="text-xs text-muted-foreground/70 mt-1 truncate">{lesson.notes}</p>

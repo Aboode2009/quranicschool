@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
-import { SURAH_LIST, generateId } from "@/lib/quran-data";
+import { X, Calendar as CalendarIcon } from "lucide-react";
+import { generateId } from "@/lib/quran-data";
 import type { Lesson } from "@/lib/quran-data";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 
 interface AddLessonDialogProps {
   open: boolean;
@@ -11,27 +15,27 @@ interface AddLessonDialogProps {
 }
 
 const AddLessonDialog = ({ open, onClose, onAdd }: AddLessonDialogProps) => {
-  const [surahName, setSurahName] = useState(SURAH_LIST[0]);
-  const [fromAyah, setFromAyah] = useState(1);
-  const [toAyah, setToAyah] = useState(10);
+  const [lessonName, setLessonName] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [notes, setNotes] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const today = new Date();
-    const dateStr = today.toLocaleDateString("ar-SA", { year: "numeric", month: "short", day: "numeric" });
+    if (!lessonName.trim() || !selectedDate) return;
+    
+    const dateStr = selectedDate.toLocaleDateString("ar-SA", { year: "numeric", month: "short", day: "numeric" });
     onAdd({
       id: generateId(),
-      surahName,
-      fromAyah,
-      toAyah,
+      surahName: lessonName,
+      fromAyah: 0,
+      toAyah: 0,
       notes,
       status: "pending",
       date: dateStr,
     });
+    setLessonName("");
     setNotes("");
-    setFromAyah(1);
-    setToAyah(10);
+    setSelectedDate(new Date());
     onClose();
   };
 
@@ -65,37 +69,40 @@ const AddLessonDialog = ({ open, onClose, onAdd }: AddLessonDialogProps) => {
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <div className="ios-card overflow-hidden">
-                  <div className="px-4 py-3 flex items-center justify-between border-b border-ios-separator">
-                    <label className="text-sm text-foreground">السورة</label>
-                    <select
-                      value={surahName}
-                      onChange={(e) => setSurahName(e.target.value)}
-                      className="bg-transparent text-sm text-muted-foreground text-left focus:outline-none"
-                    >
-                      {SURAH_LIST.map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="px-4 py-3 flex items-center justify-between border-b border-ios-separator">
-                    <label className="text-sm text-foreground">من آية</label>
+                  <div className="px-4 py-3 border-b border-ios-separator">
                     <input
-                      type="number"
-                      min={1}
-                      value={fromAyah}
-                      onChange={(e) => setFromAyah(Number(e.target.value))}
-                      className="bg-transparent text-sm text-muted-foreground text-left w-20 focus:outline-none"
+                      type="text"
+                      value={lessonName}
+                      onChange={(e) => setLessonName(e.target.value)}
+                      placeholder="اسم المحاضرة"
+                      className="w-full bg-transparent text-base text-foreground placeholder:text-muted-foreground focus:outline-none"
+                      required
                     />
                   </div>
-                  <div className="px-4 py-3 flex items-center justify-between">
-                    <label className="text-sm text-foreground">إلى آية</label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={toAyah}
-                      onChange={(e) => setToAyah(Number(e.target.value))}
-                      className="bg-transparent text-sm text-muted-foreground text-left w-20 focus:outline-none"
-                    />
+                  <div className="px-4 py-3">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className="w-full flex items-center justify-between text-sm"
+                        >
+                          <span className="text-foreground">التاريخ</span>
+                          <span className="text-muted-foreground flex items-center gap-2">
+                            {selectedDate ? format(selectedDate, "PPP", { locale: ar }) : "اختر التاريخ"}
+                            <CalendarIcon className="w-4 h-4" />
+                          </span>
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="end">
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={setSelectedDate}
+                          locale={ar}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
 
