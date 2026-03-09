@@ -807,12 +807,235 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
   );
 };
 
+interface Assignment {
+  id: string;
+  title: string;
+  description: string;
+  due_date: string;
+  status: string;
+  priority: string;
+  assigned_to: string;
+}
+
+const priorityConfig: Record<string, { label: string; color: string; bg: string }> = {
+  high: { label: "عالية", color: "text-destructive", bg: "bg-destructive/10" },
+  medium: { label: "متوسطة", color: "text-primary", bg: "bg-primary/10" },
+  low: { label: "منخفضة", color: "text-accent", bg: "bg-accent/10" },
+};
+
+const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
+  pending: { label: "قيد الانتظار", color: "text-muted-foreground", bg: "bg-muted" },
+  in_progress: { label: "قيد التنفيذ", color: "text-primary", bg: "bg-primary/10" },
+  completed: { label: "مكتمل", color: "text-accent", bg: "bg-accent/10" },
+};
+
+const AssignmentsPage = ({ onBack }: { onBack: () => void }) => {
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAdd, setShowAdd] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
+  const [priority, setPriority] = useState("medium");
+  const [status, setStatus] = useState("pending");
+  const [assignedTo, setAssignedTo] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchAssignments();
+  }, []);
+
+  const fetchAssignments = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("assignments")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) toast.error("خطأ في تحميل الواجبات");
+    else setAssignments((data as Assignment[]) || []);
+    setLoading(false);
+  };
+
+  const resetForm = () => {
+    setTitle(""); setDescription(""); setDueDate(undefined);
+    setPriority("medium"); setStatus("pending"); setAssignedTo("");
+    setEditingId(null); setShowAdd(false);
+  };
+
+  const handleSave = async () => {
+    if (!title.trim() || !dueDate) {
+      toast.error("يرجى إدخال العنوان وتاريخ الاستحقاق");
+      return;
+    }
+    const record = {
+      title: title.trim(),
+      description: description.trim(),
+      due_date: dueDate.toISOString().split("T")[0],
+      priority, status, assigned_to: assignedTo.trim(),
+    };
+
+    if (editingId) {
+      const { error } = await supabase.from("assignments").update(record).eq("id", editingId);
+      if (error) toast.error("خطأ في التعديل");
+      else { toast.success("تم التعديل"); fetchAssignments(); resetForm(); }
+    } else {
+      const { error } = await supabase.from("assignments").insert(record);
+      if (error) toast.error("خطأ في الإضافة");
+      else { toast.success("تمت الإضافة"); fetchAssignments(); resetForm(); }
+    }
+  };
+
+  const startEdit = (a: Assignment) => {
+    setTitle(a.title); setDescription(a.description);
+    setDueDate(new Date(a.due_date)); setPriority(a.priority);
+    setStatus(a.status); setAssignedTo(a.assigned_to);
+    setEditingId(a.id); setShowAdd(true);
+  };
+
+  const deleteAssignment = async (id: string) => {
+    const { error } = await supabase.from("assignments").delete().eq("id", id);
+    if (error) toast.error("خطأ في الحذف");
+    else { setAssignments(prev => prev.filter(a => a.id !== id)); toast.success("تم الحذف"); }
+  };
+
+  const toggleStatus = async (a: Assignment) => {
+    const next = a.status === "pending" ? "in_progress" : a.status === "in_progress" ? "completed" : "pending";
+    const { error } = await supabase.from("assignments").update({ status: next }).eq("id", a.id);
+    if (!error) setAssignments(prev => prev.map(x => x.id === a.id ? { ...x, status: next } : x));
+  };
+
+  const inputClass = "w-full px-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground text-sm outline-none focus:ring-2 focus:ring-primary/30";
+
+  return (
+    <div className="flex flex-col h-full" dir="rtl">
+      <div className="px-4 pt-3 pb-2">
+        <button onClick={onBack} className="flex items-center gap-1 text-primary text-sm font-medium mb-3">
+          <ChevronLeft className="w-4 h-4 rotate-180" /><span>رجوع</span>
+        </button>
+        <h1 className="text-2xl font-bold text-foreground mb-3">الواجبات</h1>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 pb-4">
+        <AnimatePresence>
+          {showAdd && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+              className="ios-card p-4 flex flex-col gap-3 mb-3">
+              <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="عنوان الواجب" className={inputClass} />
+              <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="الوصف..." rows={2} className={`${inputClass} resize-none`} />
+              <input type="text" value={assignedTo} onChange={e => setAssignedTo(e.target.value)} placeholder="المسؤول عن التنفيذ" className={inputClass} />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className={cn(inputClass, "flex items-center justify-between text-right", !dueDate && "text-muted-foreground")}>
+                    {dueDate ? formatSyriacDate(dueDate) : "تاريخ الاستحقاق"}
+                    <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={dueDate} onSelect={setDueDate} locale={syriacLocale} initialFocus className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+              <div className="flex gap-2">
+                {(["high", "medium", "low"] as const).map(p => (
+                  <button key={p} onClick={() => setPriority(p)}
+                    className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${priority === p ? `${priorityConfig[p].bg} ${priorityConfig[p].color}` : "bg-secondary text-muted-foreground"}`}>
+                    {priorityConfig[p].label}
+                  </button>
+                ))}
+              </div>
+              {editingId && (
+                <div className="flex gap-2">
+                  {(["pending", "in_progress", "completed"] as const).map(s => (
+                    <button key={s} onClick={() => setStatus(s)}
+                      className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${status === s ? `${statusConfig[s].bg} ${statusConfig[s].color}` : "bg-secondary text-muted-foreground"}`}>
+                      {statusConfig[s].label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-2">
+                <button onClick={handleSave} className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold active:scale-[0.97] transition-transform">
+                  {editingId ? "حفظ التعديل" : "إضافة"}
+                </button>
+                <button onClick={resetForm} className="py-3 px-5 rounded-xl bg-secondary text-muted-foreground text-sm font-semibold active:scale-[0.97] transition-transform">
+                  إلغاء
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-16 text-muted-foreground"><p>جاري التحميل...</p></div>
+        ) : assignments.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+            <CheckSquare className="w-10 h-10 mb-3 opacity-30" />
+            <p className="text-base font-medium">لا توجد واجبات بعد</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <AnimatePresence mode="popLayout">
+              {assignments.map((a, i) => {
+                const pr = priorityConfig[a.priority] || priorityConfig.medium;
+                const st = statusConfig[a.status] || statusConfig.pending;
+                return (
+                  <motion.div key={a.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 40 }}
+                    transition={{ delay: i * 0.03 }} className="ios-card px-4 py-3.5">
+                    <div className="flex items-start gap-3">
+                      <button onClick={() => toggleStatus(a)}
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${st.bg}`}>
+                        <CheckSquare className={`w-4 h-4 ${st.color}`} />
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-[15px] font-semibold text-foreground ${a.status === "completed" ? "line-through opacity-60" : ""}`}>{a.title}</p>
+                        {a.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{a.description}</p>}
+                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${pr.bg} ${pr.color}`}>{pr.label}</span>
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${st.bg} ${st.color}`}>{st.label}</span>
+                          {a.assigned_to && (
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                              <User className="w-3 h-3" />{a.assigned_to}
+                            </span>
+                          )}
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                            <Clock className="w-3 h-3" />{formatSyriacDateString(a.due_date)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        <button onClick={() => startEdit(a)} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary transition-colors">
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => deleteAssignment(a.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+
+      {!showAdd && (
+        <div className="px-4 pb-4">
+          <button onClick={() => setShowAdd(true)} className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform">
+            <Plus className="w-5 h-5" /><span>إضافة واجب جديد</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const SettingsPage = () => {
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains("dark");
   });
   const [showFinance, setShowFinance] = useState(false);
   const [showSessionNotes, setShowSessionNotes] = useState(false);
+  const [showAssignments, setShowAssignments] = useState(false);
 
   const toggleDarkMode = () => {
     const newVal = !isDark;
