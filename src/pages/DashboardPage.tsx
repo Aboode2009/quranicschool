@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { BookOpen, Users, UserCheck, Settings, ChevronLeft } from "lucide-react";
+import { BookOpen, Users, UserCheck, Settings, ChevronLeft, Shield } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
-type TabId = "muhadera" | "warasha" | "settings" | "attendance";
+type TabId = "muhadera" | "warasha" | "settings" | "attendance" | "admin";
 
 interface DashboardProps {
   onNavigate: (tab: TabId) => void;
@@ -26,6 +27,8 @@ const fadeUp = {
 };
 
 const DashboardPage = ({ onNavigate }: DashboardProps) => {
+  const { isAdmin } = useAuth();
+
   const navCards = [
     {
       id: "muhadera" as TabId,
@@ -55,6 +58,13 @@ const DashboardPage = ({ onNavigate }: DashboardProps) => {
       icon: Settings,
       bg: "bg-gradient-to-br from-[#00897b] to-[#4db6ac]",
     },
+    ...(isAdmin ? [{
+      id: "admin" as TabId,
+      title: "لوحة التحكم",
+      desc: "إدارة المستخدمين والإحصائيات",
+      icon: Shield,
+      bg: "bg-gradient-to-br from-[#e65100] to-[#ff9800]",
+    }] : []),
   ];
 
   return (
