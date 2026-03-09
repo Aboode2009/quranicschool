@@ -90,7 +90,7 @@ const MuhaderaPage = () => {
               className="flex flex-col items-center justify-center py-20 text-muted-foreground"
             >
               <BookOpen className="w-10 h-10 mb-3 opacity-30" strokeWidth={1.5} />
-              <p className="text-base font-medium">لا توجد دروس {filter !== "all" ? "في هذا التصنيف" : "بعد"}</p>
+              <p className="text-base font-medium">لا توجد دروس بعد</p>
               <p className="text-sm mt-1">اضغط + لإضافة درس جديد</p>
             </motion.div>
           )}
