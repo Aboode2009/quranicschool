@@ -24,7 +24,21 @@ const FinancePage = ({ onBack }: { onBack: () => void }) => {
 
   useEffect(() => {
     fetchRecords();
+    fetchTotals();
   }, [activeTab]);
+
+  const fetchTotals = async () => {
+    const { data: incomeData } = await supabase
+      .from("finances")
+      .select("amount")
+      .eq("type", "income");
+    const { data: expenseData } = await supabase
+      .from("finances")
+      .select("amount")
+      .eq("type", "expense");
+    setTotalIncome((incomeData || []).reduce((s, r) => s + Number(r.amount), 0));
+    setTotalExpense((expenseData || []).reduce((s, r) => s + Number(r.amount), 0));
+  };
 
   const fetchRecords = async () => {
     setLoading(true);
