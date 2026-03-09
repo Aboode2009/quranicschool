@@ -465,6 +465,13 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [selectedNote, setSelectedNote] = useState<SessionNote | null>(null);
+  const [lectureName, setLectureName] = useState("");
+  const [lectureDate, setLectureDate] = useState<Date | undefined>();
+  const [lectureNotes, setLectureNotes] = useState("");
+  const [workshopName, setWorkshopName] = useState("");
+  const [workshopDate, setWorkshopDate] = useState<Date | undefined>();
+  const [workshopNotes, setWorkshopNotes] = useState("");
+  const [resources, setResources] = useState("");
 
   useEffect(() => { fetchNotes(); }, []);
 
@@ -481,11 +488,36 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
     setWorkshopName(""); setWorkshopDate(undefined); setWorkshopNotes(""); setResources("");
   };
 
+  const addNote = async () => {
+    if (!lectureName.trim() && !workshopName.trim()) {
+      toast.error("يرجى إدخال اسم المحاضرة أو الورشة على الأقل"); return;
+    }
+    const toDateStr = (d: Date | undefined) => d ? d.toISOString().split("T")[0] : null;
+    const { data, error } = await supabase.from("session_notes").insert([{
+      lecture_name: lectureName.trim(),
+      lecture_date: toDateStr(lectureDate),
+      lecture_notes: lectureNotes.trim(),
+      workshop_name: workshopName.trim(),
+      workshop_date: toDateStr(workshopDate),
+      workshop_notes: workshopNotes.trim(),
+      resources: resources.trim(),
+      content: `${lectureName.trim()} - ${workshopName.trim()}`,
+      date: new Date().toISOString().split("T")[0],
+    }]).select().single();
+    if (error) { toast.error("خطأ في الإضافة"); }
+    else if (data) {
+      setNotes((prev) => [data as any, ...prev]);
+      resetForm(); setShowAdd(false); toast.success("تمت الإضافة");
+    }
+  };
+
   const deleteNote = async (id: string) => {
     const { error } = await supabase.from("session_notes").delete().eq("id", id);
     if (error) { toast.error("خطأ في الحذف"); }
     else { setNotes((prev) => prev.filter((n) => n.id !== id)); toast.success("تم الحذف"); }
   };
+
+  const inputClass = "w-full px-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground text-sm outline-none focus:ring-2 focus:ring-primary/30";
 
   if (selectedNote) {
     return (
@@ -495,6 +527,170 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
         onDelete={deleteNote}
       />
     );
+  }
+
+  return (
+    <div className="flex flex-col h-full" dir="rtl">
+      <div className="px-4 pt-3 pb-2">
+        <button onClick={onBack} className="flex items-center gap-1 text-primary text-sm font-medium mb-3">
+          <ChevronLeft className="w-4 h-4 rotate-180" /><span>رجوع</span>
+        </button>
+        <h1 className="text-2xl font-bold text-foreground mb-1">مقررات الجلسة</h1>
+        <p className="text-sm text-muted-foreground">تسجيل تفاصيل كل جلسة</p>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 pb-4">
+        <AnimatePresence>
+          {showAdd && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-3 flex flex-col gap-3"
+            >
+              <div className="ios-card p-4 flex flex-col gap-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <BookOpen className="w-4 h-4 text-primary" />
+                  <p className="text-sm font-bold text-foreground">المحاضرة</p>
+                </div>
+                <input type="text" value={lectureName} onChange={(e) => setLectureName(e.target.value)}
+                  placeholder="اسم المحاضرة" className={inputClass} />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className={cn(inputClass, "flex items-center justify-between text-right", !lectureDate && "text-muted-foreground")}>
+                      {lectureDate ? formatSyriacDate(lectureDate) : "اختر التاريخ"}
+                      <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={lectureDate} onSelect={setLectureDate}
+                      locale={syriacLocale} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
+                <textarea value={lectureNotes} onChange={(e) => setLectureNotes(e.target.value)}
+                  placeholder="ملاحظات على المحاضرة..." rows={3} className={`${inputClass} resize-none`} />
+              </div>
+
+              <div className="ios-card p-4 flex flex-col gap-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <Users className="w-4 h-4 text-accent" />
+                  <p className="text-sm font-bold text-foreground">الورشة</p>
+                </div>
+                <input type="text" value={workshopName} onChange={(e) => setWorkshopName(e.target.value)}
+                  placeholder="اسم الورشة" className={inputClass} />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className={cn(inputClass, "flex items-center justify-between text-right", !workshopDate && "text-muted-foreground")}>
+                      {workshopDate ? formatSyriacDate(workshopDate) : "اختر التاريخ"}
+                      <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={workshopDate} onSelect={setWorkshopDate}
+                      locale={syriacLocale} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
+                <textarea value={workshopNotes} onChange={(e) => setWorkshopNotes(e.target.value)}
+                  placeholder="ملاحظات على الورشة..." rows={3} className={`${inputClass} resize-none`} />
+              </div>
+
+              <div className="ios-card p-4 flex flex-col gap-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <Wrench className="w-4 h-4 text-muted-foreground" />
+                  <p className="text-sm font-bold text-foreground">الوسائل المصاحبة</p>
+                </div>
+                <textarea value={resources} onChange={(e) => setResources(e.target.value)}
+                  placeholder="اكتب الوسائل المصاحبة..." rows={3} className={`${inputClass} resize-none`} />
+              </div>
+
+              <div className="flex gap-2 pb-2">
+                <button onClick={addNote} className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold active:scale-[0.97] transition-transform">حفظ المقرر</button>
+                <button onClick={() => { setShowAdd(false); resetForm(); }} className="py-3 px-5 rounded-xl bg-secondary text-muted-foreground text-sm font-semibold active:scale-[0.97] transition-transform">إلغاء</button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-16 text-muted-foreground"><p>جاري التحميل...</p></div>
+        ) : notes.length === 0 && !showAdd ? (
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+            <ClipboardList className="w-10 h-10 mb-3 opacity-30" />
+            <p className="text-base font-medium">لا توجد مقررات بعد</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3 mt-3">
+            <AnimatePresence mode="popLayout">
+              {notes.map((note, i) => (
+                <motion.div
+                  key={note.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: 40 }}
+                  transition={{ delay: i * 0.03 }}
+                  onClick={() => setSelectedNote(note)}
+                  className="ios-card px-4 py-3.5 flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <ClipboardList className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] font-semibold text-foreground truncate">
+                      {note.lecture_name || note.workshop_name || "مقرر جلسة"}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{formatSyriacDateString(note.date)}</p>
+                    {note.workshop_name && note.lecture_name && (
+                      <p className="text-xs text-muted-foreground/70 mt-0.5 truncate">ورشة: {note.workshop_name}</p>
+                    )}
+                  </div>
+                  <ChevronLeft className="w-4 h-4 text-muted-foreground shrink-0 rotate-180" />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+
+      {!showAdd && (
+        <div className="px-4 pb-4">
+          <button onClick={() => setShowAdd(true)} className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform">
+            <Plus className="w-5 h-5" /><span>إضافة مقرر جديد</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const SettingsPage = () => {
+  const [isDark, setIsDark] = useState(() => {
+    return document.documentElement.classList.contains("dark");
+  });
+  const [showFinance, setShowFinance] = useState(false);
+  const [showSessionNotes, setShowSessionNotes] = useState(false);
+
+  const toggleDarkMode = () => {
+    const newVal = !isDark;
+    setIsDark(newVal);
+    if (newVal) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  };
+
+  useEffect(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved === "dark") {
+      document.documentElement.classList.add("dark");
+      setIsDark(true);
+    }
+  }, []);
+
+  if (showFinance) {
+    return <FinancePage onBack={() => setShowFinance(false)} />;
   }
 
   if (showSessionNotes) {
@@ -520,17 +716,11 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                {isDark ? (
-                  <Moon className="w-5 h-5 text-primary" />
-                ) : (
-                  <Sun className="w-5 h-5 text-primary" />
-                )}
+                {isDark ? <Moon className="w-5 h-5 text-primary" /> : <Sun className="w-5 h-5 text-primary" />}
               </div>
               <div className="flex-1">
                 <p className="text-[15px] font-semibold text-foreground">الوضع الليلي</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {isDark ? "مفعّل" : "غير مفعّل"}
-                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">{isDark ? "مفعّل" : "غير مفعّل"}</p>
               </div>
               <div className={`w-12 h-7 rounded-full transition-colors flex items-center px-0.5 ${isDark ? "bg-primary" : "bg-muted"}`}>
                 <div className={`w-6 h-6 rounded-full bg-card shadow-sm transition-transform ${isDark ? "-translate-x-5" : "translate-x-0"}`} />
@@ -582,7 +772,7 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
+            transition={{ delay: 0.2 }}
             className="ios-card p-4"
           >
             <div className="flex items-center gap-3">
@@ -602,3 +792,4 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
 };
 
 export default SettingsPage;
+
