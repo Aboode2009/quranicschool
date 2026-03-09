@@ -28,6 +28,7 @@ const AttendancePage = ({ category = "muhadera", title = "الأسماء", subti
     const { data, error } = await supabase
       .from("people")
       .select("id, name")
+      .eq("category", category)
       .order("created_at", { ascending: true });
 
     if (error) {
