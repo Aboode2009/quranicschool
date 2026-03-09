@@ -63,18 +63,21 @@ export type Database = {
       }
       people: {
         Row: {
+          category: string
           created_at: string
           id: string
           name: string
           updated_at: string
         }
         Insert: {
+          category?: string
           created_at?: string
           id?: string
           name: string
           updated_at?: string
         }
         Update: {
+          category?: string
           created_at?: string
           id?: string
           name?: string
