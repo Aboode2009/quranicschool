@@ -8,7 +8,7 @@ import type { Lesson } from "@/lib/quran-data";
 
 const MuhaderaPage = () => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [filter, setFilter] = useState<"all" | Lesson["status"]>("all");
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [showAdd, setShowAdd] = useState(false);
 
