@@ -19,6 +19,8 @@ const FinancePage = ({ onBack }: { onBack: () => void }) => {
   const [showAdd, setShowAdd] = useState(false);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [totalIncome, setTotalIncome] = useState(0);
+  const [totalExpense, setTotalExpense] = useState(0);
 
   useEffect(() => {
     fetchRecords();
