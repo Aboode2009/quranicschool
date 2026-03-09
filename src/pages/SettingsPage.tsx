@@ -472,7 +472,7 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
                 <motion.div key={note.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: 40 }} transition={{ delay: i * 0.03 }} className="ios-card px-4 py-4">
                   <div className="flex items-start justify-between mb-2">
-                    <p className="text-xs text-muted-foreground">{note.date}</p>
+                    <p className="text-xs text-muted-foreground">{formatSyriacDateString(note.date)}</p>
                     <button onClick={() => deleteNote(note.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors">
                       <Trash2 className="w-4 h-4" />
                     </button>
