@@ -94,6 +94,7 @@ const FinancePage = ({ onBack }: { onBack: () => void }) => {
     } else {
       setRecords((prev) => prev.filter((r) => r.id !== id));
       toast.success("تم الحذف");
+      fetchTotals();
     }
   };
 
