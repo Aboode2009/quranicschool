@@ -65,8 +65,8 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
 
               <div className="flex items-center justify-between mb-5">
                 <button onClick={onClose} className="text-primary text-sm font-medium">إلغاء</button>
-                <h2 className="text-[17px] font-bold">درس جديد</h2>
-                <button onClick={handleSubmit} className="text-primary text-sm font-bold">إضافة</button>
+                <h2 className="text-[17px] font-bold">{dialogTitle}</h2>
+                <button onClick={handleSubmit} className="text-primary text-sm font-bold">{addLabel}</button>
               </div>
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
