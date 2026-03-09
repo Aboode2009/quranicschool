@@ -278,7 +278,7 @@ const AttendancePage = () => {
       <div className="flex flex-col h-full" dir="rtl">
         <div className="px-4 pt-3 pb-2">
           <button
-            onClick={() => { setSelectedPerson(null); setRecords(null); setExpandedSection(null); }}
+            onClick={() => { setSelectedPerson(null); setRecords(null); setExpandedSection(null); setDetailView(null); }}
             className="flex items-center gap-1 text-primary text-sm font-medium mb-3"
           >
             <ChevronLeft className="w-4 h-4 rotate-180" />
