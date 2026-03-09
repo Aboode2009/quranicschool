@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Moon, Sun, Info, DollarSign, ChevronLeft, Plus, Trash2, TrendingUp, TrendingDown, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { Moon, Sun, Info, DollarSign, ChevronLeft, Plus, Trash2, TrendingUp, TrendingDown, ArrowDownLeft, ArrowUpRight, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -19,10 +19,26 @@ const FinancePage = ({ onBack }: { onBack: () => void }) => {
   const [showAdd, setShowAdd] = useState(false);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [totalIncome, setTotalIncome] = useState(0);
+  const [totalExpense, setTotalExpense] = useState(0);
 
   useEffect(() => {
     fetchRecords();
+    fetchTotals();
   }, [activeTab]);
+
+  const fetchTotals = async () => {
+    const { data: incomeData } = await supabase
+      .from("finances")
+      .select("amount")
+      .eq("type", "income");
+    const { data: expenseData } = await supabase
+      .from("finances")
+      .select("amount")
+      .eq("type", "expense");
+    setTotalIncome((incomeData || []).reduce((s, r) => s + Number(r.amount), 0));
+    setTotalExpense((expenseData || []).reduce((s, r) => s + Number(r.amount), 0));
+  };
 
   const fetchRecords = async () => {
     setLoading(true);
@@ -67,6 +83,7 @@ const FinancePage = ({ onBack }: { onBack: () => void }) => {
       setDescription("");
       setShowAdd(false);
       toast.success("تمت الإضافة بنجاح");
+      fetchTotals();
     }
   };
 
@@ -77,6 +94,7 @@ const FinancePage = ({ onBack }: { onBack: () => void }) => {
     } else {
       setRecords((prev) => prev.filter((r) => r.id !== id));
       toast.success("تم الحذف");
+      fetchTotals();
     }
   };
 
@@ -122,6 +140,34 @@ const FinancePage = ({ onBack }: { onBack: () => void }) => {
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-4">
+        {/* Net Balance Summary */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="ios-card p-4 mt-3"
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Wallet className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">الرصيد الصافي</p>
+              <p className={`text-2xl font-bold ${(totalIncome - totalExpense) >= 0 ? "text-accent" : "text-destructive"}`}>
+                {(totalIncome - totalExpense).toLocaleString()} <span className="text-sm font-medium">د.ع</span>
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <div className="flex-1 rounded-xl bg-accent/5 p-2.5 text-center">
+              <p className="text-[11px] text-muted-foreground">الإيرادات</p>
+              <p className="text-sm font-bold text-accent">{totalIncome.toLocaleString()}</p>
+            </div>
+            <div className="flex-1 rounded-xl bg-destructive/5 p-2.5 text-center">
+              <p className="text-[11px] text-muted-foreground">المصروفات</p>
+              <p className="text-sm font-bold text-destructive">{totalExpense.toLocaleString()}</p>
+            </div>
+          </div>
+        </motion.div>
         {/* Total card */}
         <motion.div
           key={activeTab}
