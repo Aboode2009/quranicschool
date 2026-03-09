@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
-import { SURAH_LIST, generateId } from "@/lib/quran-data";
+import { X, Calendar as CalendarIcon } from "lucide-react";
+import { generateId } from "@/lib/quran-data";
 import type { Lesson } from "@/lib/quran-data";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 
 interface AddLessonDialogProps {
   open: boolean;
