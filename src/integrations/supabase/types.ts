@@ -23,7 +23,9 @@ export type Database = {
           is_present: boolean
           lesson_date: string
           lesson_name: string
+          listened_lecture: boolean | null
           person_id: string
+          read_material: boolean | null
           timing: string | null
           updated_at: string
         }
@@ -35,7 +37,9 @@ export type Database = {
           is_present?: boolean
           lesson_date: string
           lesson_name: string
+          listened_lecture?: boolean | null
           person_id: string
+          read_material?: boolean | null
           timing?: string | null
           updated_at?: string
         }
@@ -47,7 +51,9 @@ export type Database = {
           is_present?: boolean
           lesson_date?: string
           lesson_name?: string
+          listened_lecture?: boolean | null
           person_id?: string
+          read_material?: boolean | null
           timing?: string | null
           updated_at?: string
         }
