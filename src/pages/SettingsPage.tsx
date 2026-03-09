@@ -495,7 +495,7 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
                       </div>
                       <div>
                         <p className="text-[13px] font-bold text-foreground">{note.workshop_name}</p>
-                        {note.workshop_date && <p className="text-[11px] text-muted-foreground">{note.workshop_date}</p>}
+                        {note.workshop_date && <p className="text-[11px] text-muted-foreground">{formatSyriacDateString(note.workshop_date)}</p>}
                       </div>
                     </div>
                   )}
