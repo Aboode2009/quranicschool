@@ -37,7 +37,7 @@ const DashboardPage = ({ onNavigate }: DashboardProps) => {
     {
       id: "warasha" as TabId,
       title: "الورشة",
-      desc: "إدارة ورش العمل",
+      desc: "",
       icon: Users,
       bg: "bg-gradient-to-br from-[#e84040] to-[#ff8a65]",
     },
