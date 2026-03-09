@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Moon, Sun, Info, DollarSign, ChevronLeft, Plus, Trash2, TrendingUp, TrendingDown, ArrowDownLeft, ArrowUpRight, Wallet, ClipboardList, BookOpen, Users, Wrench, Calendar as CalendarIcon } from "lucide-react";
+import { Moon, Sun, Info, DollarSign, ChevronLeft, Plus, Trash2, TrendingUp, TrendingDown, ArrowDownLeft, ArrowUpRight, Wallet, ClipboardList, BookOpen, Users, Wrench, Calendar as CalendarIcon, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Calendar } from "@/components/ui/calendar";
@@ -323,10 +323,148 @@ interface SessionNote {
   date: string;
 }
 
+const SessionNoteDetailPage = ({ note, onBack, onDelete }: { note: SessionNote; onBack: () => void; onDelete: (id: string) => void }) => {
+  const handleDelete = async () => {
+    onDelete(note.id);
+    onBack();
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 40 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 40 }}
+      className="flex flex-col h-full"
+      dir="rtl"
+    >
+      {/* Header */}
+      <div className="px-4 pt-3 pb-2">
+        <button onClick={onBack} className="flex items-center gap-1 text-primary text-sm font-medium mb-3">
+          <ChevronLeft className="w-4 h-4 rotate-180" /><span>رجوع</span>
+        </button>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">تفاصيل المقرر</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">{formatSyriacDateString(note.date)}</p>
+          </div>
+          <button
+            onClick={handleDelete}
+            className="p-2 rounded-xl bg-destructive/10 text-destructive active:scale-[0.95] transition-transform"
+          >
+            <Trash2 className="w-4.5 h-4.5" />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 pb-6 flex flex-col gap-3">
+        {/* Lecture Section */}
+        {(note.lecture_name || note.lecture_notes) && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="ios-card overflow-hidden">
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50">
+              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <BookOpen className="w-4.5 h-4.5 text-primary" />
+              </div>
+              <p className="text-base font-bold text-foreground">المحاضرة</p>
+            </div>
+            <div className="px-4 py-3 flex flex-col gap-2">
+              {note.lecture_name && (
+                <div>
+                  <p className="text-[11px] text-muted-foreground font-semibold mb-0.5">اسم المحاضرة</p>
+                  <p className="text-[15px] font-semibold text-foreground">{note.lecture_name}</p>
+                </div>
+              )}
+              {note.lecture_date && (
+                <div>
+                  <p className="text-[11px] text-muted-foreground font-semibold mb-0.5">التاريخ</p>
+                  <div className="flex items-center gap-1.5">
+                    <CalendarIcon className="w-3.5 h-3.5 text-primary" />
+                    <p className="text-sm text-foreground">{formatSyriacDateString(note.lecture_date)}</p>
+                  </div>
+                </div>
+              )}
+              {note.lecture_notes && (
+                <div className="mt-1">
+                  <p className="text-[11px] text-muted-foreground font-semibold mb-1.5">الملاحظات</p>
+                  <div className="bg-secondary/60 rounded-xl p-3">
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{note.lecture_notes}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Workshop Section */}
+        {(note.workshop_name || note.workshop_notes) && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="ios-card overflow-hidden">
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50">
+              <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                <Users className="w-4.5 h-4.5 text-accent" />
+              </div>
+              <p className="text-base font-bold text-foreground">الورشة</p>
+            </div>
+            <div className="px-4 py-3 flex flex-col gap-2">
+              {note.workshop_name && (
+                <div>
+                  <p className="text-[11px] text-muted-foreground font-semibold mb-0.5">اسم الورشة</p>
+                  <p className="text-[15px] font-semibold text-foreground">{note.workshop_name}</p>
+                </div>
+              )}
+              {note.workshop_date && (
+                <div>
+                  <p className="text-[11px] text-muted-foreground font-semibold mb-0.5">التاريخ</p>
+                  <div className="flex items-center gap-1.5">
+                    <CalendarIcon className="w-3.5 h-3.5 text-accent" />
+                    <p className="text-sm text-foreground">{formatSyriacDateString(note.workshop_date)}</p>
+                  </div>
+                </div>
+              )}
+              {note.workshop_notes && (
+                <div className="mt-1">
+                  <p className="text-[11px] text-muted-foreground font-semibold mb-1.5">الملاحظات</p>
+                  <div className="bg-secondary/60 rounded-xl p-3">
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{note.workshop_notes}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Resources Section */}
+        {note.resources && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="ios-card overflow-hidden">
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50">
+              <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                <Wrench className="w-4.5 h-4.5 text-muted-foreground" />
+              </div>
+              <p className="text-base font-bold text-foreground">الوسائل المصاحبة</p>
+            </div>
+            <div className="px-4 py-3">
+              <div className="bg-secondary/60 rounded-xl p-3">
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{note.resources}</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Empty state if nothing */}
+        {!note.lecture_name && !note.lecture_notes && !note.workshop_name && !note.workshop_notes && !note.resources && (
+          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+            <FileText className="w-10 h-10 mb-3 opacity-30" />
+            <p className="text-base font-medium">لا توجد تفاصيل</p>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
 const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
   const [notes, setNotes] = useState<SessionNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  const [selectedNote, setSelectedNote] = useState<SessionNote | null>(null);
   const [lectureName, setLectureName] = useState("");
   const [lectureDate, setLectureDate] = useState<Date | undefined>();
   const [lectureNotes, setLectureNotes] = useState("");
@@ -380,6 +518,16 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
   };
 
   const inputClass = "w-full px-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground text-sm outline-none focus:ring-2 focus:ring-primary/30";
+
+  if (selectedNote) {
+    return (
+      <SessionNoteDetailPage
+        note={selectedNote}
+        onBack={() => setSelectedNote(null)}
+        onDelete={deleteNote}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col h-full" dir="rtl">
@@ -455,7 +603,7 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
                   placeholder="اكتب الوسائل المصاحبة..." rows={3} className={`${inputClass} resize-none`} />
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 pb-2">
                 <button onClick={addNote} className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold active:scale-[0.97] transition-transform">حفظ المقرر</button>
                 <button onClick={() => { setShowAdd(false); resetForm(); }} className="py-3 px-5 rounded-xl bg-secondary text-muted-foreground text-sm font-semibold active:scale-[0.97] transition-transform">إلغاء</button>
               </div>
@@ -474,54 +622,28 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
           <div className="flex flex-col gap-3 mt-3">
             <AnimatePresence mode="popLayout">
               {notes.map((note, i) => (
-                <motion.div key={note.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: 40 }} transition={{ delay: i * 0.03 }} className="ios-card px-4 py-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <p className="text-xs text-muted-foreground">{formatSyriacDateString(note.date)}</p>
-                    <button onClick={() => deleteNote(note.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                <motion.div
+                  key={note.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: 40 }}
+                  transition={{ delay: i * 0.03 }}
+                  onClick={() => setSelectedNote(note)}
+                  className="ios-card px-4 py-3.5 flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <ClipboardList className="w-5 h-5 text-primary" />
                   </div>
-                  {note.lecture_name && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <BookOpen className="w-3.5 h-3.5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-[13px] font-bold text-foreground">{note.lecture_name}</p>
-                        {note.lecture_date && <p className="text-[11px] text-muted-foreground">{formatSyriacDateString(note.lecture_date)}</p>}
-                      </div>
-                    </div>
-                  )}
-                  {note.lecture_notes && (
-                    <div className="bg-secondary/50 rounded-xl p-3 mb-2">
-                      <p className="text-[11px] text-muted-foreground font-semibold mb-1">ملاحظات المحاضرة</p>
-                      <p className="text-[13px] text-foreground whitespace-pre-wrap">{note.lecture_notes}</p>
-                    </div>
-                  )}
-                  {note.workshop_name && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                        <Users className="w-3.5 h-3.5 text-accent" />
-                      </div>
-                      <div>
-                        <p className="text-[13px] font-bold text-foreground">{note.workshop_name}</p>
-                        {note.workshop_date && <p className="text-[11px] text-muted-foreground">{formatSyriacDateString(note.workshop_date)}</p>}
-                      </div>
-                    </div>
-                  )}
-                  {note.workshop_notes && (
-                    <div className="bg-secondary/50 rounded-xl p-3 mb-2">
-                      <p className="text-[11px] text-muted-foreground font-semibold mb-1">ملاحظات الورشة</p>
-                      <p className="text-[13px] text-foreground whitespace-pre-wrap">{note.workshop_notes}</p>
-                    </div>
-                  )}
-                  {note.resources && (
-                    <div className="bg-secondary/50 rounded-xl p-3">
-                      <p className="text-[11px] text-muted-foreground font-semibold mb-1">الوسائل المصاحبة</p>
-                      <p className="text-[13px] text-foreground whitespace-pre-wrap">{note.resources}</p>
-                    </div>
-                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] font-semibold text-foreground truncate">
+                      {note.lecture_name || note.workshop_name || "مقرر جلسة"}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{formatSyriacDateString(note.date)}</p>
+                    {note.workshop_name && note.lecture_name && (
+                      <p className="text-xs text-muted-foreground/70 mt-0.5 truncate">ورشة: {note.workshop_name}</p>
+                    )}
+                  </div>
+                  <ChevronLeft className="w-4 h-4 text-muted-foreground shrink-0 rotate-180" />
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -594,17 +716,11 @@ const SettingsPage = () => {
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                {isDark ? (
-                  <Moon className="w-5 h-5 text-primary" />
-                ) : (
-                  <Sun className="w-5 h-5 text-primary" />
-                )}
+                {isDark ? <Moon className="w-5 h-5 text-primary" /> : <Sun className="w-5 h-5 text-primary" />}
               </div>
               <div className="flex-1">
                 <p className="text-[15px] font-semibold text-foreground">الوضع الليلي</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {isDark ? "مفعّل" : "غير مفعّل"}
-                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">{isDark ? "مفعّل" : "غير مفعّل"}</p>
               </div>
               <div className={`w-12 h-7 rounded-full transition-colors flex items-center px-0.5 ${isDark ? "bg-primary" : "bg-muted"}`}>
                 <div className={`w-6 h-6 rounded-full bg-card shadow-sm transition-transform ${isDark ? "-translate-x-5" : "translate-x-0"}`} />
@@ -656,7 +772,7 @@ const SettingsPage = () => {
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
+            transition={{ delay: 0.2 }}
             className="ios-card p-4"
           >
             <div className="flex items-center gap-3">
@@ -676,3 +792,4 @@ const SettingsPage = () => {
 };
 
 export default SettingsPage;
+
