@@ -1065,6 +1065,10 @@ const SettingsPage = () => {
     return <SessionNotesPage onBack={() => setShowSessionNotes(false)} />;
   }
 
+  if (showAssignments) {
+    return <AssignmentsPage onBack={() => setShowAssignments(false)} />;
+  }
+
   return (
     <div className="flex flex-col h-full" dir="rtl">
       <div className="px-4 pt-3 pb-2">
