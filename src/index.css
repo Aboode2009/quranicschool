@@ -117,17 +117,18 @@
     content: '';
     position: fixed;
     inset: 0;
-    background-image: url('/logo-bg.png');
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: 65%;
-    opacity: 0.55;
+    background: 
+      radial-gradient(ellipse at center, transparent 20%, hsl(var(--background)) 75%),
+      url('/logo-bg.png') center center / 55% no-repeat;
+    opacity: 0.12;
     pointer-events: none;
     z-index: 0;
+    mix-blend-mode: multiply;
   }
 
   .dark body::before {
-    opacity: 0.03;
+    opacity: 0.06;
+    mix-blend-mode: screen;
   }
 }
 
