@@ -87,7 +87,7 @@ const AddLessonDialog = ({ open, onClose, onAdd }: AddLessonDialogProps) => {
                         >
                           <span className="text-foreground">التاريخ</span>
                           <span className="text-muted-foreground flex items-center gap-2">
-                            {selectedDate ? format(selectedDate, "PPP", { locale: ar }) : "اختر التاريخ"}
+                            {selectedDate ? formatSyriacDate(selectedDate) : "اختر التاريخ"}
                             <CalendarIcon className="w-4 h-4" />
                           </span>
                         </button>
