@@ -65,6 +65,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
         status: r.is_present ? "present" : (r.is_present === false && attData ? "absent" : null),
         readMaterial: r.read_material || false,
         listenedLecture: r.listened_lecture || false,
+        excuse: r.excuse || undefined,
       };
     });
 
