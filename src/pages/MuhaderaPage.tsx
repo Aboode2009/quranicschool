@@ -5,6 +5,7 @@ import AddLessonDialog from "@/components/AddLessonDialog";
 import LessonAttendancePage from "./LessonAttendancePage";
 import { getLessonsFromStorage, saveLessonsToStorage } from "@/lib/quran-data";
 import type { Lesson } from "@/lib/quran-data";
+import { formatSyriacDateString } from "@/lib/syriac-locale";
 
 const MuhaderaPage = () => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
