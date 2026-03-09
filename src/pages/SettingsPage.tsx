@@ -404,11 +404,18 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
                 </div>
                 <input type="text" value={lectureName} onChange={(e) => setLectureName(e.target.value)}
                   placeholder="اسم المحاضرة" className={inputClass} />
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <input type="date" value={lectureDate} onChange={(e) => setLectureDate(e.target.value)}
-                    className={`${inputClass} appearance-none`} />
-                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className={cn(inputClass, "flex items-center justify-between text-right", !lectureDate && "text-muted-foreground")}>
+                      {lectureDate ? formatSyriacDate(lectureDate) : "اختر التاريخ"}
+                      <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={lectureDate} onSelect={setLectureDate}
+                      locale={syriacLocale} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="ios-card p-4 flex flex-col gap-3">
