@@ -657,6 +657,10 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
     else { setNotes((prev) => prev.filter((n) => n.id !== id)); toast.success("تم الحذف"); }
   };
 
+  const updateNote = (id: string, updated: Partial<SessionNote>) => {
+    setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, ...updated } : n)));
+  };
+
   const inputClass = "w-full px-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground text-sm outline-none focus:ring-2 focus:ring-primary/30";
 
   if (selectedNote) {
