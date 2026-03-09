@@ -315,6 +315,7 @@ interface SessionNote {
   id: string;
   lecture_name: string;
   lecture_date: string | null;
+  lecture_notes: string;
   workshop_name: string;
   workshop_date: string | null;
   workshop_notes: string;
