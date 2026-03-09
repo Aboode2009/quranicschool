@@ -45,7 +45,7 @@ const AttendancePage = ({ category = "muhadera", title = "الأسماء", subti
 
     const { data, error } = await supabase
       .from("people")
-      .insert({ name: trimmed })
+      .insert({ name: trimmed, category })
       .select()
       .single();
 
