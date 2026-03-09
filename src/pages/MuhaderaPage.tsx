@@ -36,8 +36,7 @@ const MuhaderaPage = () => {
     });
   };
 
-  const filtered = (filter === "all" ? lessons : lessons.filter((l) => l.status === filter))
-    .filter((l) => searchQuery === "" || l.surahName.includes(searchQuery) || l.notes.includes(searchQuery));
+  const filtered = lessons.filter((l) => searchQuery === "" || l.surahName.includes(searchQuery) || l.notes.includes(searchQuery));
 
 
   const filters: { label: string; value: typeof filter }[] = [
