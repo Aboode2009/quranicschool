@@ -22,7 +22,7 @@ const AttendancePage = ({ category = "muhadera", title = "الأسماء", subti
 
   useEffect(() => {
     fetchPeople();
-  }, []);
+  }, [category]);
 
   const fetchPeople = async () => {
     const { data, error } = await supabase
