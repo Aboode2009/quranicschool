@@ -160,7 +160,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
           </button>
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold text-foreground truncate">{lesson.surahName}</h1>
-            <p className="text-xs text-muted-foreground">{lesson.date}</p>
+            <p className="text-xs text-muted-foreground">{formatSyriacDateString(lesson.date)}</p>
           </div>
         </div>
 

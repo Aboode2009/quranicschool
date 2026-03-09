@@ -64,7 +64,7 @@ const MuhaderaPage = () => {
                     {lesson.surahName}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {lesson.date}
+                    {formatSyriacDateString(lesson.date)}
                   </p>
                   {lesson.notes && (
                     <p className="text-xs text-muted-foreground/70 mt-1 truncate">{lesson.notes}</p>

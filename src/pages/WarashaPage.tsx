@@ -63,7 +63,7 @@ const WarashaPage = () => {
                     {ws.surahName}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {ws.date}
+                    {formatSyriacDateString(ws.date)}
                   </p>
                   {ws.notes && (
                     <p className="text-xs text-muted-foreground/70 mt-1 truncate">{ws.notes}</p>
