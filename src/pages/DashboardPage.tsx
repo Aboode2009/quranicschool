@@ -27,6 +27,8 @@ const fadeUp = {
 };
 
 const DashboardPage = ({ onNavigate }: DashboardProps) => {
+  const { isAdmin } = useAuth();
+
   const navCards = [
     {
       id: "muhadera" as TabId,
@@ -56,6 +58,13 @@ const DashboardPage = ({ onNavigate }: DashboardProps) => {
       icon: Settings,
       bg: "bg-gradient-to-br from-[#00897b] to-[#4db6ac]",
     },
+    ...(isAdmin ? [{
+      id: "admin" as TabId,
+      title: "لوحة التحكم",
+      desc: "إدارة المستخدمين والإحصائيات",
+      icon: Shield,
+      bg: "bg-gradient-to-br from-[#e65100] to-[#ff9800]",
+    }] : []),
   ];
 
   return (
