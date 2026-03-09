@@ -30,3 +30,9 @@ export function formatSyriacDate(date: Date): string {
   const year = date.getFullYear();
   return `${day} ${month} ${year}`;
 }
+
+export function formatSyriacDateString(dateStr: string): string {
+  const date = new Date(dateStr + "T00:00:00");
+  if (isNaN(date.getTime())) return dateStr;
+  return formatSyriacDate(date);
+}

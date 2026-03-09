@@ -4,6 +4,7 @@ import { ArrowRight, Users, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Lesson } from "@/lib/quran-data";
+import { formatSyriacDateString } from "@/lib/syriac-locale";
 
 interface Person {
   id: string;
@@ -159,7 +160,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
           </button>
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold text-foreground truncate">{lesson.surahName}</h1>
-            <p className="text-xs text-muted-foreground">{lesson.date}</p>
+            <p className="text-xs text-muted-foreground">{formatSyriacDateString(lesson.date)}</p>
           </div>
         </div>
 

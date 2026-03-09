@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Moon, Sun, Info, DollarSign, ChevronLeft, Plus, Trash2, TrendingUp, TrendingDown, ArrowDownLeft, ArrowUpRight, Wallet, ClipboardList, BookOpen, Users, Wrench, Calendar } from "lucide-react";
+import { Moon, Sun, Info, DollarSign, ChevronLeft, Plus, Trash2, TrendingUp, TrendingDown, ArrowDownLeft, ArrowUpRight, Wallet, ClipboardList, BookOpen, Users, Wrench, Calendar as CalendarIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { syriacLocale, formatSyriacDate, formatSyriacDateString } from "@/lib/syriac-locale";
+import { cn } from "@/lib/utils";
 
 interface FinanceRecord {
   id: string;
@@ -271,7 +275,7 @@ const FinancePage = ({ onBack }: { onBack: () => void }) => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[15px] font-semibold text-foreground truncate">{rec.description}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{rec.date}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{formatSyriacDateString(rec.date)}</p>
                   </div>
                   <p className={`text-sm font-bold shrink-0 ${
                     activeTab === "income" ? "text-accent" : "text-destructive"
@@ -323,9 +327,9 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [lectureName, setLectureName] = useState("");
-  const [lectureDate, setLectureDate] = useState("");
+  const [lectureDate, setLectureDate] = useState<Date | undefined>();
   const [workshopName, setWorkshopName] = useState("");
-  const [workshopDate, setWorkshopDate] = useState("");
+  const [workshopDate, setWorkshopDate] = useState<Date | undefined>();
   const [workshopNotes, setWorkshopNotes] = useState("");
   const [resources, setResources] = useState("");
 
@@ -340,24 +344,25 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
   };
 
   const resetForm = () => {
-    setLectureName(""); setLectureDate(""); setWorkshopName("");
-    setWorkshopDate(""); setWorkshopNotes(""); setResources("");
+    setLectureName(""); setLectureDate(undefined); setWorkshopName("");
+    setWorkshopDate(undefined); setWorkshopNotes(""); setResources("");
   };
 
   const addNote = async () => {
     if (!lectureName.trim() && !workshopName.trim()) {
       toast.error("يرجى إدخال اسم المحاضرة أو الورشة على الأقل"); return;
     }
-    const { data, error } = await supabase.from("session_notes").insert({
+    const toDateStr = (d: Date | undefined) => d ? d.toISOString().split("T")[0] : null;
+    const { data, error } = await supabase.from("session_notes").insert([{
       lecture_name: lectureName.trim(),
-      lecture_date: lectureDate || null,
+      lecture_date: toDateStr(lectureDate),
       workshop_name: workshopName.trim(),
-      workshop_date: workshopDate || null,
+      workshop_date: toDateStr(workshopDate),
       workshop_notes: workshopNotes.trim(),
       resources: resources.trim(),
       content: `${lectureName.trim()} - ${workshopName.trim()}`,
       date: new Date().toISOString().split("T")[0],
-    }).select().single();
+    }]).select().single();
     if (error) { toast.error("خطأ في الإضافة"); }
     else if (data) {
       setNotes((prev) => [data as any, ...prev]);
@@ -399,11 +404,18 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
                 </div>
                 <input type="text" value={lectureName} onChange={(e) => setLectureName(e.target.value)}
                   placeholder="اسم المحاضرة" className={inputClass} />
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <input type="date" value={lectureDate} onChange={(e) => setLectureDate(e.target.value)}
-                    className={`${inputClass} appearance-none`} />
-                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className={cn(inputClass, "flex items-center justify-between text-right", !lectureDate && "text-muted-foreground")}>
+                      {lectureDate ? formatSyriacDate(lectureDate) : "اختر التاريخ"}
+                      <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={lectureDate} onSelect={setLectureDate}
+                      locale={syriacLocale} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="ios-card p-4 flex flex-col gap-3">
@@ -413,11 +425,18 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
                 </div>
                 <input type="text" value={workshopName} onChange={(e) => setWorkshopName(e.target.value)}
                   placeholder="اسم الورشة" className={inputClass} />
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <input type="date" value={workshopDate} onChange={(e) => setWorkshopDate(e.target.value)}
-                    className={`${inputClass} appearance-none`} />
-                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className={cn(inputClass, "flex items-center justify-between text-right", !workshopDate && "text-muted-foreground")}>
+                      {workshopDate ? formatSyriacDate(workshopDate) : "اختر التاريخ"}
+                      <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={workshopDate} onSelect={setWorkshopDate}
+                      locale={syriacLocale} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
                 <textarea value={workshopNotes} onChange={(e) => setWorkshopNotes(e.target.value)}
                   placeholder="ملاحظات على الورشة..." rows={3} className={`${inputClass} resize-none`} />
               </div>
@@ -453,7 +472,7 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
                 <motion.div key={note.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: 40 }} transition={{ delay: i * 0.03 }} className="ios-card px-4 py-4">
                   <div className="flex items-start justify-between mb-2">
-                    <p className="text-xs text-muted-foreground">{note.date}</p>
+                    <p className="text-xs text-muted-foreground">{formatSyriacDateString(note.date)}</p>
                     <button onClick={() => deleteNote(note.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors">
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -465,7 +484,7 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
                       </div>
                       <div>
                         <p className="text-[13px] font-bold text-foreground">{note.lecture_name}</p>
-                        {note.lecture_date && <p className="text-[11px] text-muted-foreground">{note.lecture_date}</p>}
+                        {note.lecture_date && <p className="text-[11px] text-muted-foreground">{formatSyriacDateString(note.lecture_date)}</p>}
                       </div>
                     </div>
                   )}
@@ -476,7 +495,7 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
                       </div>
                       <div>
                         <p className="text-[13px] font-bold text-foreground">{note.workshop_name}</p>
-                        {note.workshop_date && <p className="text-[11px] text-muted-foreground">{note.workshop_date}</p>}
+                        {note.workshop_date && <p className="text-[11px] text-muted-foreground">{formatSyriacDateString(note.workshop_date)}</p>}
                       </div>
                     </div>
                   )}

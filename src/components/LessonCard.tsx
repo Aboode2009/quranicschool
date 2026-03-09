@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { BookOpen } from "lucide-react";
 import type { Lesson } from "@/lib/quran-data";
+import { formatSyriacDateString } from "@/lib/syriac-locale";
 
 interface LessonCardProps {
   lesson: Lesson;
@@ -25,7 +26,7 @@ const LessonCard = ({ lesson, index }: LessonCardProps) => {
           {lesson.surahName}
         </p>
         <p className="text-xs text-muted-foreground mt-0.5">
-          {lesson.date}
+          {formatSyriacDateString(lesson.date)}
         </p>
         {lesson.notes && (
           <p className="text-xs text-muted-foreground/70 mt-1 truncate">{lesson.notes}</p>

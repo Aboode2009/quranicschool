@@ -5,6 +5,7 @@ import AddLessonDialog from "@/components/AddLessonDialog";
 import WorkshopAttendancePage from "./WorkshopAttendancePage";
 import { getWorkshopsFromStorage, saveWorkshopsToStorage, generateId } from "@/lib/quran-data";
 import type { Lesson } from "@/lib/quran-data";
+import { formatSyriacDateString } from "@/lib/syriac-locale";
 
 const WarashaPage = () => {
   const [workshops, setWorkshops] = useState<Lesson[]>([]);
@@ -62,7 +63,7 @@ const WarashaPage = () => {
                     {ws.surahName}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {ws.date}
+                    {formatSyriacDateString(ws.date)}
                   </p>
                   {ws.notes && (
                     <p className="text-xs text-muted-foreground/70 mt-1 truncate">{ws.notes}</p>
