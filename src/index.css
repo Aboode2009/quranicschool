@@ -110,6 +110,24 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url('/logo-bg.png');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 65%;
+    opacity: 0.04;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .dark body::before {
+    opacity: 0.03;
   }
 }
 
