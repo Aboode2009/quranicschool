@@ -16,30 +16,39 @@ export type Database = {
     Tables: {
       attendance: {
         Row: {
+          activity: string | null
           created_at: string
+          excuse: string | null
           id: string
           is_present: boolean
           lesson_date: string
           lesson_name: string
           person_id: string
+          timing: string | null
           updated_at: string
         }
         Insert: {
+          activity?: string | null
           created_at?: string
+          excuse?: string | null
           id?: string
           is_present?: boolean
           lesson_date: string
           lesson_name: string
           person_id: string
+          timing?: string | null
           updated_at?: string
         }
         Update: {
+          activity?: string | null
           created_at?: string
+          excuse?: string | null
           id?: string
           is_present?: boolean
           lesson_date?: string
           lesson_name?: string
           person_id?: string
+          timing?: string | null
           updated_at?: string
         }
         Relationships: [
