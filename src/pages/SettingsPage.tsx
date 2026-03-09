@@ -1361,6 +1361,32 @@ const SettingsPage = () => {
               </div>
             </div>
           </motion.div>
+
+          {/* Logout */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <button
+              onClick={async () => {
+                const { useAuth } = await import("@/hooks/useAuth");
+                const { signOut } = useAuth();
+                // Can't use hook dynamically, use supabase directly
+                const { supabase: sb } = await import("@/integrations/supabase/client");
+                await sb.auth.signOut();
+                window.location.reload();
+              }}
+              className="w-full ios-card p-4 cursor-pointer active:scale-[0.98] transition-transform"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
+                  <LogOut className="w-5 h-5 text-destructive" />
+                </div>
+                <p className="text-[15px] font-semibold text-destructive">تسجيل الخروج</p>
+              </div>
+            </button>
+          </motion.div>
         </div>
       </div>
     </div>
