@@ -62,7 +62,7 @@
     --popover: 0 0% 12%;
     --popover-foreground: 0 0% 95%;
 
-    --primary: 211 100% 50%;
+    --primary: 30 90% 50%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 16%;
@@ -71,7 +71,7 @@
     --muted: 0 0% 16%;
     --muted-foreground: 0 0% 55%;
 
-    --accent: 155 55% 35%;
+    --accent: 145 60% 38%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
@@ -79,7 +79,7 @@
 
     --border: 0 0% 18%;
     --input: 0 0% 18%;
-    --ring: 211 100% 50%;
+    --ring: 30 90% 50%;
 
     --ios-gray: 0 0% 44%;
     --ios-light-gray: 0 0% 14%;
