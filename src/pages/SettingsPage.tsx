@@ -83,6 +83,7 @@ const FinancePage = ({ onBack }: { onBack: () => void }) => {
       setDescription("");
       setShowAdd(false);
       toast.success("تمت الإضافة بنجاح");
+      fetchTotals();
     }
   };
 
