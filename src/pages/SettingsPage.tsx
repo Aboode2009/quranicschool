@@ -358,6 +358,7 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
     const { data, error } = await supabase.from("session_notes").insert([{
       lecture_name: lectureName.trim(),
       lecture_date: toDateStr(lectureDate),
+      lecture_notes: lectureNotes.trim(),
       workshop_name: workshopName.trim(),
       workshop_date: toDateStr(workshopDate),
       workshop_notes: workshopNotes.trim(),
