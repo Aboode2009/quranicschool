@@ -6,7 +6,6 @@ import type { Lesson } from "@/lib/quran-data";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { ar } from "date-fns/locale";
 
 interface AddLessonDialogProps {
   open: boolean;
