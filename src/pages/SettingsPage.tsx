@@ -815,18 +815,48 @@ interface Assignment {
   status: string;
   priority: string;
   assigned_to: string;
+  created_at?: string;
 }
 
-const priorityConfig: Record<string, { label: string; color: string; bg: string }> = {
-  high: { label: "عالية", color: "text-destructive", bg: "bg-destructive/10" },
-  medium: { label: "متوسطة", color: "text-primary", bg: "bg-primary/10" },
-  low: { label: "منخفضة", color: "text-accent", bg: "bg-accent/10" },
+const activityIcons: Record<string, string> = {
+  "🌙": "🌙", "🍽️": "🍽️", "📖": "📖", "🤲": "🤲", "💰": "💰", "🕌": "🕌", "❤️": "❤️", "🎯": "🎯",
 };
 
-const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
-  pending: { label: "قيد الانتظار", color: "text-muted-foreground", bg: "bg-muted" },
-  in_progress: { label: "قيد التنفيذ", color: "text-primary", bg: "bg-primary/10" },
-  completed: { label: "مكتمل", color: "text-accent", bg: "bg-accent/10" },
+const iconOptions = ["🌙", "🍽️", "📖", "🤲", "💰", "🕌", "❤️", "🎯"];
+
+const getActivityProgress = (startDate: string, endDate: string) => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const now = new Date();
+  const totalDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+  const elapsed = Math.ceil((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  const daysLeft = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+  const progress = Math.min(100, Math.max(0, (elapsed / totalDays) * 100));
+  return { totalDays, elapsed: Math.min(elapsed, totalDays), daysLeft, progress };
+};
+
+const CircularProgress = ({ progress, size = 56, strokeWidth = 5, children }: { progress: number; size?: number; strokeWidth?: number; children?: React.ReactNode }) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (progress / 100) * circumference;
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="transform -rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={radius} stroke="hsl(var(--muted))" strokeWidth={strokeWidth} fill="none" />
+        <motion.circle
+          cx={size / 2} cy={size / 2} r={radius}
+          stroke="hsl(var(--primary))" strokeWidth={strokeWidth} fill="none"
+          strokeLinecap="round" strokeDasharray={circumference}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 1, ease: "easeOut" }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        {children}
+      </div>
+    </div>
+  );
 };
 
 const AssignmentsPage = ({ onBack }: { onBack: () => void }) => {
@@ -836,10 +866,11 @@ const AssignmentsPage = ({ onBack }: { onBack: () => void }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
-  const [priority, setPriority] = useState("medium");
-  const [status, setStatus] = useState("pending");
-  const [assignedTo, setAssignedTo] = useState("");
+  const [startDate, setStartDate] = useState<Date | undefined>(new Date());
+  const [selectedIcon, setSelectedIcon] = useState("🎯");
+  const [assignedTo, setAssignedTo] = useState("جميع الطلاب");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAssignments();
@@ -851,27 +882,29 @@ const AssignmentsPage = ({ onBack }: { onBack: () => void }) => {
       .from("assignments")
       .select("*")
       .order("created_at", { ascending: false });
-    if (error) toast.error("خطأ في تحميل الواجبات");
+    if (error) toast.error("خطأ في تحميل الفعاليات");
     else setAssignments((data as Assignment[]) || []);
     setLoading(false);
   };
 
   const resetForm = () => {
     setTitle(""); setDescription(""); setDueDate(undefined);
-    setPriority("medium"); setStatus("pending"); setAssignedTo("");
-    setEditingId(null); setShowAdd(false);
+    setStartDate(new Date()); setSelectedIcon("🎯");
+    setAssignedTo("جميع الطلاب"); setEditingId(null); setShowAdd(false);
   };
 
   const handleSave = async () => {
-    if (!title.trim() || !dueDate) {
-      toast.error("يرجى إدخال العنوان وتاريخ الاستحقاق");
+    if (!title.trim() || !dueDate || !startDate) {
+      toast.error("يرجى إدخال اسم الفعالية وتواريخ البداية والنهاية");
       return;
     }
     const record = {
       title: title.trim(),
       description: description.trim(),
       due_date: dueDate.toISOString().split("T")[0],
-      priority, status, assigned_to: assignedTo.trim(),
+      priority: selectedIcon,
+      status: startDate.toISOString().split("T")[0],
+      assigned_to: assignedTo.trim(),
     };
 
     if (editingId) {
@@ -881,14 +914,16 @@ const AssignmentsPage = ({ onBack }: { onBack: () => void }) => {
     } else {
       const { error } = await supabase.from("assignments").insert(record);
       if (error) toast.error("خطأ في الإضافة");
-      else { toast.success("تمت الإضافة"); fetchAssignments(); resetForm(); }
+      else { toast.success("تمت الإضافة بنجاح ✨"); fetchAssignments(); resetForm(); }
     }
   };
 
   const startEdit = (a: Assignment) => {
     setTitle(a.title); setDescription(a.description);
-    setDueDate(new Date(a.due_date)); setPriority(a.priority);
-    setStatus(a.status); setAssignedTo(a.assigned_to);
+    setDueDate(new Date(a.due_date));
+    setStartDate(a.status ? new Date(a.status) : new Date());
+    setSelectedIcon(a.priority || "🎯");
+    setAssignedTo(a.assigned_to);
     setEditingId(a.id); setShowAdd(true);
   };
 
@@ -898,13 +933,21 @@ const AssignmentsPage = ({ onBack }: { onBack: () => void }) => {
     else { setAssignments(prev => prev.filter(a => a.id !== id)); toast.success("تم الحذف"); }
   };
 
-  const toggleStatus = async (a: Assignment) => {
-    const next = a.status === "pending" ? "in_progress" : a.status === "in_progress" ? "completed" : "pending";
-    const { error } = await supabase.from("assignments").update({ status: next }).eq("id", a.id);
-    if (!error) setAssignments(prev => prev.map(x => x.id === a.id ? { ...x, status: next } : x));
+  const isDateValid = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return !isNaN(d.getTime()) && d.getFullYear() > 2000;
   };
 
   const inputClass = "w-full px-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground text-sm outline-none focus:ring-2 focus:ring-primary/30";
+
+  const activeActivities = assignments.filter(a => {
+    if (!isDateValid(a.status) || !isDateValid(a.due_date)) return true;
+    return new Date(a.due_date) >= new Date();
+  });
+  const completedActivities = assignments.filter(a => {
+    if (!isDateValid(a.status) || !isDateValid(a.due_date)) return false;
+    return new Date(a.due_date) < new Date();
+  });
 
   return (
     <div className="flex flex-col h-full" dir="rtl">
@@ -912,49 +955,87 @@ const AssignmentsPage = ({ onBack }: { onBack: () => void }) => {
         <button onClick={onBack} className="flex items-center gap-1 text-primary text-sm font-medium mb-3">
           <ChevronLeft className="w-4 h-4 rotate-180" /><span>رجوع</span>
         </button>
-        <h1 className="text-2xl font-bold text-foreground mb-3">الواجبات</h1>
+        <div className="flex items-center gap-3 mb-1">
+          <h1 className="text-2xl font-bold text-foreground">الفعاليات</h1>
+          <span className="text-2xl">✨</span>
+        </div>
+        <p className="text-sm text-muted-foreground">أنشطة وتحديات يومية للطلاب</p>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-4">
+        {/* Stats Summary */}
+        {assignments.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            className="flex gap-3 mt-3">
+            <div className="flex-1 ios-card p-3 text-center">
+              <p className="text-2xl font-bold text-primary">{activeActivities.length}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">فعالية نشطة</p>
+            </div>
+            <div className="flex-1 ios-card p-3 text-center">
+              <p className="text-2xl font-bold text-accent">{completedActivities.length}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">مكتملة</p>
+            </div>
+            <div className="flex-1 ios-card p-3 text-center">
+              <p className="text-2xl font-bold text-foreground">{assignments.length}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">المجموع</p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Add Form */}
         <AnimatePresence>
           {showAdd && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-              className="ios-card p-4 flex flex-col gap-3 mb-3">
-              <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="عنوان الواجب" className={inputClass} />
-              <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="الوصف..." rows={2} className={`${inputClass} resize-none`} />
-              <input type="text" value={assignedTo} onChange={e => setAssignedTo(e.target.value)} placeholder="المسؤول عن التنفيذ" className={inputClass} />
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className={cn(inputClass, "flex items-center justify-between text-right", !dueDate && "text-muted-foreground")}>
-                    {dueDate ? formatSyriacDate(dueDate) : "تاريخ الاستحقاق"}
-                    <CalendarIcon className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={dueDate} onSelect={setDueDate} locale={syriacLocale} initialFocus className="p-3 pointer-events-auto" />
-                </PopoverContent>
-              </Popover>
-              <div className="flex gap-2">
-                {(["high", "medium", "low"] as const).map(p => (
-                  <button key={p} onClick={() => setPriority(p)}
-                    className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${priority === p ? `${priorityConfig[p].bg} ${priorityConfig[p].color}` : "bg-secondary text-muted-foreground"}`}>
-                    {priorityConfig[p].label}
-                  </button>
-                ))}
-              </div>
-              {editingId && (
-                <div className="flex gap-2">
-                  {(["pending", "in_progress", "completed"] as const).map(s => (
-                    <button key={s} onClick={() => setStatus(s)}
-                      className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${status === s ? `${statusConfig[s].bg} ${statusConfig[s].color}` : "bg-secondary text-muted-foreground"}`}>
-                      {statusConfig[s].label}
+              className="ios-card p-4 flex flex-col gap-3 mt-3">
+              <p className="text-sm font-bold text-foreground mb-1">{editingId ? "تعديل الفعالية" : "فعالية جديدة"} 🌟</p>
+              
+              {/* Icon selector */}
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">اختر رمز الفعالية</p>
+                <div className="flex gap-2 flex-wrap">
+                  {iconOptions.map(icon => (
+                    <button key={icon} onClick={() => setSelectedIcon(icon)}
+                      className={`w-10 h-10 rounded-xl text-lg flex items-center justify-center transition-all ${
+                        selectedIcon === icon ? "bg-primary/20 scale-110 ring-2 ring-primary/30" : "bg-secondary"
+                      }`}>
+                      {icon}
                     </button>
                   ))}
                 </div>
-              )}
+              </div>
+
+              <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="اسم الفعالية (مثلاً: إفطار صائم)" className={inputClass} />
+              <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="وصف الفعالية والهدف منها..." rows={2} className={`${inputClass} resize-none`} />
+              <input type="text" value={assignedTo} onChange={e => setAssignedTo(e.target.value)} placeholder="المشاركون (مثلاً: جميع الطلاب)" className={inputClass} />
+              
+              <div className="grid grid-cols-2 gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className={cn(inputClass, "flex items-center justify-between text-right text-xs", !startDate && "text-muted-foreground")}>
+                      {startDate ? formatSyriacDate(startDate) : "تاريخ البداية"}
+                      <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={startDate} onSelect={setStartDate} locale={syriacLocale} initialFocus className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className={cn(inputClass, "flex items-center justify-between text-right text-xs", !dueDate && "text-muted-foreground")}>
+                      {dueDate ? formatSyriacDate(dueDate) : "تاريخ النهاية"}
+                      <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={dueDate} onSelect={setDueDate} locale={syriacLocale} initialFocus className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
               <div className="flex gap-2">
                 <button onClick={handleSave} className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold active:scale-[0.97] transition-transform">
-                  {editingId ? "حفظ التعديل" : "إضافة"}
+                  {editingId ? "حفظ التعديل" : "إضافة الفعالية ✨"}
                 </button>
                 <button onClick={resetForm} className="py-3 px-5 rounded-xl bg-secondary text-muted-foreground text-sm font-semibold active:scale-[0.97] transition-transform">
                   إلغاء
@@ -966,54 +1047,157 @@ const AssignmentsPage = ({ onBack }: { onBack: () => void }) => {
 
         {loading ? (
           <div className="flex items-center justify-center py-16 text-muted-foreground"><p>جاري التحميل...</p></div>
-        ) : assignments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-            <CheckSquare className="w-10 h-10 mb-3 opacity-30" />
-            <p className="text-base font-medium">لا توجد واجبات بعد</p>
-          </div>
+        ) : assignments.length === 0 && !showAdd ? (
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+            <span className="text-5xl mb-4">🎯</span>
+            <p className="text-base font-medium">لا توجد فعاليات بعد</p>
+            <p className="text-xs mt-1">أضف أول فعالية لطلابك!</p>
+          </motion.div>
         ) : (
-          <div className="flex flex-col gap-2">
-            <AnimatePresence mode="popLayout">
-              {assignments.map((a, i) => {
-                const pr = priorityConfig[a.priority] || priorityConfig.medium;
-                const st = statusConfig[a.status] || statusConfig.pending;
-                return (
-                  <motion.div key={a.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 40 }}
-                    transition={{ delay: i * 0.03 }} className="ios-card px-4 py-3.5">
-                    <div className="flex items-start gap-3">
-                      <button onClick={() => toggleStatus(a)}
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${st.bg}`}>
-                        <CheckSquare className={`w-4 h-4 ${st.color}`} />
-                      </button>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-[15px] font-semibold text-foreground ${a.status === "completed" ? "line-through opacity-60" : ""}`}>{a.title}</p>
-                        {a.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{a.description}</p>}
-                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${pr.bg} ${pr.color}`}>{pr.label}</span>
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${st.bg} ${st.color}`}>{st.label}</span>
-                          {a.assigned_to && (
-                            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                              <User className="w-3 h-3" />{a.assigned_to}
-                            </span>
-                          )}
-                          <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                            <Clock className="w-3 h-3" />{formatSyriacDateString(a.due_date)}
-                          </span>
+          <div className="flex flex-col gap-3 mt-3">
+            {/* Active Activities */}
+            {activeActivities.length > 0 && (
+              <>
+                <p className="text-xs font-bold text-primary flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  فعاليات نشطة
+                </p>
+                <AnimatePresence mode="popLayout">
+                  {activeActivities.map((a, i) => {
+                    const hasValidDates = isDateValid(a.status) && isDateValid(a.due_date);
+                    const prog = hasValidDates ? getActivityProgress(a.status, a.due_date) : null;
+                    const icon = activityIcons[a.priority] || "🎯";
+                    const isExpanded = expandedId === a.id;
+
+                    return (
+                      <motion.div key={a.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 40 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="ios-card overflow-hidden">
+                        <div className="p-4 cursor-pointer active:scale-[0.99] transition-transform"
+                          onClick={() => setExpandedId(isExpanded ? null : a.id)}>
+                          <div className="flex items-center gap-3">
+                            {prog ? (
+                              <CircularProgress progress={prog.progress} size={52} strokeWidth={4}>
+                                <span className="text-lg">{icon}</span>
+                              </CircularProgress>
+                            ) : (
+                              <div className="w-[52px] h-[52px] rounded-full bg-primary/10 flex items-center justify-center">
+                                <span className="text-lg">{icon}</span>
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[15px] font-bold text-foreground truncate">{a.title}</p>
+                              {a.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{a.description}</p>}
+                              <div className="flex items-center gap-2 mt-1.5">
+                                {prog && (
+                                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                                    {prog.daysLeft > 0 ? `${prog.daysLeft} يوم متبقي` : "انتهت المدة"}
+                                  </span>
+                                )}
+                                <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                  <Users className="w-3 h-3" />{a.assigned_to || "الجميع"}
+                                </span>
+                              </div>
+                            </div>
+                            {prog && (
+                              <span className="text-xs font-bold text-primary shrink-0">
+                                {Math.round(prog.progress)}%
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex gap-1 shrink-0">
-                        <button onClick={() => startEdit(a)} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary transition-colors">
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button onClick={() => deleteAssignment(a.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+                        
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                              className="border-t border-border/50">
+                              <div className="p-4 flex flex-col gap-3">
+                                {prog && (
+                                  <div className="flex gap-4 text-center">
+                                    <div className="flex-1 bg-secondary/50 rounded-xl p-2.5">
+                                      <p className="text-lg font-bold text-foreground">{prog.totalDays}</p>
+                                      <p className="text-[10px] text-muted-foreground">إجمالي الأيام</p>
+                                    </div>
+                                    <div className="flex-1 bg-primary/5 rounded-xl p-2.5">
+                                      <p className="text-lg font-bold text-primary">{prog.elapsed}</p>
+                                      <p className="text-[10px] text-muted-foreground">يوم مضى</p>
+                                    </div>
+                                    <div className="flex-1 bg-accent/5 rounded-xl p-2.5">
+                                      <p className="text-lg font-bold text-accent">{prog.daysLeft}</p>
+                                      <p className="text-[10px] text-muted-foreground">يوم متبقي</p>
+                                    </div>
+                                  </div>
+                                )}
+                                {hasValidDates && (
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <CalendarIcon className="w-3.5 h-3.5" />
+                                    <span>{formatSyriacDateString(a.status)} → {formatSyriacDateString(a.due_date)}</span>
+                                  </div>
+                                )}
+                                {/* Progress bar */}
+                                {prog && (
+                                  <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
+                                    <motion.div className="h-full rounded-full bg-primary"
+                                      initial={{ width: 0 }}
+                                      animate={{ width: `${prog.progress}%` }}
+                                      transition={{ duration: 0.8, ease: "easeOut" }}
+                                    />
+                                  </div>
+                                )}
+                                <div className="flex gap-2">
+                                  <button onClick={() => startEdit(a)}
+                                    className="flex-1 py-2.5 rounded-xl bg-secondary text-foreground text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform">
+                                    <Edit2 className="w-3.5 h-3.5" /> تعديل
+                                  </button>
+                                  <button onClick={() => deleteAssignment(a.id)}
+                                    className="py-2.5 px-4 rounded-xl bg-destructive/10 text-destructive text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform">
+                                    <Trash2 className="w-3.5 h-3.5" /> حذف
+                                  </button>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </>
+            )}
+
+            {/* Completed Activities */}
+            {completedActivities.length > 0 && (
+              <>
+                <p className="text-xs font-bold text-accent flex items-center gap-1.5 mt-2">
+                  <CheckSquare className="w-3.5 h-3.5" />
+                  فعاليات مكتملة
+                </p>
+                <AnimatePresence mode="popLayout">
+                  {completedActivities.map((a, i) => {
+                    const icon = activityIcons[a.priority] || "🎯";
+                    return (
+                      <motion.div key={a.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 40 }}
+                        transition={{ delay: i * 0.03 }}
+                        className="ios-card px-4 py-3.5 opacity-70">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+                            <span>{icon}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[15px] font-semibold text-foreground truncate line-through">{a.title}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{a.assigned_to}</p>
+                          </div>
+                          <button onClick={() => deleteAssignment(a.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors shrink-0">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -1021,7 +1205,7 @@ const AssignmentsPage = ({ onBack }: { onBack: () => void }) => {
       {!showAdd && (
         <div className="px-4 pb-4">
           <button onClick={() => setShowAdd(true)} className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform">
-            <Plus className="w-5 h-5" /><span>إضافة واجب جديد</span>
+            <Plus className="w-5 h-5" /><span>إضافة فعالية جديدة</span>
           </button>
         </div>
       )}
