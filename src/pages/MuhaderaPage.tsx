@@ -40,8 +40,6 @@ const MuhaderaPage = () => {
                 key={lesson.id}
                 lesson={lesson}
                 index={i}
-                onStatusChange={updateStatus}
-                onDelete={deleteLesson}
               />
             ))}
           </AnimatePresence>
