@@ -107,8 +107,9 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
         lesson_name: lesson.id,
         lesson_date: new Date().toISOString().split("T")[0],
         is_present: detail?.status === "present",
-        read_material: detail?.readMaterial || false,
-        listened_lecture: detail?.listenedLecture || false,
+        read_material: detail?.status === "present" ? (detail?.readMaterial || false) : false,
+        listened_lecture: detail?.status === "present" ? (detail?.listenedLecture || false) : false,
+        excuse: detail?.status === "absent" ? (detail?.excuse || null) : null,
       };
     });
 
