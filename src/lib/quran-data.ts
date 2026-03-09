@@ -38,3 +38,12 @@ export function getLessonsFromStorage(): Lesson[] {
 export function saveLessonsToStorage(lessons: Lesson[]) {
   localStorage.setItem("quran-lessons", JSON.stringify(lessons));
 }
+
+export function getWorkshopsFromStorage(): Lesson[] {
+  const stored = localStorage.getItem("workshop-lessons");
+  return stored ? JSON.parse(stored) : [];
+}
+
+export function saveWorkshopsToStorage(lessons: Lesson[]) {
+  localStorage.setItem("workshop-lessons", JSON.stringify(lessons));
+}

@@ -43,6 +43,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
     const { data: peopleData, error: peopleErr } = await supabase
       .from("people")
       .select("id, name")
+      .eq("category", category)
       .order("created_at", { ascending: true });
 
     if (peopleErr) {
