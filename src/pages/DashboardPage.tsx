@@ -84,8 +84,8 @@ const DashboardPage = ({ onNavigate }: DashboardProps) => {
         animate="show"
         className="px-5 pt-6 pb-2"
       >
-        <p className="text-sm text-muted-foreground font-medium">{greeting()}</p>
-        <h1 className="text-3xl font-extrabold text-foreground mt-1">لوحة التحكم</h1>
+        <h1 className="text-3xl font-extrabold text-foreground">دورة التربية بالقرآن</h1>
+        <p className="text-sm text-muted-foreground font-medium mt-1">الشاشة الرئيسية</p>
       </motion.div>
 
       {/* Stats Summary */}
