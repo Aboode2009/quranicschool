@@ -39,8 +39,6 @@ const MuhaderaPage = () => {
   const filtered = (filter === "all" ? lessons : lessons.filter((l) => l.status === filter))
     .filter((l) => searchQuery === "" || l.surahName.includes(searchQuery) || l.notes.includes(searchQuery));
 
-  const completed = lessons.filter((l) => l.status === "completed").length;
-  const inProgress = lessons.filter((l) => l.status === "in-progress").length;
 
   const filters: { label: string; value: typeof filter }[] = [
     { label: "الكل", value: "all" },
@@ -93,21 +91,6 @@ const MuhaderaPage = () => {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="flex gap-3 px-4 mb-4">
-        <div className="flex-1 ios-card p-3 text-center">
-          <p className="text-2xl font-bold text-foreground">{lessons.length}</p>
-          <p className="text-xs text-muted-foreground">المجموع</p>
-        </div>
-        <div className="flex-1 ios-card p-3 text-center">
-          <p className="text-2xl font-bold text-primary">{inProgress}</p>
-          <p className="text-xs text-muted-foreground">جاري</p>
-        </div>
-        <div className="flex-1 ios-card p-3 text-center">
-          <p className="text-2xl font-bold text-accent">{completed}</p>
-          <p className="text-xs text-muted-foreground">مكتمل</p>
-        </div>
-      </div>
 
       {/* Lessons list */}
       <div className="flex-1 overflow-y-auto px-4 pb-4">
