@@ -1,12 +1,15 @@
-import { BookOpen, Users, ClipboardCheck } from "lucide-react";
+import { BookOpen, Users, ClipboardCheck, UserCheck } from "lucide-react";
+
+type TabId = "muhadera" | "warasha" | "taqyeem" | "attendance";
 
 interface TabBarProps {
-  activeTab: "muhadera" | "warasha" | "taqyeem";
-  onTabChange: (tab: "muhadera" | "warasha" | "taqyeem") => void;
+  activeTab: TabId;
+  onTabChange: (tab: TabId) => void;
 }
 
 const tabs = [
   { id: "muhadera" as const, label: "محاضرة", icon: BookOpen },
+  { id: "attendance" as const, label: "الأسماء", icon: UserCheck },
   { id: "warasha" as const, label: "ورشة", icon: Users },
   { id: "taqyeem" as const, label: "التقييم", icon: ClipboardCheck },
 ];
