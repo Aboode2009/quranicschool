@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Users, Plus, ChevronLeft } from "lucide-react";
 import AddLessonDialog from "@/components/AddLessonDialog";
-import LessonAttendancePage from "./LessonAttendancePage";
+import WorkshopAttendancePage from "./WorkshopAttendancePage";
 import { getWorkshopsFromStorage, saveWorkshopsToStorage, generateId } from "@/lib/quran-data";
 import type { Lesson } from "@/lib/quran-data";
 
