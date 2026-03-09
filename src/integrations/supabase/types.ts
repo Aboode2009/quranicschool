@@ -129,6 +129,7 @@ export type Database = {
           id: string
           lecture_date: string | null
           lecture_name: string
+          lecture_notes: string
           resources: string
           updated_at: string
           workshop_date: string | null
@@ -142,6 +143,7 @@ export type Database = {
           id?: string
           lecture_date?: string | null
           lecture_name?: string
+          lecture_notes?: string
           resources?: string
           updated_at?: string
           workshop_date?: string | null
@@ -155,6 +157,7 @@ export type Database = {
           id?: string
           lecture_date?: string | null
           lecture_name?: string
+          lecture_notes?: string
           resources?: string
           updated_at?: string
           workshop_date?: string | null
