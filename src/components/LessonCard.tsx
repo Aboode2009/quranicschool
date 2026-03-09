@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { BookOpen } from "lucide-react";
 import type { Lesson } from "@/lib/quran-data";
+import { formatSyriacDateString } from "@/lib/syriac-locale";
 
 interface LessonCardProps {
   lesson: Lesson;
