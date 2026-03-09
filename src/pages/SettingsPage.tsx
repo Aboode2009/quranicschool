@@ -352,16 +352,17 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
     if (!lectureName.trim() && !workshopName.trim()) {
       toast.error("يرجى إدخال اسم المحاضرة أو الورشة على الأقل"); return;
     }
-    const { data, error } = await supabase.from("session_notes").insert({
+    const toDateStr = (d: Date | undefined) => d ? d.toISOString().split("T")[0] : null;
+    const { data, error } = await supabase.from("session_notes").insert([{
       lecture_name: lectureName.trim(),
-      lecture_date: lectureDate || null,
+      lecture_date: toDateStr(lectureDate),
       workshop_name: workshopName.trim(),
-      workshop_date: workshopDate || null,
+      workshop_date: toDateStr(workshopDate),
       workshop_notes: workshopNotes.trim(),
       resources: resources.trim(),
       content: `${lectureName.trim()} - ${workshopName.trim()}`,
       date: new Date().toISOString().split("T")[0],
-    }).select().single();
+    }]).select().single();
     if (error) { toast.error("خطأ في الإضافة"); }
     else if (data) {
       setNotes((prev) => [data as any, ...prev]);
