@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
-import { BookOpen, Users, UserCheck, Settings, DollarSign, TrendingUp, TrendingDown, Wallet, BarChart3 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { BookOpen, Users, UserCheck, Settings } from "lucide-react";
+import { useState } from "react";
 
 type TabId = "muhadera" | "warasha" | "settings" | "attendance";
 
