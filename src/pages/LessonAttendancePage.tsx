@@ -25,6 +25,7 @@ interface AttendanceDetail {
 interface LessonAttendancePageProps {
   lesson: Lesson;
   onBack: () => void;
+  category?: string;
 }
 
 const LessonAttendancePage = ({ lesson, onBack }: LessonAttendancePageProps) => {
