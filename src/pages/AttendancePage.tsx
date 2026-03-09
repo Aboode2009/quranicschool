@@ -34,6 +34,7 @@ const AttendancePage = () => {
   const [records, setRecords] = useState<CategorizedRecords | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [detailView, setDetailView] = useState<{ items: AttendanceRecord[]; type: "present" | "absent"; label: string } | null>(null);
 
   // Lookup maps for lesson/workshop names
   const [lessonMap, setLessonMap] = useState<Record<string, Lesson>>({});
