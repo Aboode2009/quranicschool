@@ -127,21 +127,39 @@ export type Database = {
           created_at: string
           date: string
           id: string
+          lecture_date: string | null
+          lecture_name: string
+          resources: string
           updated_at: string
+          workshop_date: string | null
+          workshop_name: string
+          workshop_notes: string
         }
         Insert: {
           content?: string
           created_at?: string
           date?: string
           id?: string
+          lecture_date?: string | null
+          lecture_name?: string
+          resources?: string
           updated_at?: string
+          workshop_date?: string | null
+          workshop_name?: string
+          workshop_notes?: string
         }
         Update: {
           content?: string
           created_at?: string
           date?: string
           id?: string
+          lecture_date?: string | null
+          lecture_name?: string
+          resources?: string
           updated_at?: string
+          workshop_date?: string | null
+          workshop_name?: string
+          workshop_notes?: string
         }
         Relationships: []
       }
