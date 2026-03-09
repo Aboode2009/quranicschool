@@ -1338,7 +1338,7 @@ const SettingsPage = () => {
               </div>
               <div className="flex-1">
                 <p className="text-[15px] font-semibold text-foreground">الفعاليات</p>
-                <p className="text-xs text-muted-foreground mt-0.5">أنشطة وتحديات يومية للطلاب</p>
+                <p className="text-xs text-muted-foreground mt-0.5"></p>
               </div>
               <ChevronLeft className="w-4 h-4 text-muted-foreground rotate-180" />
             </div>
