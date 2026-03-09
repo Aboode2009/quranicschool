@@ -425,11 +425,18 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
                 </div>
                 <input type="text" value={workshopName} onChange={(e) => setWorkshopName(e.target.value)}
                   placeholder="اسم الورشة" className={inputClass} />
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <input type="date" value={workshopDate} onChange={(e) => setWorkshopDate(e.target.value)}
-                    className={`${inputClass} appearance-none`} />
-                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className={cn(inputClass, "flex items-center justify-between text-right", !workshopDate && "text-muted-foreground")}>
+                      {workshopDate ? formatSyriacDate(workshopDate) : "اختر التاريخ"}
+                      <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={workshopDate} onSelect={setWorkshopDate}
+                      locale={syriacLocale} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
                 <textarea value={workshopNotes} onChange={(e) => setWorkshopNotes(e.target.value)}
                   placeholder="ملاحظات على الورشة..." rows={3} className={`${inputClass} resize-none`} />
               </div>
