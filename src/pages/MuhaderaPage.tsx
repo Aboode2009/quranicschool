@@ -42,9 +42,10 @@ const MuhaderaPage = () => {
           <h1 className="text-2xl font-bold text-foreground">المحاضرة</h1>
           <button
             onClick={() => setShowAdd(true)}
-            className="ios-button w-9 h-9 flex items-center justify-center rounded-full bg-primary text-primary-foreground"
+            className="ios-button flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-sm font-medium"
           >
-            <Plus className="w-5 h-5" strokeWidth={2.5} />
+            <Plus className="w-4 h-4" strokeWidth={2.5} />
+            <span>إضافة محاضرة</span>
           </button>
         </div>
       </div>
