@@ -65,23 +65,6 @@ const MuhaderaPage = () => {
             className="w-full bg-secondary rounded-xl pr-9 pl-4 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30"
           />
         </div>
-
-        {/* Segmented control */}
-        <div className="flex gap-1 bg-secondary rounded-xl p-1">
-          {filters.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => setFilter(f.value)}
-              className={`flex-1 py-1.5 rounded-[10px] text-xs font-medium transition-all ${
-                filter === f.value
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
       </div>
 
 
