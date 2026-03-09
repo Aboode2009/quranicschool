@@ -21,20 +21,21 @@ const AddLessonDialog = ({ open, onClose, onAdd }: AddLessonDialogProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const today = new Date();
-    const dateStr = today.toLocaleDateString("ar-SA", { year: "numeric", month: "short", day: "numeric" });
+    if (!lessonName.trim() || !selectedDate) return;
+    
+    const dateStr = selectedDate.toLocaleDateString("ar-SA", { year: "numeric", month: "short", day: "numeric" });
     onAdd({
       id: generateId(),
-      surahName,
-      fromAyah,
-      toAyah,
+      surahName: lessonName,
+      fromAyah: 0,
+      toAyah: 0,
       notes,
       status: "pending",
       date: dateStr,
     });
+    setLessonName("");
     setNotes("");
-    setFromAyah(1);
-    setToAyah(10);
+    setSelectedDate(new Date());
     onClose();
   };
 
