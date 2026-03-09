@@ -8,7 +8,7 @@ import type { Lesson } from "@/lib/quran-data";
 
 const MuhaderaPage = () => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [filter, setFilter] = useState<"all" | Lesson["status"]>("all");
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [showAdd, setShowAdd] = useState(false);
 
@@ -36,16 +36,9 @@ const MuhaderaPage = () => {
     });
   };
 
-  const filtered = (filter === "all" ? lessons : lessons.filter((l) => l.status === filter))
-    .filter((l) => searchQuery === "" || l.surahName.includes(searchQuery) || l.notes.includes(searchQuery));
+  const filtered = lessons.filter((l) => searchQuery === "" || l.surahName.includes(searchQuery) || l.notes.includes(searchQuery));
 
 
-  const filters: { label: string; value: typeof filter }[] = [
-    { label: "الكل", value: "all" },
-    { label: "لم يبدأ", value: "pending" },
-    { label: "جاري", value: "in-progress" },
-    { label: "مكتمل", value: "completed" },
-  ];
 
   return (
     <div className="flex flex-col h-full">
@@ -72,23 +65,6 @@ const MuhaderaPage = () => {
             className="w-full bg-secondary rounded-xl pr-9 pl-4 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30"
           />
         </div>
-
-        {/* Segmented control */}
-        <div className="flex gap-1 bg-secondary rounded-xl p-1">
-          {filters.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => setFilter(f.value)}
-              className={`flex-1 py-1.5 rounded-[10px] text-xs font-medium transition-all ${
-                filter === f.value
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
       </div>
 
 
@@ -114,7 +90,7 @@ const MuhaderaPage = () => {
               className="flex flex-col items-center justify-center py-20 text-muted-foreground"
             >
               <BookOpen className="w-10 h-10 mb-3 opacity-30" strokeWidth={1.5} />
-              <p className="text-base font-medium">لا توجد دروس {filter !== "all" ? "في هذا التصنيف" : "بعد"}</p>
+              <p className="text-base font-medium">لا توجد دروس بعد</p>
               <p className="text-sm mt-1">اضغط + لإضافة درس جديد</p>
             </motion.div>
           )}
