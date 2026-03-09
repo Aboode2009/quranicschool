@@ -344,8 +344,8 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
   };
 
   const resetForm = () => {
-    setLectureName(""); setLectureDate(""); setWorkshopName("");
-    setWorkshopDate(""); setWorkshopNotes(""); setResources("");
+    setLectureName(""); setLectureDate(undefined); setWorkshopName("");
+    setWorkshopDate(undefined); setWorkshopNotes(""); setResources("");
   };
 
   const addNote = async () => {
