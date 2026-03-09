@@ -39,8 +39,6 @@ const MuhaderaPage = () => {
   const filtered = (filter === "all" ? lessons : lessons.filter((l) => l.status === filter))
     .filter((l) => searchQuery === "" || l.surahName.includes(searchQuery) || l.notes.includes(searchQuery));
 
-  const completed = lessons.filter((l) => l.status === "completed").length;
-  const inProgress = lessons.filter((l) => l.status === "in-progress").length;
 
   const filters: { label: string; value: typeof filter }[] = [
     { label: "الكل", value: "all" },
