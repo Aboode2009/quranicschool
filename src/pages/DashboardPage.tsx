@@ -82,29 +82,42 @@ const DashboardPage = ({ onNavigate }: DashboardProps) => {
         <motion.p variants={fadeUp} className="text-sm font-bold text-muted-foreground mb-3">
           الأقسام
         </motion.p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-4">
           {navCards.map((card) => {
             const Icon = card.icon;
             return (
               <motion.div
                 key={card.id}
                 variants={cardItem}
-                whileHover={{ scale: 1.03, y: -4 }}
-                whileTap={{ scale: 0.96 }}
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => onNavigate(card.id)}
-                className="ios-card p-5 cursor-pointer relative overflow-hidden group"
+                className={`${card.bg} rounded-2xl p-6 cursor-pointer relative overflow-hidden shadow-lg`}
               >
-                {/* Subtle gradient overlay on hover */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-                <motion.div
-                  className={`w-12 h-12 rounded-2xl ${card.iconBg} flex items-center justify-center mb-3`}
-                  whileHover={{ rotate: -8 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <Icon className={`w-6 h-6 ${card.iconColor}`} />
-                </motion.div>
-                <p className="text-[15px] font-bold text-foreground">{card.title}</p>
-                <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">{card.desc}</p>
+                {/* Decorative circles */}
+                <div className="absolute -left-6 -top-6 w-28 h-28 rounded-full bg-white/10 blur-sm" />
+                <div className="absolute -right-4 -bottom-4 w-20 h-20 rounded-full bg-white/10 blur-sm" />
+                
+                <div className="relative flex items-center justify-between">
+                  <div>
+                    <h3 className="text-2xl font-extrabold text-white mb-1">{card.title}</h3>
+                    <p className="text-white/80 text-sm font-medium">{card.desc}</p>
+                  </div>
+                  <motion.div
+                    className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0"
+                    whileHover={{ rotate: -10, scale: 1.1 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <Icon className="w-7 h-7 text-white" />
+                  </motion.div>
+                </div>
+
+                <div className="relative mt-4">
+                  <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-4 py-2 rounded-xl">
+                    فتح
+                    <ChevronLeft className="w-3.5 h-3.5 rotate-180" />
+                  </span>
+                </div>
               </motion.div>
             );
           })}
