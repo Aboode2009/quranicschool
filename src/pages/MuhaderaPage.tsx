@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, Plus, Search } from "lucide-react";
+import { BookOpen, Plus } from "lucide-react";
 import LessonCard from "@/components/LessonCard";
 import AddLessonDialog from "@/components/AddLessonDialog";
 import { getLessonsFromStorage, saveLessonsToStorage } from "@/lib/quran-data";
@@ -8,8 +8,6 @@ import type { Lesson } from "@/lib/quran-data";
 
 const MuhaderaPage = () => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
-  
-  const [searchQuery, setSearchQuery] = useState("");
   const [showAdd, setShowAdd] = useState(false);
 
   useEffect(() => {
@@ -36,10 +34,6 @@ const MuhaderaPage = () => {
     });
   };
 
-  const filtered = lessons.filter((l) => searchQuery === "" || l.surahName.includes(searchQuery) || l.notes.includes(searchQuery));
-
-
-
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -53,26 +47,13 @@ const MuhaderaPage = () => {
             <Plus className="w-5 h-5" strokeWidth={2.5} />
           </button>
         </div>
-
-        {/* Search bar */}
-        <div className="relative mb-3">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="بحث..."
-            className="w-full bg-secondary rounded-xl pr-9 pl-4 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30"
-          />
-        </div>
       </div>
-
 
       {/* Lessons list */}
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         <div className="flex flex-col gap-2.5">
           <AnimatePresence mode="popLayout">
-            {filtered.map((lesson, i) => (
+            {lessons.map((lesson, i) => (
               <LessonCard
                 key={lesson.id}
                 lesson={lesson}
@@ -83,7 +64,7 @@ const MuhaderaPage = () => {
             ))}
           </AnimatePresence>
 
-          {filtered.length === 0 && (
+          {lessons.length === 0 && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
