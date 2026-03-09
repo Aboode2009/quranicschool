@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X } from "lucide-react";
+import { X } from "lucide-react";
 import { SURAH_LIST, generateId } from "@/lib/quran-data";
 import type { Lesson } from "@/lib/quran-data";
 
 interface AddLessonDialogProps {
+  open: boolean;
+  onClose: () => void;
   onAdd: (lesson: Lesson) => void;
 }
 
-const AddLessonDialog = ({ onAdd }: AddLessonDialogProps) => {
-  const [open, setOpen] = useState(false);
+const AddLessonDialog = ({ open, onClose, onAdd }: AddLessonDialogProps) => {
   const [surahName, setSurahName] = useState(SURAH_LIST[0]);
   const [fromAyah, setFromAyah] = useState(1);
   const [toAyah, setToAyah] = useState(10);
@@ -18,7 +19,7 @@ const AddLessonDialog = ({ onAdd }: AddLessonDialogProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const today = new Date();
-    const dateStr = today.toLocaleDateString("ar-SA", { year: "numeric", month: "long", day: "numeric" });
+    const dateStr = today.toLocaleDateString("ar-SA", { year: "numeric", month: "short", day: "numeric" });
     onAdd({
       id: generateId(),
       surahName,
@@ -31,104 +32,88 @@ const AddLessonDialog = ({ onAdd }: AddLessonDialogProps) => {
     setNotes("");
     setFromAyah(1);
     setToAyah(10);
-    setOpen(false);
+    onClose();
   };
 
   return (
-    <>
-      <button
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-medium shadow-emerald hover:brightness-110 transition-all"
-      >
-        <Plus className="w-5 h-5" />
-        إضافة درس جديد
-      </button>
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-foreground/30 backdrop-blur-sm z-50"
+            onClick={onClose}
+          />
+          <motion.div
+            initial={{ opacity: 0, y: "100%" }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: "100%" }}
+            transition={{ type: "spring", damping: 28, stiffness: 300 }}
+            className="fixed bottom-0 inset-x-0 z-50 max-h-[90vh]"
+          >
+            <div className="bg-card rounded-t-3xl px-5 pt-3 pb-8 max-w-lg mx-auto shadow-ios">
+              {/* Handle */}
+              <div className="w-9 h-1 rounded-full bg-ios-separator mx-auto mb-4" />
 
-      <AnimatePresence>
-        {open && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-foreground/40 backdrop-blur-sm z-50"
-              onClick={() => setOpen(false)}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            >
-              <div className="card-islamic w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-display font-bold">إضافة درس جديد</h2>
-                  <button onClick={() => setOpen(false)} className="p-1 rounded-lg hover:bg-secondary transition-colors">
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
+              <div className="flex items-center justify-between mb-5">
+                <button onClick={onClose} className="text-primary text-sm font-medium">إلغاء</button>
+                <h2 className="text-[17px] font-bold">درس جديد</h2>
+                <button onClick={handleSubmit} className="text-primary text-sm font-bold">إضافة</button>
+              </div>
 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1.5">السورة</label>
+              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                <div className="ios-card overflow-hidden">
+                  <div className="px-4 py-3 flex items-center justify-between border-b border-ios-separator">
+                    <label className="text-sm text-foreground">السورة</label>
                     <select
                       value={surahName}
                       onChange={(e) => setSurahName(e.target.value)}
-                      className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="bg-transparent text-sm text-muted-foreground text-left focus:outline-none"
                     >
                       {SURAH_LIST.map((s) => (
                         <option key={s} value={s}>{s}</option>
                       ))}
                     </select>
                   </div>
-
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium mb-1.5">من آية</label>
-                      <input
-                        type="number"
-                        min={1}
-                        value={fromAyah}
-                        onChange={(e) => setFromAyah(Number(e.target.value))}
-                        className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium mb-1.5">إلى آية</label>
-                      <input
-                        type="number"
-                        min={1}
-                        value={toAyah}
-                        onChange={(e) => setToAyah(Number(e.target.value))}
-                        className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1.5">ملاحظات</label>
-                    <textarea
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      rows={3}
-                      placeholder="ملاحظات اختيارية..."
-                      className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                  <div className="px-4 py-3 flex items-center justify-between border-b border-ios-separator">
+                    <label className="text-sm text-foreground">من آية</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={fromAyah}
+                      onChange={(e) => setFromAyah(Number(e.target.value))}
+                      className="bg-transparent text-sm text-muted-foreground text-left w-20 focus:outline-none"
                     />
                   </div>
+                  <div className="px-4 py-3 flex items-center justify-between">
+                    <label className="text-sm text-foreground">إلى آية</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={toAyah}
+                      onChange={(e) => setToAyah(Number(e.target.value))}
+                      className="bg-transparent text-sm text-muted-foreground text-left w-20 focus:outline-none"
+                    />
+                  </div>
+                </div>
 
-                  <button
-                    type="submit"
-                    className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-medium shadow-emerald hover:brightness-110 transition-all mt-2"
-                  >
-                    إضافة الدرس
-                  </button>
-                </form>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </>
+                <div className="ios-card px-4 py-3">
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={3}
+                    placeholder="ملاحظات..."
+                    className="w-full bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none resize-none"
+                  />
+                </div>
+              </form>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
 

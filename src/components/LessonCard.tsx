@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { BookOpen, Check, Clock, Trash2, RotateCcw } from "lucide-react";
+import { Check, Clock, BookOpen, Trash2, ChevronLeft } from "lucide-react";
 import type { Lesson } from "@/lib/quran-data";
 
 interface LessonCardProps {
@@ -13,26 +13,22 @@ const statusConfig = {
   pending: {
     label: "لم يبدأ",
     icon: Clock,
-    badgeClass: "bg-secondary text-secondary-foreground",
-    borderClass: "border-r-cream-dark",
+    dotClass: "bg-muted-foreground",
   },
   "in-progress": {
     label: "جاري",
     icon: BookOpen,
-    badgeClass: "bg-accent/20 text-accent-foreground",
-    borderClass: "border-r-gold",
+    dotClass: "bg-primary",
   },
   completed: {
     label: "مكتمل",
     icon: Check,
-    badgeClass: "bg-primary/10 text-primary",
-    borderClass: "border-r-primary",
+    dotClass: "bg-accent",
   },
 };
 
 const LessonCard = ({ lesson, index, onStatusChange, onDelete }: LessonCardProps) => {
   const config = statusConfig[lesson.status];
-  const StatusIcon = config.icon;
 
   const nextStatus = (): Lesson["status"] => {
     if (lesson.status === "pending") return "in-progress";
@@ -42,52 +38,58 @@ const LessonCard = ({ lesson, index, onStatusChange, onDelete }: LessonCardProps
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: index * 0.05 }}
-      className={`card-islamic p-5 border-r-4 ${config.borderClass} group hover:shadow-emerald transition-shadow duration-300`}
+      exit={{ opacity: 0, x: -60 }}
+      transition={{ duration: 0.25, delay: index * 0.03 }}
+      layout
+      className="ios-card px-4 py-3.5 flex items-center gap-3 group active:scale-[0.98] transition-transform"
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 mb-2">
-            <h3 className="text-xl font-display font-bold text-foreground">
-              سورة {lesson.surahName}
-            </h3>
-            <span className={`px-3 py-0.5 rounded-full text-xs font-medium ${config.badgeClass}`}>
-              <StatusIcon className="inline-block w-3 h-3 ml-1" />
-              {config.label}
-            </span>
-          </div>
-          <p className="text-sm text-muted-foreground mb-1">
-            الآيات: {lesson.fromAyah} – {lesson.toAyah}
-          </p>
-          {lesson.notes && (
-            <p className="text-sm text-muted-foreground/80 mt-2 leading-relaxed">{lesson.notes}</p>
-          )}
-          <p className="text-xs text-muted-foreground/60 mt-3">{lesson.date}</p>
-        </div>
+      {/* Status dot */}
+      <button
+        onClick={() => onStatusChange(lesson.id, nextStatus())}
+        className={`w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+          lesson.status === "completed"
+            ? "border-accent bg-accent"
+            : lesson.status === "in-progress"
+            ? "border-primary bg-primary/10"
+            : "border-ios-separator bg-transparent"
+        }`}
+      >
+        {lesson.status === "completed" && (
+          <Check className="w-3.5 h-3.5 text-accent-foreground" strokeWidth={3} />
+        )}
+        {lesson.status === "in-progress" && (
+          <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+        )}
+      </button>
 
-        <div className="flex flex-col gap-2 opacity-70 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={() => onStatusChange(lesson.id, nextStatus())}
-            className="p-2 rounded-lg bg-secondary hover:bg-primary hover:text-primary-foreground transition-colors"
-            title={lesson.status === "completed" ? "إعادة" : "التالي"}
-          >
-            {lesson.status === "completed" ? (
-              <RotateCcw className="w-4 h-4" />
-            ) : (
-              <Check className="w-4 h-4" />
-            )}
-          </button>
-          <button
-            onClick={() => onDelete(lesson.id)}
-            className="p-2 rounded-lg bg-secondary hover:bg-destructive hover:text-destructive-foreground transition-colors"
-            title="حذف"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <p className={`text-[15px] font-semibold leading-tight ${
+          lesson.status === "completed" ? "text-muted-foreground line-through" : "text-foreground"
+        }`}>
+          سورة {lesson.surahName}
+        </p>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          الآيات {lesson.fromAyah} – {lesson.toAyah} · {lesson.date}
+        </p>
+        {lesson.notes && (
+          <p className="text-xs text-muted-foreground/70 mt-1 truncate">{lesson.notes}</p>
+        )}
       </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={() => onDelete(lesson.id)}
+          className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+        >
+          <Trash2 className="w-4 h-4" strokeWidth={1.5} />
+        </button>
+      </div>
+
+      <ChevronLeft className="w-4 h-4 text-muted-foreground/40 shrink-0" strokeWidth={2} />
     </motion.div>
   );
 };
