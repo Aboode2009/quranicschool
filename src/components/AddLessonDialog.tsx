@@ -11,6 +11,9 @@ interface AddLessonDialogProps {
   open: boolean;
   onClose: () => void;
   onAdd: (lesson: Lesson) => void;
+  dialogTitle?: string;
+  namePlaceholder?: string;
+  addLabel?: string;
 }
 
 const AddLessonDialog = ({ open, onClose, onAdd }: AddLessonDialogProps) => {
