@@ -5,8 +5,7 @@ import { generateId } from "@/lib/quran-data";
 import type { Lesson } from "@/lib/quran-data";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { ar } from "date-fns/locale";
+import { syriacLocale, formatSyriacDate } from "@/lib/syriac-locale";
 
 interface AddLessonDialogProps {
   open: boolean;
@@ -88,7 +87,7 @@ const AddLessonDialog = ({ open, onClose, onAdd }: AddLessonDialogProps) => {
                         >
                           <span className="text-foreground">التاريخ</span>
                           <span className="text-muted-foreground flex items-center gap-2">
-                            {selectedDate ? format(selectedDate, "PPP", { locale: ar }) : "اختر التاريخ"}
+                            {selectedDate ? formatSyriacDate(selectedDate) : "اختر التاريخ"}
                             <CalendarIcon className="w-4 h-4" />
                           </span>
                         </button>
@@ -98,7 +97,7 @@ const AddLessonDialog = ({ open, onClose, onAdd }: AddLessonDialogProps) => {
                           mode="single"
                           selected={selectedDate}
                           onSelect={setSelectedDate}
-                          locale={ar}
+                          locale={syriacLocale}
                           initialFocus
                         />
                       </PopoverContent>
