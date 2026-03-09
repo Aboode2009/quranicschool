@@ -15,9 +15,8 @@ interface AddLessonDialogProps {
 }
 
 const AddLessonDialog = ({ open, onClose, onAdd }: AddLessonDialogProps) => {
-  const [surahName, setSurahName] = useState(SURAH_LIST[0]);
-  const [fromAyah, setFromAyah] = useState(1);
-  const [toAyah, setToAyah] = useState(10);
+  const [lessonName, setLessonName] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [notes, setNotes] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
