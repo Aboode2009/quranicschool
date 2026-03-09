@@ -103,7 +103,12 @@ const AttendancePage = () => {
 
   const getLessonDisplayName = (lessonId: string): string => {
     const lesson = lessonMap[lessonId];
-    if (lesson) return lesson.surahName ? `${lesson.surahName} (${lesson.fromAyah}-${lesson.toAyah})` : lessonId;
+    if (lesson) {
+      if (lesson.surahName && lesson.fromAyah && lesson.toAyah) {
+        return `${lesson.surahName} (${lesson.fromAyah}-${lesson.toAyah})`;
+      }
+      return lesson.surahName || lessonId;
+    }
     const workshop = workshopMap[lessonId];
     if (workshop) return workshop.surahName || lessonId;
     return lessonId;
