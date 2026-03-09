@@ -25,9 +25,10 @@ interface AttendanceDetail {
 interface LessonAttendancePageProps {
   lesson: Lesson;
   onBack: () => void;
+  category?: string;
 }
 
-const LessonAttendancePage = ({ lesson, onBack }: LessonAttendancePageProps) => {
+const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonAttendancePageProps) => {
   const [people, setPeople] = useState<Person[]>([]);
   const [attendance, setAttendance] = useState<Record<string, AttendanceDetail>>({});
   const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
@@ -42,6 +43,7 @@ const LessonAttendancePage = ({ lesson, onBack }: LessonAttendancePageProps) => 
     const { data: peopleData, error: peopleErr } = await supabase
       .from("people")
       .select("id, name")
+      .eq("category", category)
       .order("created_at", { ascending: true });
 
     if (peopleErr) {

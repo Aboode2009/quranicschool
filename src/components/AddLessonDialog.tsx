@@ -11,9 +11,12 @@ interface AddLessonDialogProps {
   open: boolean;
   onClose: () => void;
   onAdd: (lesson: Lesson) => void;
+  dialogTitle?: string;
+  namePlaceholder?: string;
+  addLabel?: string;
 }
 
-const AddLessonDialog = ({ open, onClose, onAdd }: AddLessonDialogProps) => {
+const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد", namePlaceholder = "اسم المحاضرة", addLabel = "إضافة" }: AddLessonDialogProps) => {
   const [lessonName, setLessonName] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [notes, setNotes] = useState("");
@@ -62,8 +65,8 @@ const AddLessonDialog = ({ open, onClose, onAdd }: AddLessonDialogProps) => {
 
               <div className="flex items-center justify-between mb-5">
                 <button onClick={onClose} className="text-primary text-sm font-medium">إلغاء</button>
-                <h2 className="text-[17px] font-bold">درس جديد</h2>
-                <button onClick={handleSubmit} className="text-primary text-sm font-bold">إضافة</button>
+                <h2 className="text-[17px] font-bold">{dialogTitle}</h2>
+                <button onClick={handleSubmit} className="text-primary text-sm font-bold">{addLabel}</button>
               </div>
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -73,7 +76,7 @@ const AddLessonDialog = ({ open, onClose, onAdd }: AddLessonDialogProps) => {
                       type="text"
                       value={lessonName}
                       onChange={(e) => setLessonName(e.target.value)}
-                      placeholder="اسم المحاضرة"
+                      placeholder={namePlaceholder}
                       className="w-full bg-transparent text-base text-foreground placeholder:text-muted-foreground focus:outline-none"
                       required
                     />
