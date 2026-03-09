@@ -79,6 +79,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
       [personId]: {
         ...prev[personId],
         status,
+        excuse: status === "absent" ? "without_excuse" : undefined,
       },
     }));
     setExpandedPerson(personId);
