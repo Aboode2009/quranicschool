@@ -40,13 +40,6 @@ const MuhaderaPage = () => {
       <div className="px-4 pt-3 pb-2">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-2xl font-bold text-foreground">المحاضرة</h1>
-          <button
-            onClick={() => setShowAdd(true)}
-            className="ios-button flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-sm font-medium"
-          >
-            <Plus className="w-4 h-4" strokeWidth={2.5} />
-            <span>إضافة محاضرة</span>
-          </button>
         </div>
       </div>
 
@@ -73,10 +66,21 @@ const MuhaderaPage = () => {
             >
               <BookOpen className="w-10 h-10 mb-3 opacity-30" strokeWidth={1.5} />
               <p className="text-base font-medium">لا توجد دروس بعد</p>
-              <p className="text-sm mt-1">اضغط + لإضافة درس جديد</p>
+              <p className="text-sm mt-1">اضغط الزر أدناه لإضافة درس جديد</p>
             </motion.div>
           )}
         </div>
+      </div>
+
+      {/* Add button at bottom */}
+      <div className="px-4 pb-4">
+        <button
+          onClick={() => setShowAdd(true)}
+          className="ios-button w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground text-base font-semibold shadow-sm"
+        >
+          <Plus className="w-5 h-5" strokeWidth={2.5} />
+          <span>إضافة محاضرة</span>
+        </button>
       </div>
 
       <AddLessonDialog open={showAdd} onClose={() => setShowAdd(false)} onAdd={addLesson} />
