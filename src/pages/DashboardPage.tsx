@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { BookOpen, Users, UserCheck, Settings, ChevronLeft } from "lucide-react";
+import { BookOpen, Users, UserCheck, Settings, ChevronLeft, Shield } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
-type TabId = "muhadera" | "warasha" | "settings" | "attendance";
+type TabId = "muhadera" | "warasha" | "settings" | "attendance" | "admin";
 
 interface DashboardProps {
   onNavigate: (tab: TabId) => void;
