@@ -9,7 +9,13 @@ interface Person {
   name: string;
 }
 
-const AttendancePage = () => {
+interface AttendancePageProps {
+  category?: string;
+  title?: string;
+  subtitle?: string;
+}
+
+const AttendancePage = ({ category = "muhadera", title = "الأسماء", subtitle = "قائمة الأشخاص المسجلين" }: AttendancePageProps) => {
   const [people, setPeople] = useState<Person[]>([]);
   const [newName, setNewName] = useState("");
   const [loading, setLoading] = useState(true);
