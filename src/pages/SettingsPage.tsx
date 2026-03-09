@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Moon, Sun, Info, DollarSign, ChevronLeft, Plus, Trash2, TrendingUp, TrendingDown, ArrowDownLeft, ArrowUpRight, Wallet } from "lucide-react";
+import { Moon, Sun, Info, DollarSign, ChevronLeft, Plus, Trash2, TrendingUp, TrendingDown, ArrowDownLeft, ArrowUpRight, Wallet, ClipboardList } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -307,11 +307,141 @@ const FinancePage = ({ onBack }: { onBack: () => void }) => {
   );
 };
 
+const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
+  const [notes, setNotes] = useState<{ id: string; content: string; date: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAdd, setShowAdd] = useState(false);
+  const [content, setContent] = useState("");
+
+  useEffect(() => {
+    fetchNotes();
+  }, []);
+
+  const fetchNotes = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("session_notes")
+      .select("*")
+      .order("date", { ascending: false });
+    if (!error) setNotes((data as any[]) || []);
+    setLoading(false);
+  };
+
+  const addNote = async () => {
+    if (!content.trim()) { toast.error("يرجى كتابة الملاحظة"); return; }
+    const { data, error } = await supabase
+      .from("session_notes")
+      .insert({ content: content.trim(), date: new Date().toISOString().split("T")[0] })
+      .select()
+      .single();
+    if (error) { toast.error("خطأ في الإضافة"); }
+    else if (data) {
+      setNotes((prev) => [data as any, ...prev]);
+      setContent("");
+      setShowAdd(false);
+      toast.success("تمت الإضافة");
+    }
+  };
+
+  const deleteNote = async (id: string) => {
+    const { error } = await supabase.from("session_notes").delete().eq("id", id);
+    if (error) { toast.error("خطأ في الحذف"); }
+    else { setNotes((prev) => prev.filter((n) => n.id !== id)); toast.success("تم الحذف"); }
+  };
+
+  return (
+    <div className="flex flex-col h-full" dir="rtl">
+      <div className="px-4 pt-3 pb-2">
+        <button onClick={onBack} className="flex items-center gap-1 text-primary text-sm font-medium mb-3">
+          <ChevronLeft className="w-4 h-4 rotate-180" /><span>رجوع</span>
+        </button>
+        <h1 className="text-2xl font-bold text-foreground mb-1">مقررات الجلسة</h1>
+        <p className="text-sm text-muted-foreground">ملاحظات ومقررات كل جلسة</p>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 pb-4">
+        <AnimatePresence>
+          {showAdd && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="ios-card p-4 mt-3 flex flex-col gap-3"
+            >
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="اكتب ملاحظة أو مقرر الجلسة..."
+                rows={4}
+                className="w-full px-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground text-sm outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+              />
+              <div className="flex gap-2">
+                <button onClick={addNote} className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold active:scale-[0.97] transition-transform">
+                  إضافة
+                </button>
+                <button onClick={() => setShowAdd(false)} className="py-3 px-5 rounded-xl bg-secondary text-muted-foreground text-sm font-semibold active:scale-[0.97] transition-transform">
+                  إلغاء
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-16 text-muted-foreground"><p>جاري التحميل...</p></div>
+        ) : notes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+            <ClipboardList className="w-10 h-10 mb-3 opacity-30" />
+            <p className="text-base font-medium">لا توجد ملاحظات بعد</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2 mt-3">
+            <AnimatePresence mode="popLayout">
+              {notes.map((note, i) => (
+                <motion.div
+                  key={note.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: 40 }}
+                  transition={{ delay: i * 0.03 }}
+                  className="ios-card px-4 py-3.5"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                      <ClipboardList className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[15px] font-semibold text-foreground whitespace-pre-wrap">{note.content}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{note.date}</p>
+                    </div>
+                    <button onClick={() => deleteNote(note.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors shrink-0">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+
+      {!showAdd && (
+        <div className="px-4 pb-4">
+          <button onClick={() => setShowAdd(true)} className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform">
+            <Plus className="w-5 h-5" /><span>إضافة ملاحظة</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const SettingsPage = () => {
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains("dark");
   });
   const [showFinance, setShowFinance] = useState(false);
+  const [showSessionNotes, setShowSessionNotes] = useState(false);
 
   const toggleDarkMode = () => {
     const newVal = !isDark;
@@ -335,6 +465,10 @@ const SettingsPage = () => {
 
   if (showFinance) {
     return <FinancePage onBack={() => setShowFinance(false)} />;
+  }
+
+  if (showSessionNotes) {
+    return <SessionNotesPage onBack={() => setShowSessionNotes(false)} />;
   }
 
   return (
@@ -389,6 +523,26 @@ const SettingsPage = () => {
               <div className="flex-1">
                 <p className="text-[15px] font-semibold text-foreground">الأمور المالية</p>
                 <p className="text-xs text-muted-foreground mt-0.5">إدارة الإيرادات والمصروفات</p>
+              </div>
+              <ChevronLeft className="w-4 h-4 text-muted-foreground rotate-180" />
+            </div>
+          </motion.div>
+
+          {/* Session Notes */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="ios-card p-4 cursor-pointer active:scale-[0.98] transition-transform"
+            onClick={() => setShowSessionNotes(true)}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <ClipboardList className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="text-[15px] font-semibold text-foreground">مقررات الجلسة</p>
+                <p className="text-xs text-muted-foreground mt-0.5">ملاحظات ومقررات كل جلسة</p>
               </div>
               <ChevronLeft className="w-4 h-4 text-muted-foreground rotate-180" />
             </div>
