@@ -1,0 +1,1 @@
+ALTER TABLE public.session_notes ADD COLUMN lecture_notes TEXT NOT NULL DEFAULT '';

@@ -315,6 +315,7 @@ interface SessionNote {
   id: string;
   lecture_name: string;
   lecture_date: string | null;
+  lecture_notes: string;
   workshop_name: string;
   workshop_date: string | null;
   workshop_notes: string;
@@ -328,6 +329,7 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
   const [showAdd, setShowAdd] = useState(false);
   const [lectureName, setLectureName] = useState("");
   const [lectureDate, setLectureDate] = useState<Date | undefined>();
+  const [lectureNotes, setLectureNotes] = useState("");
   const [workshopName, setWorkshopName] = useState("");
   const [workshopDate, setWorkshopDate] = useState<Date | undefined>();
   const [workshopNotes, setWorkshopNotes] = useState("");
@@ -344,8 +346,8 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
   };
 
   const resetForm = () => {
-    setLectureName(""); setLectureDate(undefined); setWorkshopName("");
-    setWorkshopDate(undefined); setWorkshopNotes(""); setResources("");
+    setLectureName(""); setLectureDate(undefined); setLectureNotes("");
+    setWorkshopName(""); setWorkshopDate(undefined); setWorkshopNotes(""); setResources("");
   };
 
   const addNote = async () => {
@@ -356,6 +358,7 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
     const { data, error } = await supabase.from("session_notes").insert([{
       lecture_name: lectureName.trim(),
       lecture_date: toDateStr(lectureDate),
+      lecture_notes: lectureNotes.trim(),
       workshop_name: workshopName.trim(),
       workshop_date: toDateStr(workshopDate),
       workshop_notes: workshopNotes.trim(),
@@ -416,6 +419,8 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
                       locale={syriacLocale} initialFocus className={cn("p-3 pointer-events-auto")} />
                   </PopoverContent>
                 </Popover>
+                <textarea value={lectureNotes} onChange={(e) => setLectureNotes(e.target.value)}
+                  placeholder="ملاحظات على المحاضرة..." rows={3} className={`${inputClass} resize-none`} />
               </div>
 
               <div className="ios-card p-4 flex flex-col gap-3">
@@ -486,6 +491,12 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
                         <p className="text-[13px] font-bold text-foreground">{note.lecture_name}</p>
                         {note.lecture_date && <p className="text-[11px] text-muted-foreground">{formatSyriacDateString(note.lecture_date)}</p>}
                       </div>
+                    </div>
+                  )}
+                  {note.lecture_notes && (
+                    <div className="bg-secondary/50 rounded-xl p-3 mb-2">
+                      <p className="text-[11px] text-muted-foreground font-semibold mb-1">ملاحظات المحاضرة</p>
+                      <p className="text-[13px] text-foreground whitespace-pre-wrap">{note.lecture_notes}</p>
                     </div>
                   )}
                   {note.workshop_name && (
