@@ -127,11 +127,13 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
 
   const statusLabel = (detail: WorkshopDetail) => {
     if (!detail?.status) return "لم يُحدد";
-    const parts: string[] = [];
-    parts.push(detail.status === "present" ? "حاضر" : "غائب");
-    if (detail.readMaterial) parts.push("قرأ المادة");
-    if (detail.listenedLecture) parts.push("سمع المحاضرة");
-    return parts.join(" · ");
+    if (detail.status === "present") {
+      const parts: string[] = ["حاضر"];
+      if (detail.readMaterial) parts.push("قرأ المادة");
+      if (detail.listenedLecture) parts.push("سمع المحاضرة");
+      return parts.join(" · ");
+    }
+    return detail.excuse === "with_excuse" ? "غائب بعذر" : "غائب بدون عذر";
   };
 
   const statusColor = (detail: WorkshopDetail) => {
