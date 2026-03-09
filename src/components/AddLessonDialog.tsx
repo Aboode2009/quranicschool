@@ -76,7 +76,7 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
                       type="text"
                       value={lessonName}
                       onChange={(e) => setLessonName(e.target.value)}
-                      placeholder="اسم المحاضرة"
+                      placeholder={namePlaceholder}
                       className="w-full bg-transparent text-base text-foreground placeholder:text-muted-foreground focus:outline-none"
                       required
                     />
