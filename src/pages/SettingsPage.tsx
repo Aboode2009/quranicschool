@@ -419,6 +419,8 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
                       locale={syriacLocale} initialFocus className={cn("p-3 pointer-events-auto")} />
                   </PopoverContent>
                 </Popover>
+                <textarea value={lectureNotes} onChange={(e) => setLectureNotes(e.target.value)}
+                  placeholder="ملاحظات على المحاضرة..." rows={3} className={`${inputClass} resize-none`} />
               </div>
 
               <div className="ios-card p-4 flex flex-col gap-3">
