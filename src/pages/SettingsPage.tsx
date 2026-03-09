@@ -323,11 +323,143 @@ interface SessionNote {
   date: string;
 }
 
-const SessionNoteDetailPage = ({ note, onBack, onDelete }: { note: SessionNote; onBack: () => void; onDelete: (id: string) => void }) => {
+const SessionNoteDetailPage = ({ note, onBack, onDelete, onUpdate }: { note: SessionNote; onBack: () => void; onDelete: (id: string) => void; onUpdate: (id: string, updated: Partial<SessionNote>) => void }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editLectureName, setEditLectureName] = useState(note.lecture_name);
+  const [editLectureDate, setEditLectureDate] = useState<Date | undefined>(note.lecture_date ? new Date(note.lecture_date) : undefined);
+  const [editLectureNotes, setEditLectureNotes] = useState(note.lecture_notes);
+  const [editWorkshopName, setEditWorkshopName] = useState(note.workshop_name);
+  const [editWorkshopDate, setEditWorkshopDate] = useState<Date | undefined>(note.workshop_date ? new Date(note.workshop_date) : undefined);
+  const [editWorkshopNotes, setEditWorkshopNotes] = useState(note.workshop_notes);
+  const [editResources, setEditResources] = useState(note.resources);
+
   const handleDelete = async () => {
     onDelete(note.id);
     onBack();
   };
+
+  const handleSaveEdit = async () => {
+    if (!editLectureName.trim() && !editWorkshopName.trim()) {
+      toast.error("يرجى إدخال اسم المحاضرة أو الورشة على الأقل");
+      return;
+    }
+
+    const toDateStr = (d: Date | undefined) => d ? d.toISOString().split("T")[0] : null;
+    const { error } = await supabase
+      .from("session_notes")
+      .update({
+        lecture_name: editLectureName.trim(),
+        lecture_date: toDateStr(editLectureDate),
+        lecture_notes: editLectureNotes.trim(),
+        workshop_name: editWorkshopName.trim(),
+        workshop_date: toDateStr(editWorkshopDate),
+        workshop_notes: editWorkshopNotes.trim(),
+        resources: editResources.trim(),
+        content: `${editLectureName.trim()} - ${editWorkshopName.trim()}`,
+      })
+      .eq("id", note.id);
+
+    if (error) {
+      toast.error("خطأ في التعديل");
+    } else {
+      onUpdate(note.id, {
+        lecture_name: editLectureName.trim(),
+        lecture_date: toDateStr(editLectureDate),
+        lecture_notes: editLectureNotes.trim(),
+        workshop_name: editWorkshopName.trim(),
+        workshop_date: toDateStr(editWorkshopDate),
+        workshop_notes: editWorkshopNotes.trim(),
+        resources: editResources.trim(),
+      });
+      setIsEditing(false);
+      toast.success("تم التعديل بنجاح");
+    }
+  };
+
+  const inputClass = "w-full px-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground text-sm outline-none focus:ring-2 focus:ring-primary/30";
+
+  if (isEditing) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex flex-col h-full"
+        dir="rtl"
+      >
+        <div className="px-4 pt-3 pb-2">
+          <button onClick={() => setIsEditing(false)} className="flex items-center gap-1 text-primary text-sm font-medium mb-3">
+            <ChevronLeft className="w-4 h-4 rotate-180" /><span>إلغاء</span>
+          </button>
+          <h1 className="text-2xl font-bold text-foreground">تعديل المقرر</h1>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 pb-4">
+          <div className="flex flex-col gap-3 mt-3">
+            <div className="ios-card p-4 flex flex-col gap-3">
+              <div className="flex items-center gap-2 mb-1">
+                <BookOpen className="w-4 h-4 text-primary" />
+                <p className="text-sm font-bold text-foreground">المحاضرة</p>
+              </div>
+              <input type="text" value={editLectureName} onChange={(e) => setEditLectureName(e.target.value)}
+                placeholder="اسم المحاضرة" className={inputClass} />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className={cn(inputClass, "flex items-center justify-between text-right", !editLectureDate && "text-muted-foreground")}>
+                    {editLectureDate ? formatSyriacDate(editLectureDate) : "اختر التاريخ"}
+                    <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={editLectureDate} onSelect={setEditLectureDate}
+                    locale={syriacLocale} initialFocus className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+              <textarea value={editLectureNotes} onChange={(e) => setEditLectureNotes(e.target.value)}
+                placeholder="ملاحظات على المحاضرة..." rows={3} className={`${inputClass} resize-none`} />
+            </div>
+
+            <div className="ios-card p-4 flex flex-col gap-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Users className="w-4 h-4 text-accent" />
+                <p className="text-sm font-bold text-foreground">الورشة</p>
+              </div>
+              <input type="text" value={editWorkshopName} onChange={(e) => setEditWorkshopName(e.target.value)}
+                placeholder="اسم الورشة" className={inputClass} />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className={cn(inputClass, "flex items-center justify-between text-right", !editWorkshopDate && "text-muted-foreground")}>
+                    {editWorkshopDate ? formatSyriacDate(editWorkshopDate) : "اختر التاريخ"}
+                    <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={editWorkshopDate} onSelect={setEditWorkshopDate}
+                    locale={syriacLocale} initialFocus className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+              <textarea value={editWorkshopNotes} onChange={(e) => setEditWorkshopNotes(e.target.value)}
+                placeholder="ملاحظات على الورشة..." rows={3} className={`${inputClass} resize-none`} />
+            </div>
+
+            <div className="ios-card p-4 flex flex-col gap-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Wrench className="w-4 h-4 text-muted-foreground" />
+                <p className="text-sm font-bold text-foreground">الوسائل المصاحبة</p>
+              </div>
+              <textarea value={editResources} onChange={(e) => setEditResources(e.target.value)}
+                placeholder="اكتب الوسائل المصاحبة..." rows={3} className={`${inputClass} resize-none`} />
+            </div>
+          </div>
+        </div>
+
+        <div className="px-4 pb-4">
+          <button onClick={handleSaveEdit} className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform">
+            حفظ التعديلات
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -347,12 +479,20 @@ const SessionNoteDetailPage = ({ note, onBack, onDelete }: { note: SessionNote; 
             <h1 className="text-2xl font-bold text-foreground">تفاصيل المقرر</h1>
             <p className="text-sm text-muted-foreground mt-0.5">{formatSyriacDateString(note.date)}</p>
           </div>
-          <button
-            onClick={handleDelete}
-            className="p-2 rounded-xl bg-destructive/10 text-destructive active:scale-[0.95] transition-transform"
-          >
-            <Trash2 className="w-4.5 h-4.5" />
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsEditing(true)}
+              className="p-2 rounded-xl bg-primary/10 text-primary active:scale-[0.95] transition-transform"
+            >
+              <Edit2 className="w-4.5 h-4.5" />
+            </button>
+            <button
+              onClick={handleDelete}
+              className="p-2 rounded-xl bg-destructive/10 text-destructive active:scale-[0.95] transition-transform"
+            >
+              <Trash2 className="w-4.5 h-4.5" />
+            </button>
+          </div>
         </div>
       </div>
 
