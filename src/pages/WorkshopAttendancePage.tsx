@@ -16,6 +16,7 @@ interface WorkshopDetail {
   status: Status;
   readMaterial: boolean;
   listenedLecture: boolean;
+  excuse?: "with_excuse" | "without_excuse";
 }
 
 interface WorkshopAttendancePageProps {
