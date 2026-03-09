@@ -528,6 +528,26 @@ const SettingsPage = () => {
             </div>
           </motion.div>
 
+          {/* Session Notes */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="ios-card p-4 cursor-pointer active:scale-[0.98] transition-transform"
+            onClick={() => setShowSessionNotes(true)}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <ClipboardList className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="text-[15px] font-semibold text-foreground">مقررات الجلسة</p>
+                <p className="text-xs text-muted-foreground mt-0.5">ملاحظات ومقررات كل جلسة</p>
+              </div>
+              <ChevronLeft className="w-4 h-4 text-muted-foreground rotate-180" />
+            </div>
+          </motion.div>
+
           {/* About */}
           <motion.div
             initial={{ opacity: 0, y: 8 }}
