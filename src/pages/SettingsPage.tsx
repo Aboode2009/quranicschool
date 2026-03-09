@@ -329,6 +329,7 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
   const [showAdd, setShowAdd] = useState(false);
   const [lectureName, setLectureName] = useState("");
   const [lectureDate, setLectureDate] = useState<Date | undefined>();
+  const [lectureNotes, setLectureNotes] = useState("");
   const [workshopName, setWorkshopName] = useState("");
   const [workshopDate, setWorkshopDate] = useState<Date | undefined>();
   const [workshopNotes, setWorkshopNotes] = useState("");
