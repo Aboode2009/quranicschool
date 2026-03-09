@@ -98,6 +98,7 @@ const AddLessonDialog = ({ open, onClose, onAdd }: AddLessonDialogProps) => {
                           mode="single"
                           selected={selectedDate}
                           onSelect={setSelectedDate}
+                          locale={ar}
                           initialFocus
                         />
                       </PopoverContent>
