@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import type { Lesson } from "@/lib/quran-data";
 import { useAuth } from "@/hooks/useAuth";
+import IslamicDecorations from "@/components/IslamicDecorations";
 
 interface Person {
   id: string;
