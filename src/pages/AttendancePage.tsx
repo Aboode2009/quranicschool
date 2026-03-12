@@ -597,22 +597,66 @@ const AttendancePage = () => {
       </div>
 
       {permissions.canAddPeople && (
-        <div className="px-4 pb-4 flex gap-2">
-          <input
-            type="text"
-            placeholder="اسم الشخص"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addPerson()}
-            className="flex-1 px-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          />
-          <button
-            onClick={addPerson}
-            className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-1.5"
-          >
-            <UserPlus className="w-4 h-4" />
-            <span>إضافة</span>
-          </button>
+        <div className="px-4 pb-4">
+          {!showAddForm ? (
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform"
+            >
+              <Plus className="w-5 h-5" />
+              <span>إضافة شخص</span>
+            </button>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="ios-card p-4 flex flex-col gap-3"
+            >
+              <input
+                type="text"
+                placeholder="الاسم (مطلوب) *"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <div className="relative">
+                <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="tel"
+                  placeholder="رقم الهاتف (اختياري)"
+                  value={newPhone}
+                  onChange={(e) => setNewPhone(e.target.value)}
+                  dir="ltr"
+                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-right"
+                />
+              </div>
+              <div className="relative">
+                <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="العنوان (اختياري)"
+                  value={newAddress}
+                  onChange={(e) => setNewAddress(e.target.value)}
+                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={addPerson}
+                  className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-1.5"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>إضافة</span>
+                </button>
+                <button
+                  onClick={() => { setShowAddForm(false); setNewName(""); setNewPhone(""); setNewAddress(""); }}
+                  className="px-4 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold"
+                >
+                  إلغاء
+                </button>
+              </div>
+            </motion.div>
+          )}
         </div>
       )}
     </div>
