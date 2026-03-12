@@ -198,7 +198,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
       const parts: string[] = ["حاضر"];
       if (detail.readMaterial === "yes") parts.push("قرأ المادة");
       else if (detail.readMaterial === "incomplete") parts.push("لم يكمل المادة");
-      if (detail.listenedLecture) parts.push("سمع المحاضرة");
+      
       if (detail.extractedVerse) parts.push("استخرج آية");
       return parts.join(" · ");
     }
@@ -325,15 +325,6 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
                                     <Chip label="نعم" active={detail.readMaterial === "yes"} activeClass="bg-primary text-primary-foreground" onClick={() => setField(person.id, "readMaterial", "yes")} />
                                     <Chip label="لم يكمل" active={detail.readMaterial === "incomplete"} activeClass="bg-accent text-accent-foreground" onClick={() => setField(person.id, "readMaterial", "incomplete")} />
                                     <Chip label="لا" active={detail.readMaterial === "no"} activeClass="bg-destructive text-destructive-foreground" onClick={() => setField(person.id, "readMaterial", "no")} />
-                                  </div>
-                                </div>
-
-                                {/* Listened lecture */}
-                                <div>
-                                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">هل سمع المحاضرة؟</p>
-                                  <div className="flex gap-2">
-                                    <Chip label="نعم" active={detail.listenedLecture === true} activeClass="bg-primary text-primary-foreground" onClick={() => setField(person.id, "listenedLecture", true)} />
-                                    <Chip label="لا" active={detail.listenedLecture === false} activeClass="bg-destructive text-destructive-foreground" onClick={() => setField(person.id, "listenedLecture", false)} />
                                   </div>
                                 </div>
 
