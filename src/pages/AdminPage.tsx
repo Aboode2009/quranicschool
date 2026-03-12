@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import type { AppRole } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { ChevronLeft, Users, Shield, ShieldCheck, BarChart3, UserCheck, BookOpen, DollarSign, Plus, Trash2, MessageSquarePlus } from "lucide-react";
+import { ChevronLeft, Users, Shield, ShieldCheck, BarChart3, UserCheck, BookOpen, DollarSign, Plus, Trash2, MessageSquarePlus, Crown, Eye, Briefcase } from "lucide-react";
 
 interface Profile {
   id: string;
@@ -24,12 +25,20 @@ interface CustomQuestion {
   sort_order: number;
 }
 
+const ROLE_CONFIG: { role: AppRole; label: string; icon: typeof Shield; color: string; desc: string }[] = [
+  { role: "admin", label: "أدمن", icon: ShieldCheck, color: "bg-primary text-primary-foreground", desc: "إدارة المستخدمين والصلاحيات" },
+  { role: "course_director", label: "مدير الدورة", icon: Crown, color: "bg-accent text-accent-foreground", desc: "صلاحية كاملة لكل شيء" },
+  { role: "supervisor", label: "مشرف", icon: Briefcase, color: "bg-[hsl(var(--chart-4))] text-primary-foreground", desc: "إنشاء محاضرات وورش وأسماء، بدون مالية" },
+  { role: "province_manager", label: "مدير محافظة", icon: Eye, color: "bg-secondary text-secondary-foreground", desc: "عرض كل شيء بدون تعديل" },
+];
+
 const AdminPage = ({ onBack }: { onBack: () => void }) => {
   const { user } = useAuth();
   const [activeSection, setActiveSection] = useState<"users" | "stats" | "questions">("users");
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedUser, setExpandedUser] = useState<string | null>(null);
 
   // Custom questions
   const [questions, setQuestions] = useState<CustomQuestion[]>([]);
@@ -79,26 +88,48 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
     setLoading(false);
   };
 
-  const isUserAdmin = (userId: string) => roles.some((r) => r.user_id === userId && r.role === "admin");
+  const getUserRole = (userId: string): AppRole | null => {
+    const userRoles = roles.filter((r) => r.user_id === userId);
+    if (userRoles.some((r) => r.role === "admin")) return "admin";
+    if (userRoles.some((r) => r.role === "course_director")) return "course_director";
+    if (userRoles.some((r) => r.role === "supervisor")) return "supervisor";
+    if (userRoles.some((r) => r.role === "province_manager")) return "province_manager";
+    return null;
+  };
 
-  const toggleAdmin = async (userId: string) => {
+  const getRoleLabel = (role: AppRole | null): string => {
+    if (!role) return "مستخدم عادي";
+    return ROLE_CONFIG.find((r) => r.role === role)?.label || "مستخدم";
+  };
+
+  const getRoleColor = (role: AppRole | null): string => {
+    if (!role) return "bg-muted text-muted-foreground";
+    return ROLE_CONFIG.find((r) => r.role === role)?.color || "bg-muted text-muted-foreground";
+  };
+
+  const setUserRole = async (userId: string, newRole: AppRole | null) => {
     if (userId === user?.id) {
       toast.error("لا يمكنك تغيير صلاحياتك الخاصة");
       return;
     }
 
-    const currentlyAdmin = isUserAdmin(userId);
-    if (currentlyAdmin) {
-      const { error } = await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", "admin");
-      if (error) { toast.error("خطأ في إزالة الصلاحية"); return; }
-      setRoles((prev) => prev.filter((r) => !(r.user_id === userId && r.role === "admin")));
-      toast.success("تم إزالة صلاحية الأدمن");
-    } else {
-      const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: "admin" });
-      if (error) { toast.error("خطأ في إضافة الصلاحية"); return; }
-      setRoles((prev) => [...prev, { user_id: userId, role: "admin" }]);
-      toast.success("تم منح صلاحية الأدمن");
+    // Remove all existing roles for this user
+    const existingRoles = roles.filter((r) => r.user_id === userId);
+    if (existingRoles.length > 0) {
+      const { error } = await supabase.from("user_roles").delete().eq("user_id", userId);
+      if (error) { toast.error("خطأ في تحديث الصلاحية"); return; }
     }
+
+    if (newRole && newRole !== "user") {
+      const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: newRole });
+      if (error) { toast.error("خطأ في إضافة الصلاحية"); return; }
+      setRoles((prev) => [...prev.filter((r) => r.user_id !== userId), { user_id: userId, role: newRole }]);
+      toast.success(`تم تعيين الدور: ${getRoleLabel(newRole)}`);
+    } else {
+      setRoles((prev) => prev.filter((r) => r.user_id !== userId));
+      toast.success("تم إزالة جميع الصلاحيات");
+    }
+    setExpandedUser(null);
   };
 
   const addQuestion = async () => {
@@ -172,22 +203,97 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
           </div>
         ) : activeSection === "users" ? (
           <div className="flex flex-col gap-2 mt-3">
+            {/* Role Legend */}
+            <div className="ios-card px-4 py-3 mb-1">
+              <p className="text-xs font-bold text-foreground mb-2">الأدوار المتاحة</p>
+              <div className="flex flex-wrap gap-1.5">
+                {ROLE_CONFIG.map((r) => (
+                  <span key={r.role} className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold ${r.color}`}>
+                    {r.label}
+                  </span>
+                ))}
+                <span className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-muted text-muted-foreground">مستخدم عادي</span>
+              </div>
+            </div>
+
             <p className="text-xs text-muted-foreground mb-1">{profiles.length} مستخدم مسجل</p>
             <AnimatePresence mode="popLayout">
-              {profiles.map((profile, i) => (
-                <motion.div key={profile.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="ios-card px-4 py-3.5 flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isUserAdmin(profile.id) ? "bg-primary/10" : "bg-secondary"}`}>
-                    {isUserAdmin(profile.id) ? <ShieldCheck className="w-5 h-5 text-primary" /> : <Users className="w-5 h-5 text-muted-foreground" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[15px] font-semibold text-foreground truncate">{profile.display_name || "بدون اسم"}</p>
-                    <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
-                  </div>
-                  <button onClick={() => toggleAdmin(profile.id)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isUserAdmin(profile.id) ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}>
-                    {isUserAdmin(profile.id) ? "أدمن ✓" : "جعله أدمن"}
-                  </button>
-                </motion.div>
-              ))}
+              {profiles.map((profile, i) => {
+                const currentRole = getUserRole(profile.id);
+                const isExpanded = expandedUser === profile.id;
+                const RoleIcon = ROLE_CONFIG.find((r) => r.role === currentRole)?.icon || Users;
+
+                return (
+                  <motion.div key={profile.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="ios-card overflow-hidden">
+                    <div
+                      className="px-4 py-3.5 flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform"
+                      onClick={() => setExpandedUser(isExpanded ? null : profile.id)}
+                    >
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${currentRole ? "bg-primary/10" : "bg-secondary"}`}>
+                        <RoleIcon className={`w-5 h-5 ${currentRole ? "text-primary" : "text-muted-foreground"}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[15px] font-semibold text-foreground truncate">{profile.display_name || "بدون اسم"}</p>
+                        <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold ${getRoleColor(currentRole)}`}>
+                        {getRoleLabel(currentRole)}
+                      </span>
+                    </div>
+
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-4 pb-4 space-y-2">
+                            <p className="text-[11px] font-medium text-muted-foreground">اختر الدور</p>
+                            <div className="flex flex-col gap-1.5">
+                              {ROLE_CONFIG.map((r) => {
+                                const Icon = r.icon;
+                                const isActive = currentRole === r.role;
+                                return (
+                                  <button
+                                    key={r.role}
+                                    onClick={() => setUserRole(profile.id, isActive ? null : r.role)}
+                                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-right transition-all ${
+                                      isActive ? r.color : "bg-secondary text-foreground"
+                                    }`}
+                                  >
+                                    <Icon className="w-4 h-4 shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs font-semibold">{r.label}</p>
+                                      <p className="text-[10px] opacity-70">{r.desc}</p>
+                                    </div>
+                                    {isActive && <span className="text-xs">✓</span>}
+                                  </button>
+                                );
+                              })}
+                              <button
+                                onClick={() => setUserRole(profile.id, null)}
+                                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-right transition-all ${
+                                  !currentRole ? "bg-muted text-muted-foreground ring-2 ring-primary/30" : "bg-secondary text-foreground"
+                                }`}
+                              >
+                                <Users className="w-4 h-4 shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-semibold">مستخدم عادي</p>
+                                  <p className="text-[10px] opacity-70">بدون صلاحيات خاصة</p>
+                                </div>
+                                {!currentRole && <span className="text-xs">✓</span>}
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </div>
         ) : activeSection === "stats" ? (
@@ -218,7 +324,6 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
           <div className="flex flex-col gap-3 mt-3">
             <p className="text-xs text-muted-foreground">أسئلة مخصصة تظهر في حضور الورشة عند تحديد "حاضر"</p>
 
-            {/* Existing questions */}
             <AnimatePresence mode="popLayout">
               {questions.map((q, i) => (
                 <motion.div key={q.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="ios-card px-4 py-3.5">
@@ -246,7 +351,6 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
               </div>
             )}
 
-            {/* Add question form */}
             {addingQuestion ? (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="ios-card px-4 py-4 space-y-3">
                 <input
