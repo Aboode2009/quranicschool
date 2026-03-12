@@ -59,7 +59,7 @@ const DashboardPage = ({ onNavigate }: DashboardProps) => {
       icon: Settings,
       bg: "bg-gradient-to-br from-[#00897b] to-[#4db6ac]",
     },
-    ...(isAdmin ? [{
+    ...(showAdmin ? [{
       id: "admin" as TabId,
       title: "لوحة التحكم",
       desc: "إدارة المستخدمين والإحصائيات",

@@ -93,15 +93,17 @@ const MuhaderaPage = () => {
       </div>
 
       {/* Add button at bottom */}
-      <div className="px-4 pb-4">
-        <button
-          onClick={() => setShowAdd(true)}
-          className="ios-button w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground text-base font-semibold shadow-sm"
-        >
-          <Plus className="w-5 h-5" strokeWidth={2.5} />
-          <span>إضافة محاضرة</span>
-        </button>
-      </div>
+      {permissions.canCreateLessons && (
+        <div className="px-4 pb-4">
+          <button
+            onClick={() => setShowAdd(true)}
+            className="ios-button w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground text-base font-semibold shadow-sm"
+          >
+            <Plus className="w-5 h-5" strokeWidth={2.5} />
+            <span>إضافة محاضرة</span>
+          </button>
+        </div>
+      )}
 
       <AddLessonDialog open={showAdd} onClose={() => setShowAdd(false)} onAdd={addLesson} />
     </div>
