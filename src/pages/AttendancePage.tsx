@@ -381,6 +381,18 @@ const AttendancePage = () => {
             <span className="text-sm text-muted-foreground mt-1">
               {selectedPerson.category === "muhadera" ? "محاضرة" : "ورشة"}
             </span>
+            {selectedPerson.phone && (
+              <div className="flex items-center gap-1.5 mt-2 text-sm text-muted-foreground">
+                <Phone className="w-3.5 h-3.5" />
+                <span dir="ltr">{selectedPerson.phone}</span>
+              </div>
+            )}
+            {selectedPerson.address && (
+              <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
+                <MapPin className="w-3.5 h-3.5" />
+                <span>{selectedPerson.address}</span>
+              </div>
+            )}
             {records && (
               <button
                 onClick={() => exportToExcel(selectedPerson, records)}
