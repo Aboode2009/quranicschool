@@ -6,8 +6,10 @@ import WorkshopAttendancePage from "./WorkshopAttendancePage";
 import { getWorkshopsFromStorage, saveWorkshopsToStorage, generateId } from "@/lib/quran-data";
 import type { Lesson } from "@/lib/quran-data";
 import { formatSyriacDateString } from "@/lib/syriac-locale";
+import { useAuth } from "@/hooks/useAuth";
 
 const WarashaPage = () => {
+  const { permissions } = useAuth();
   const [workshops, setWorkshops] = useState<Lesson[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [selectedWorkshop, setSelectedWorkshop] = useState<Lesson | null>(null);
