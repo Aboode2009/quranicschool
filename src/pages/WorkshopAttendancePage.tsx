@@ -13,11 +13,20 @@ interface Person {
 
 type Status = "present" | "absent" | null;
 
+interface CustomQuestion {
+  id: string;
+  question_text: string;
+  options: string[];
+  sort_order: number;
+}
+
 interface WorkshopDetail {
   status: Status;
-  readMaterial: boolean;
+  readMaterial: string; // 'yes' | 'no' | 'incomplete'
   listenedLecture: boolean;
+  extractedVerse: boolean;
   excuse?: "with_excuse" | "without_excuse";
+  customAnswers: Record<string, string>; // question_id -> answer
 }
 
 interface WorkshopAttendancePageProps {
@@ -31,42 +40,61 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
   const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([]);
 
   useEffect(() => {
     fetchData();
   }, [lesson.id]);
 
   const fetchData = async () => {
-    const { data: peopleData, error: peopleErr } = await supabase
-      .from("people")
-      .select("id, name")
-      .eq("category", "warasha")
-      .order("created_at", { ascending: true });
+    const [peopleRes, questionsRes] = await Promise.all([
+      supabase.from("people").select("id, name").eq("category", "warasha").order("created_at", { ascending: true }),
+      supabase.from("workshop_questions").select("*").order("sort_order", { ascending: true }),
+    ]);
 
-    if (peopleErr) {
+    if (peopleRes.error) {
       toast.error("خطأ في تحميل الأسماء");
       setLoading(false);
       return;
     }
 
-    const persons = peopleData || [];
+    const persons = peopleRes.data || [];
     setPeople(persons);
 
-    const { data: attData } = await supabase
-      .from("attendance")
-      .select("person_id, is_present, read_material, listened_lecture")
-      .eq("lesson_name", lesson.id);
+    const questions = (questionsRes.data || []).map((q: any) => ({
+      ...q,
+      options: Array.isArray(q.options) ? q.options : [],
+    }));
+    setCustomQuestions(questions);
+
+    const [attRes, answersRes] = await Promise.all([
+      supabase.from("attendance")
+        .select("person_id, is_present, read_material, read_material_status, listened_lecture, extracted_verse, excuse")
+        .eq("lesson_name", lesson.id),
+      supabase.from("workshop_answers")
+        .select("person_id, question_id, answer")
+        .eq("lesson_name", lesson.id),
+    ]);
+
+    const answersMap: Record<string, Record<string, string>> = {};
+    (answersRes.data || []).forEach((a: any) => {
+      if (!answersMap[a.person_id]) answersMap[a.person_id] = {};
+      answersMap[a.person_id][a.question_id] = a.answer;
+    });
 
     const map: Record<string, WorkshopDetail> = {};
     persons.forEach((p) => {
-      map[p.id] = { status: null, readMaterial: false, listenedLecture: false };
+      map[p.id] = { status: null, readMaterial: "no", listenedLecture: false, extractedVerse: false, customAnswers: {} };
     });
-    (attData || []).forEach((r: any) => {
+    (attRes.data || []).forEach((r: any) => {
+      const readStatus = r.read_material_status || (r.read_material ? "yes" : "no");
       map[r.person_id] = {
-        status: r.is_present ? "present" : (r.is_present === false && attData ? "absent" : null),
-        readMaterial: r.read_material || false,
+        status: r.is_present ? "present" : "absent",
+        readMaterial: readStatus,
         listenedLecture: r.listened_lecture || false,
+        extractedVerse: r.extracted_verse || false,
         excuse: r.excuse || undefined,
+        customAnswers: answersMap[r.person_id] || {},
       };
     });
 
@@ -86,10 +114,20 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
     setExpandedPerson(personId);
   };
 
-  const toggleField = (personId: string, field: "readMaterial" | "listenedLecture") => {
+  const setField = (personId: string, field: keyof WorkshopDetail, value: any) => {
     setAttendance((prev) => ({
       ...prev,
-      [personId]: { ...prev[personId], [field]: !prev[personId][field] },
+      [personId]: { ...prev[personId], [field]: value },
+    }));
+  };
+
+  const setCustomAnswer = (personId: string, questionId: string, answer: string) => {
+    setAttendance((prev) => ({
+      ...prev,
+      [personId]: {
+        ...prev[personId],
+        customAnswers: { ...prev[personId].customAnswers, [questionId]: answer },
+      },
     }));
   };
 
@@ -99,23 +137,49 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
 
   const saveAttendance = async () => {
     setSaving(true);
-    await supabase.from("attendance").delete().eq("lesson_name", lesson.id);
+
+    // Delete old attendance and answers
+    await Promise.all([
+      supabase.from("attendance").delete().eq("lesson_name", lesson.id),
+      supabase.from("workshop_answers").delete().eq("lesson_name", lesson.id),
+    ]);
 
     const records = people.map((p) => {
       const detail = attendance[p.id];
+      const isPresent = detail?.status === "present";
       return {
         person_id: p.id,
         lesson_name: lesson.id,
         lesson_date: new Date().toISOString().split("T")[0],
-        is_present: detail?.status === "present",
-        read_material: detail?.status === "present" ? (detail?.readMaterial || false) : false,
-        listened_lecture: detail?.status === "present" ? (detail?.listenedLecture || false) : false,
+        is_present: isPresent,
+        read_material: isPresent ? detail?.readMaterial === "yes" : false,
+        read_material_status: isPresent ? (detail?.readMaterial || "no") : null,
+        listened_lecture: isPresent ? (detail?.listenedLecture || false) : false,
+        extracted_verse: isPresent ? (detail?.extractedVerse || false) : false,
         excuse: detail?.status === "absent" ? (detail?.excuse || null) : null,
       };
     });
 
-    const { error } = await supabase.from("attendance").insert(records);
-    if (error) {
+    // Collect custom answers
+    const answerRecords: { person_id: string; lesson_name: string; question_id: string; answer: string }[] = [];
+    people.forEach((p) => {
+      const detail = attendance[p.id];
+      if (detail?.status === "present" && detail.customAnswers) {
+        Object.entries(detail.customAnswers).forEach(([qId, ans]) => {
+          if (ans) {
+            answerRecords.push({ person_id: p.id, lesson_name: lesson.id, question_id: qId, answer: ans });
+          }
+        });
+      }
+    });
+
+    const promises: Promise<any>[] = [supabase.from("attendance").insert(records)];
+    if (answerRecords.length > 0) {
+      promises.push(supabase.from("workshop_answers").insert(answerRecords));
+    }
+
+    const results = await Promise.all(promises);
+    if (results.some((r) => r.error)) {
       toast.error("خطأ في حفظ الحضور");
     } else {
       toast.success("تم حفظ الحضور ✓");
@@ -130,8 +194,10 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
     if (!detail?.status) return "لم يُحدد";
     if (detail.status === "present") {
       const parts: string[] = ["حاضر"];
-      if (detail.readMaterial) parts.push("قرأ المادة");
+      if (detail.readMaterial === "yes") parts.push("قرأ المادة");
+      else if (detail.readMaterial === "incomplete") parts.push("لم يكمل المادة");
       if (detail.listenedLecture) parts.push("سمع المحاضرة");
+      if (detail.extractedVerse) parts.push("استخرج آية");
       return parts.join(" · ");
     }
     return detail.excuse === "with_excuse" ? "غائب بعذر" : "غائب بدون عذر";
@@ -200,7 +266,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
           <div className="flex flex-col gap-2">
             <AnimatePresence mode="popLayout">
               {people.map((person, i) => {
-                const detail = attendance[person.id] || { status: null, readMaterial: false, listenedLecture: false };
+                const detail = attendance[person.id] || { status: null, readMaterial: "no", listenedLecture: false, extractedVerse: false, customAnswers: {} };
                 const isExpanded = expandedPerson === person.id;
 
                 return (
@@ -242,103 +308,69 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
                             <div>
                               <p className="text-[11px] font-medium text-muted-foreground mb-1.5">الحالة</p>
                               <div className="flex gap-2">
-                                <Chip
-                                  label="حاضر"
-                                  active={detail.status === "present"}
-                                  activeClass="bg-primary text-primary-foreground"
-                                  onClick={() => setStatus(person.id, "present")}
-                                />
-                                <Chip
-                                  label="غائب"
-                                  active={detail.status === "absent"}
-                                  activeClass="bg-destructive text-destructive-foreground"
-                                  onClick={() => setStatus(person.id, "absent")}
-                                />
+                                <Chip label="حاضر" active={detail.status === "present"} activeClass="bg-primary text-primary-foreground" onClick={() => setStatus(person.id, "present")} />
+                                <Chip label="غائب" active={detail.status === "absent"} activeClass="bg-destructive text-destructive-foreground" onClick={() => setStatus(person.id, "absent")} />
                               </div>
                             </div>
 
-                            {/* Read material & Listened - only when present */}
+                            {/* Present details */}
                             {detail.status === "present" && (
-                              <motion.div
-                                initial={{ opacity: 0, y: -4 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="space-y-3"
-                              >
+                              <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+                                {/* Read material - 3 options */}
                                 <div>
                                   <p className="text-[11px] font-medium text-muted-foreground mb-1.5">هل قرأ المادة؟</p>
-                                  <div className="flex gap-2">
-                                    <Chip
-                                      label="نعم"
-                                      active={detail.readMaterial === true}
-                                      activeClass="bg-primary text-primary-foreground"
-                                      onClick={() => setAttendance((prev) => ({
-                                        ...prev,
-                                        [person.id]: { ...prev[person.id], readMaterial: true },
-                                      }))}
-                                    />
-                                    <Chip
-                                      label="لا"
-                                      active={detail.readMaterial === false}
-                                      activeClass="bg-destructive text-destructive-foreground"
-                                      onClick={() => setAttendance((prev) => ({
-                                        ...prev,
-                                        [person.id]: { ...prev[person.id], readMaterial: false },
-                                      }))}
-                                    />
+                                  <div className="flex gap-2 flex-wrap">
+                                    <Chip label="نعم" active={detail.readMaterial === "yes"} activeClass="bg-primary text-primary-foreground" onClick={() => setField(person.id, "readMaterial", "yes")} />
+                                    <Chip label="لم يكمل" active={detail.readMaterial === "incomplete"} activeClass="bg-accent text-accent-foreground" onClick={() => setField(person.id, "readMaterial", "incomplete")} />
+                                    <Chip label="لا" active={detail.readMaterial === "no"} activeClass="bg-destructive text-destructive-foreground" onClick={() => setField(person.id, "readMaterial", "no")} />
                                   </div>
                                 </div>
+
+                                {/* Listened lecture */}
                                 <div>
                                   <p className="text-[11px] font-medium text-muted-foreground mb-1.5">هل سمع المحاضرة؟</p>
                                   <div className="flex gap-2">
-                                    <Chip
-                                      label="نعم"
-                                      active={detail.listenedLecture === true}
-                                      activeClass="bg-primary text-primary-foreground"
-                                      onClick={() => setAttendance((prev) => ({
-                                        ...prev,
-                                        [person.id]: { ...prev[person.id], listenedLecture: true },
-                                      }))}
-                                    />
-                                    <Chip
-                                      label="لا"
-                                      active={detail.listenedLecture === false}
-                                      activeClass="bg-destructive text-destructive-foreground"
-                                      onClick={() => setAttendance((prev) => ({
-                                        ...prev,
-                                        [person.id]: { ...prev[person.id], listenedLecture: false },
-                                      }))}
-                                    />
+                                    <Chip label="نعم" active={detail.listenedLecture === true} activeClass="bg-primary text-primary-foreground" onClick={() => setField(person.id, "listenedLecture", true)} />
+                                    <Chip label="لا" active={detail.listenedLecture === false} activeClass="bg-destructive text-destructive-foreground" onClick={() => setField(person.id, "listenedLecture", false)} />
                                   </div>
                                 </div>
+
+                                {/* Extracted verse */}
+                                <div>
+                                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">هل استخرج آية؟</p>
+                                  <div className="flex gap-2">
+                                    <Chip label="استخرج" active={detail.extractedVerse === true} activeClass="bg-primary text-primary-foreground" onClick={() => setField(person.id, "extractedVerse", true)} />
+                                    <Chip label="لا" active={detail.extractedVerse === false} activeClass="bg-destructive text-destructive-foreground" onClick={() => setField(person.id, "extractedVerse", false)} />
+                                  </div>
+                                </div>
+
+                                {/* Custom questions */}
+                                {customQuestions.map((q) => (
+                                  <div key={q.id}>
+                                    <p className="text-[11px] font-medium text-muted-foreground mb-1.5">{q.question_text}</p>
+                                    <div className="flex gap-2 flex-wrap">
+                                      {q.options.map((opt) => (
+                                        <Chip
+                                          key={opt}
+                                          label={opt}
+                                          active={detail.customAnswers[q.id] === opt}
+                                          activeClass="bg-primary text-primary-foreground"
+                                          onClick={() => setCustomAnswer(person.id, q.id, opt)}
+                                        />
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
                               </motion.div>
                             )}
 
                             {/* Excuse - only when absent */}
                             {detail.status === "absent" && (
-                              <motion.div
-                                initial={{ opacity: 0, y: -4 }}
-                                animate={{ opacity: 1, y: 0 }}
-                              >
+                              <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}>
                                 <p className="text-[11px] font-medium text-muted-foreground mb-1.5">نوع الغياب</p>
                                 <div className="flex gap-2">
-                                  <Chip
-                                    label="بعذر"
-                                    active={detail.excuse === "with_excuse"}
-                                    activeClass="bg-accent text-accent-foreground"
-                                    onClick={() => setAttendance((prev) => ({
-                                      ...prev,
-                                      [person.id]: { ...prev[person.id], excuse: "with_excuse" },
-                                    }))}
-                                  />
-                                  <Chip
-                                    label="بدون عذر"
-                                    active={detail.excuse === "without_excuse"}
-                                    activeClass="bg-destructive text-destructive-foreground"
-                                    onClick={() => setAttendance((prev) => ({
-                                      ...prev,
-                                      [person.id]: { ...prev[person.id], excuse: "without_excuse" },
-                                    }))}
-                                  />
+                                  <Chip label="بعذر" active={detail.excuse === "with_excuse"} activeClass="bg-accent text-accent-foreground" onClick={() => setField(person.id, "excuse", "with_excuse")} />
+                                  <Chip label="بدون عذر" active={detail.excuse === "without_excuse"} activeClass="bg-destructive text-destructive-foreground" onClick={() => setField(person.id, "excuse", "without_excuse")} />
                                 </div>
                               </motion.div>
                             )}
