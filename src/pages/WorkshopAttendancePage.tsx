@@ -198,7 +198,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
       const parts: string[] = ["حاضر"];
       if (detail.readMaterial === "yes") parts.push("قرأ المادة");
       else if (detail.readMaterial === "incomplete") parts.push("لم يكمل المادة");
-      if (detail.listenedLecture) parts.push("سمع المحاضرة");
+      
       if (detail.extractedVerse) parts.push("استخرج آية");
       return parts.join(" · ");
     }
