@@ -12,6 +12,8 @@ interface Person {
   id: string;
   name: string;
   category: string;
+  phone?: string | null;
+  address?: string | null;
 }
 
 interface AttendanceRecord {
