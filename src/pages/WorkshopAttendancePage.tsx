@@ -173,13 +173,13 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
       }
     });
 
-    const promises: Promise<any>[] = [supabase.from("attendance").insert(records)];
+    const attResult = await supabase.from("attendance").insert(records);
+    let ansResult: any = { error: null };
     if (answerRecords.length > 0) {
-      promises.push(supabase.from("workshop_answers").insert(answerRecords));
+      ansResult = await supabase.from("workshop_answers").insert(answerRecords);
     }
 
-    const results = await Promise.all(promises);
-    if (results.some((r) => r.error)) {
+    if (attResult.error || ansResult.error) {
       toast.error("خطأ في حفظ الحضور");
     } else {
       toast.success("تم حفظ الحضور ✓");
