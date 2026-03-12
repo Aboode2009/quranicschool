@@ -92,15 +92,17 @@ const WarashaPage = () => {
       </div>
 
       {/* Add button */}
-      <div className="px-4 pb-4">
-        <button
-          onClick={() => setShowAdd(true)}
-          className="ios-button w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground text-base font-semibold shadow-sm"
-        >
-          <Plus className="w-5 h-5" strokeWidth={2.5} />
-          <span>إضافة ورشة</span>
-        </button>
-      </div>
+      {permissions.canCreateWorkshops && (
+        <div className="px-4 pb-4">
+          <button
+            onClick={() => setShowAdd(true)}
+            className="ios-button w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground text-base font-semibold shadow-sm"
+          >
+            <Plus className="w-5 h-5" strokeWidth={2.5} />
+            <span>إضافة ورشة</span>
+          </button>
+        </div>
+      )}
 
       <AddLessonDialog
         open={showAdd}
