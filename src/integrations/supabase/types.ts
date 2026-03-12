@@ -183,24 +183,30 @@ export type Database = {
       }
       people: {
         Row: {
+          address: string | null
           category: string
           created_at: string
           id: string
           name: string
+          phone: string | null
           updated_at: string
         }
         Insert: {
+          address?: string | null
           category?: string
           created_at?: string
           id?: string
           name: string
+          phone?: string | null
           updated_at?: string
         }
         Update: {
+          address?: string | null
           category?: string
           created_at?: string
           id?: string
           name?: string
+          phone?: string | null
           updated_at?: string
         }
         Relationships: []
