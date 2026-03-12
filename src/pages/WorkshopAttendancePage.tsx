@@ -36,6 +36,7 @@ interface WorkshopAttendancePageProps {
 }
 
 const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps) => {
+  const { permissions } = useAuth();
   const [people, setPeople] = useState<Person[]>([]);
   const [attendance, setAttendance] = useState<Record<string, WorkshopDetail>>({});
   const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
