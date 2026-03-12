@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Users, UserPlus, Trash2, BookOpen, GraduationCap, ChevronLeft, ChevronDown, Calendar, Download } from "lucide-react";
+import { Users, UserPlus, Trash2, BookOpen, GraduationCap, ChevronLeft, ChevronDown, Calendar, Download, Phone, MapPin, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -12,6 +12,8 @@ interface Person {
   id: string;
   name: string;
   category: string;
+  phone?: string | null;
+  address?: string | null;
 }
 
 interface AttendanceRecord {
@@ -33,6 +35,9 @@ const AttendancePage = () => {
   const [activeCategory, setActiveCategory] = useState<"muhadera" | "warasha">("muhadera");
   const [people, setPeople] = useState<Person[]>([]);
   const [newName, setNewName] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [newAddress, setNewAddress] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [records, setRecords] = useState<CategorizedRecords | null>(null);
@@ -88,9 +93,13 @@ const AttendancePage = () => {
     const trimmed = newName.trim();
     if (!trimmed) return;
 
+    const insertData: any = { name: trimmed, category: activeCategory };
+    if (newPhone.trim()) insertData.phone = newPhone.trim();
+    if (newAddress.trim()) insertData.address = newAddress.trim();
+
     const { data, error } = await supabase
       .from("people")
-      .insert({ name: trimmed, category: activeCategory })
+      .insert(insertData)
       .select()
       .single();
 
@@ -99,6 +108,9 @@ const AttendancePage = () => {
     } else if (data) {
       setPeople((prev) => [...prev, data]);
       setNewName("");
+      setNewPhone("");
+      setNewAddress("");
+      setShowAddForm(false);
       toast.success(`تمت إضافة ${trimmed}`);
     }
   };
@@ -369,6 +381,18 @@ const AttendancePage = () => {
             <span className="text-sm text-muted-foreground mt-1">
               {selectedPerson.category === "muhadera" ? "محاضرة" : "ورشة"}
             </span>
+            {selectedPerson.phone && (
+              <div className="flex items-center gap-1.5 mt-2 text-sm text-muted-foreground">
+                <Phone className="w-3.5 h-3.5" />
+                <span dir="ltr">{selectedPerson.phone}</span>
+              </div>
+            )}
+            {selectedPerson.address && (
+              <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
+                <MapPin className="w-3.5 h-3.5" />
+                <span>{selectedPerson.address}</span>
+              </div>
+            )}
             {records && (
               <button
                 onClick={() => exportToExcel(selectedPerson, records)}
@@ -573,22 +597,66 @@ const AttendancePage = () => {
       </div>
 
       {permissions.canAddPeople && (
-        <div className="px-4 pb-4 flex gap-2">
-          <input
-            type="text"
-            placeholder="اسم الشخص"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addPerson()}
-            className="flex-1 px-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          />
-          <button
-            onClick={addPerson}
-            className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-1.5"
-          >
-            <UserPlus className="w-4 h-4" />
-            <span>إضافة</span>
-          </button>
+        <div className="px-4 pb-4">
+          {!showAddForm ? (
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform"
+            >
+              <Plus className="w-5 h-5" />
+              <span>إضافة شخص</span>
+            </button>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="ios-card p-4 flex flex-col gap-3"
+            >
+              <input
+                type="text"
+                placeholder="الاسم (مطلوب) *"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <div className="relative">
+                <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="tel"
+                  placeholder="رقم الهاتف (اختياري)"
+                  value={newPhone}
+                  onChange={(e) => setNewPhone(e.target.value)}
+                  dir="ltr"
+                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-right"
+                />
+              </div>
+              <div className="relative">
+                <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="العنوان (اختياري)"
+                  value={newAddress}
+                  onChange={(e) => setNewAddress(e.target.value)}
+                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={addPerson}
+                  className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-1.5"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>إضافة</span>
+                </button>
+                <button
+                  onClick={() => { setShowAddForm(false); setNewName(""); setNewPhone(""); setNewAddress(""); }}
+                  className="px-4 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold"
+                >
+                  إلغاء
+                </button>
+              </div>
+            </motion.div>
+          )}
         </div>
       )}
     </div>
