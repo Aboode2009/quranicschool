@@ -30,6 +30,7 @@ export function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substring(2);
 }
 
+// Legacy localStorage functions - kept for backward compatibility during migration
 export function getLessonsFromStorage(): Lesson[] {
   const stored = localStorage.getItem("quran-lessons");
   return stored ? JSON.parse(stored) : [];
