@@ -10,7 +10,8 @@ import AdminPage from "./AdminPage";
 import TabBar from "@/components/TabBar";
 
 const Index = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, isAdmin, userRole } = useAuth();
+  const showAdmin = isAdmin || userRole === "course_director";
   const [activeTab, setActiveTab] = useState<"dashboard" | "muhadera" | "warasha" | "settings" | "attendance" | "admin">("dashboard");
 
   if (loading) {
