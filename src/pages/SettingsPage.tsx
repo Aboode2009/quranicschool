@@ -1214,6 +1214,7 @@ const AssignmentsPage = ({ onBack }: { onBack: () => void }) => {
 };
 
 const SettingsPage = () => {
+  const { permissions } = useAuth();
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains("dark");
   });
