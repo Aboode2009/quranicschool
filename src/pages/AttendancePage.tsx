@@ -93,9 +93,13 @@ const AttendancePage = () => {
     const trimmed = newName.trim();
     if (!trimmed) return;
 
+    const insertData: any = { name: trimmed, category: activeCategory };
+    if (newPhone.trim()) insertData.phone = newPhone.trim();
+    if (newAddress.trim()) insertData.address = newAddress.trim();
+
     const { data, error } = await supabase
       .from("people")
-      .insert({ name: trimmed, category: activeCategory })
+      .insert(insertData)
       .select()
       .single();
 
@@ -104,6 +108,9 @@ const AttendancePage = () => {
     } else if (data) {
       setPeople((prev) => [...prev, data]);
       setNewName("");
+      setNewPhone("");
+      setNewAddress("");
+      setShowAddForm(false);
       toast.success(`تمت إضافة ${trimmed}`);
     }
   };
