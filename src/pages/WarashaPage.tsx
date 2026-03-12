@@ -7,6 +7,7 @@ import type { Lesson } from "@/lib/quran-data";
 import { formatSyriacDateString } from "@/lib/syriac-locale";
 import { useAuth } from "@/hooks/useAuth";
 import { useLessons } from "@/hooks/useLessons";
+import IslamicDecorations from "@/components/IslamicDecorations";
 
 const WarashaPage = () => {
   const { permissions } = useAuth();
