@@ -299,7 +299,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
                                 onClick={() => updateDetail(person.id, "activity", "active")} />
                               
                                     <Chip
-                                label="متوسط"
+                                label="لا"
                                 active={detail.activity === "average"}
                                 activeClass="bg-accent text-accent-foreground"
                                 onClick={() => updateDetail(person.id, "activity", "average")} />
