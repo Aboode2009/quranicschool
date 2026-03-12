@@ -407,16 +407,18 @@ const AttendancePage = () => {
           ) : null}
         </div>
 
-        {/* Delete */}
-        <div className="px-4 pb-4">
-          <button
-            onClick={() => deletePerson(selectedPerson.id, selectedPerson.name)}
-            className="w-full py-3 rounded-xl bg-destructive/10 text-destructive text-sm font-semibold flex items-center justify-center gap-2"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span>حذف الشخص</span>
-          </button>
-        </div>
+        {/* Delete - only if can edit */}
+        {permissions.canAddPeople && (
+          <div className="px-4 pb-4">
+            <button
+              onClick={() => deletePerson(selectedPerson.id, selectedPerson.name)}
+              className="w-full py-3 rounded-xl bg-destructive/10 text-destructive text-sm font-semibold flex items-center justify-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>حذف الشخص</span>
+            </button>
+          </div>
+        )}
       </div>
     );
   }
