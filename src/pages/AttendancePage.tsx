@@ -368,6 +368,15 @@ const AttendancePage = () => {
             <span className="text-sm text-muted-foreground mt-1">
               {selectedPerson.category === "muhadera" ? "محاضرة" : "ورشة"}
             </span>
+            {records && (
+              <button
+                onClick={() => exportToExcel(selectedPerson, records)}
+                className="mt-3 flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary text-sm font-semibold transition-all active:scale-[0.97]"
+              >
+                <Download className="w-4 h-4" />
+                <span>تصدير Excel</span>
+              </button>
+            )}
           </motion.div>
 
           {statsLoading ? (
