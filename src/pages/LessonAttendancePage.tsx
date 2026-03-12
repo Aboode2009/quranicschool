@@ -137,7 +137,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
     if (!detail?.status) return "لم يُحدد";
     if (detail.status === "present") {
       const t = detail.timing === "late" ? "متأخر" : "على الوقت";
-      const a = detail.activity === "active" ? "نشط" : detail.activity === "idle" ? "خامل" : "متوسط";
+      const a = detail.activity === "active" ? "نعم" : detail.activity === "idle" ? "لم يكمل" : "لا";
       return `حاضر · ${t} · ${a}`;
     }
     return detail.excuse === "with_excuse" ? "غائب بعذر" : "غائب بدون عذر";
@@ -293,19 +293,19 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
                                   <p className="text-[11px] font-medium text-muted-foreground mb-1.5">سمع المحاضره </p>
                                   <div className="flex gap-2">
                                     <Chip
-                                label="نشط"
+                                label="نعم"
                                 active={detail.activity === "active"}
                                 activeClass="bg-primary text-primary-foreground"
                                 onClick={() => updateDetail(person.id, "activity", "active")} />
                               
                                     <Chip
-                                label="متوسط"
+                                label="لا"
                                 active={detail.activity === "average"}
                                 activeClass="bg-accent text-accent-foreground"
                                 onClick={() => updateDetail(person.id, "activity", "average")} />
                               
                                     <Chip
-                                label="خامل"
+                                label="لم يكمل"
                                 active={detail.activity === "idle"}
                                 activeClass="bg-destructive text-destructive-foreground"
                                 onClick={() => updateDetail(person.id, "activity", "idle")} />
