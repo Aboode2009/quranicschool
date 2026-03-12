@@ -6,8 +6,10 @@ import LessonAttendancePage from "./LessonAttendancePage";
 import { getLessonsFromStorage, saveLessonsToStorage } from "@/lib/quran-data";
 import type { Lesson } from "@/lib/quran-data";
 import { formatSyriacDateString } from "@/lib/syriac-locale";
+import { useAuth } from "@/hooks/useAuth";
 
 const MuhaderaPage = () => {
+  const { permissions } = useAuth();
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
