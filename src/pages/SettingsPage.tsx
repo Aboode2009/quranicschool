@@ -8,6 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { syriacLocale, formatSyriacDate, formatSyriacDateString } from "@/lib/syriac-locale";
 import { cn } from "@/lib/utils";
+import IslamicDecorations from "@/components/IslamicDecorations";
 
 interface FinanceRecord {
   id: string;
