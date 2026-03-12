@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { BookOpen, Users, UserCheck, Settings, ChevronLeft, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import IslamicDecorations from "@/components/IslamicDecorations";
 
 type TabId = "muhadera" | "warasha" | "settings" | "attendance" | "admin";
 
