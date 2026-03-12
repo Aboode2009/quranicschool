@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Calendar as CalendarIcon } from "lucide-react";
 import { generateId } from "@/lib/quran-data";
@@ -14,12 +14,26 @@ interface AddLessonDialogProps {
   dialogTitle?: string;
   namePlaceholder?: string;
   addLabel?: string;
+  editLesson?: Lesson | null;
 }
 
-const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد", namePlaceholder = "اسم المحاضرة", addLabel = "إضافة" }: AddLessonDialogProps) => {
+const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد", namePlaceholder = "اسم المحاضرة", addLabel = "إضافة", editLesson }: AddLessonDialogProps) => {
   const [lessonName, setLessonName] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [notes, setNotes] = useState("");
+
+  const isEdit = !!editLesson;
+
+  useEffect(() => {
+    if (editLesson && open) {
+      setLessonName(editLesson.surahName);
+      setNotes(editLesson.notes || "");
+    } else if (!open) {
+      setLessonName("");
+      setNotes("");
+      setSelectedDate(new Date());
+    }
+  }, [editLesson, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,18 +41,14 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
     
     const dateStr = selectedDate.toLocaleDateString("ar-SA", { year: "numeric", month: "short", day: "numeric" });
     onAdd({
-      id: generateId(),
+      id: editLesson?.id || generateId(),
       surahName: lessonName,
-      fromAyah: 0,
-      toAyah: 0,
+      fromAyah: editLesson?.fromAyah || 0,
+      toAyah: editLesson?.toAyah || 0,
       notes,
-      status: "pending",
-      date: dateStr,
+      status: editLesson?.status || "pending",
+      date: editLesson?.date || dateStr,
     });
-    setLessonName("");
-    setNotes("");
-    setSelectedDate(new Date());
-    onClose();
   };
 
   return (
@@ -65,8 +75,8 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
 
               <div className="flex items-center justify-between mb-5">
                 <button onClick={onClose} className="text-primary text-sm font-medium">إلغاء</button>
-                <h2 className="text-[17px] font-bold">{dialogTitle}</h2>
-                <button onClick={handleSubmit} className="text-primary text-sm font-bold">{addLabel}</button>
+                <h2 className="text-[17px] font-bold">{isEdit ? "تعديل" : dialogTitle}</h2>
+                <button onClick={handleSubmit} className="text-primary text-sm font-bold">{isEdit ? "حفظ" : addLabel}</button>
               </div>
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -81,31 +91,33 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
                       required
                     />
                   </div>
-                  <div className="px-4 py-3">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button
-                          type="button"
-                          className="w-full flex items-center justify-between text-sm"
-                        >
-                          <span className="text-foreground">التاريخ</span>
-                          <span className="text-muted-foreground flex items-center gap-2">
-                            {selectedDate ? formatSyriacDate(selectedDate) : "اختر التاريخ"}
-                            <CalendarIcon className="w-4 h-4" />
-                          </span>
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="end">
-                        <Calendar
-                          mode="single"
-                          selected={selectedDate}
-                          onSelect={setSelectedDate}
-                          locale={syriacLocale}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                  {!isEdit && (
+                    <div className="px-4 py-3">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            type="button"
+                            className="w-full flex items-center justify-between text-sm"
+                          >
+                            <span className="text-foreground">التاريخ</span>
+                            <span className="text-muted-foreground flex items-center gap-2">
+                              {selectedDate ? formatSyriacDate(selectedDate) : "اختر التاريخ"}
+                              <CalendarIcon className="w-4 h-4" />
+                            </span>
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={setSelectedDate}
+                            locale={syriacLocale}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  )}
                 </div>
 
                 <div className="ios-card px-4 py-3">
