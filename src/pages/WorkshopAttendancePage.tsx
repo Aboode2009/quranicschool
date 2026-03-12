@@ -389,7 +389,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
       </div>
 
       {/* Save button */}
-      {people.length > 0 && (
+      {people.length > 0 && !permissions.isReadOnly && (
         <div className="px-4 pb-4">
           <button
             onClick={saveAttendance}
