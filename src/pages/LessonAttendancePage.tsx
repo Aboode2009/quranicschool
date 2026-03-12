@@ -137,7 +137,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
     if (!detail?.status) return "لم يُحدد";
     if (detail.status === "present") {
       const t = detail.timing === "late" ? "متأخر" : "على الوقت";
-      const a = detail.activity === "active" ? "نشط" : detail.activity === "idle" ? "خامل" : "متوسط";
+      const a = detail.activity === "active" ? "نعم" : detail.activity === "idle" ? "لم يكمل" : "لا";
       return `حاضر · ${t} · ${a}`;
     }
     return detail.excuse === "with_excuse" ? "غائب بعذر" : "غائب بدون عذر";
