@@ -74,6 +74,7 @@ export function useLessons(category: "muhadera" | "warasha") {
 
   const addLesson = async (lesson: Lesson): Promise<boolean> => {
     const { error } = await supabase.from("lessons").insert({
+      title: lesson.surahName,
       surah_name: lesson.surahName,
       from_ayah: lesson.fromAyah,
       to_ayah: lesson.toAyah,
