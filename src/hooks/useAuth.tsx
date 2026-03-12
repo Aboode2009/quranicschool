@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .from("user_roles")
         .select("role")
         .eq("user_id", userId);
-      
+
       if (error || !data || data.length === 0) {
         setIsAdmin(false);
         setUserRole("user");
@@ -128,32 +128,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
+    const applySession = (nextSession: Session | null) => {
+      if (!isMounted) return;
+
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+
+      if (nextSession?.user) {
+        void checkRole(nextSession.user.id);
+      } else {
+        setIsAdmin(false);
+        setUserRole(null);
+      }
+
+      setLoading(false);
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await checkRole(session.user.id);
-        } else {
-          setIsAdmin(false);
-          setUserRole(null);
-        }
-        setLoading(false);
+      (_event, nextSession) => {
+        applySession(nextSession);
       }
     );
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await checkRole(session.user.id);
-      }
-      setLoading(false);
-    }).catch(() => {
-      setLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data: { session: initialSession } }) => {
+        applySession(initialSession);
+      })
+      .catch(() => {
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
