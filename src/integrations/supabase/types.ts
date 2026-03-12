@@ -55,6 +55,7 @@ export type Database = {
           activity: string | null
           created_at: string
           excuse: string | null
+          extracted_verse: boolean | null
           id: string
           is_present: boolean
           lesson_date: string
@@ -62,6 +63,7 @@ export type Database = {
           listened_lecture: boolean | null
           person_id: string
           read_material: boolean | null
+          read_material_status: string | null
           timing: string | null
           updated_at: string
         }
@@ -69,6 +71,7 @@ export type Database = {
           activity?: string | null
           created_at?: string
           excuse?: string | null
+          extracted_verse?: boolean | null
           id?: string
           is_present?: boolean
           lesson_date: string
@@ -76,6 +79,7 @@ export type Database = {
           listened_lecture?: boolean | null
           person_id: string
           read_material?: boolean | null
+          read_material_status?: string | null
           timing?: string | null
           updated_at?: string
         }
@@ -83,6 +87,7 @@ export type Database = {
           activity?: string | null
           created_at?: string
           excuse?: string | null
+          extracted_verse?: boolean | null
           id?: string
           is_present?: boolean
           lesson_date?: string
@@ -90,6 +95,7 @@ export type Database = {
           listened_lecture?: boolean | null
           person_id?: string
           read_material?: boolean | null
+          read_material_status?: string | null
           timing?: string | null
           updated_at?: string
         }
@@ -241,6 +247,72 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      workshop_answers: {
+        Row: {
+          answer: string
+          created_at: string
+          id: string
+          lesson_name: string
+          person_id: string
+          question_id: string
+        }
+        Insert: {
+          answer?: string
+          created_at?: string
+          id?: string
+          lesson_name: string
+          person_id: string
+          question_id: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          id?: string
+          lesson_name?: string
+          person_id?: string
+          question_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workshop_answers_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workshop_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "workshop_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workshop_questions: {
+        Row: {
+          created_at: string
+          id: string
+          options: Json
+          question_text: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          options?: Json
+          question_text: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          options?: Json
+          question_text?: string
+          sort_order?: number
         }
         Relationships: []
       }
