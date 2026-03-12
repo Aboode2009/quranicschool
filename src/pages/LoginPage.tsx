@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Mail, Lock, Eye, EyeOff, UserPlus, LogIn } from "lucide-react";
+import IslamicDecorations from "@/components/IslamicDecorations";
 
 const LoginPage = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -71,11 +72,12 @@ const LoginPage = () => {
 
   if (isForgotPassword) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-background px-6" dir="rtl">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background px-6 relative" dir="rtl">
+        <IslamicDecorations variant="login" />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-sm"
+          className="w-full max-w-sm relative z-10"
         >
           <div className="text-center mb-8">
             <img src="/logo-bg.png" alt="Logo" className="w-20 h-20 mx-auto mb-4 rounded-2xl" />
@@ -116,11 +118,12 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background px-6" dir="rtl">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background px-6 relative" dir="rtl">
+      <IslamicDecorations variant="login" />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-sm"
+        className="w-full max-w-sm relative z-10"
       >
         <div className="text-center mb-8">
           <img src="/logo-bg.png" alt="Logo" className="w-20 h-20 mx-auto mb-4 rounded-2xl" />

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import type { Lesson } from "@/lib/quran-data";
 import { useAuth } from "@/hooks/useAuth";
+import IslamicDecorations from "@/components/IslamicDecorations";
 
 interface Person {
   id: string;
@@ -495,7 +496,8 @@ const AttendancePage = () => {
   }
 
   return (
-    <div className="flex flex-col h-full" dir="rtl">
+    <div className="flex flex-col h-full relative" dir="rtl">
+      <IslamicDecorations variant="attendance" />
       <div className="px-4 pt-3 pb-2">
         <h1 className="text-2xl font-bold text-foreground mb-1">{title}</h1>
         <p className="text-sm text-muted-foreground mb-3">{subtitle}</p>

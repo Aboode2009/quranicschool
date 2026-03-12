@@ -8,6 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { syriacLocale, formatSyriacDate, formatSyriacDateString } from "@/lib/syriac-locale";
 import { cn } from "@/lib/utils";
+import IslamicDecorations from "@/components/IslamicDecorations";
 
 interface FinanceRecord {
   id: string;
@@ -1256,7 +1257,8 @@ const SettingsPage = () => {
   }
 
   return (
-    <div className="flex flex-col h-full" dir="rtl">
+    <div className="flex flex-col h-full relative" dir="rtl">
+      <IslamicDecorations variant="settings" />
       <div className="px-4 pt-3 pb-2">
         <h1 className="text-2xl font-bold text-foreground mb-1">الإعدادات</h1>
         <p className="text-sm text-muted-foreground">إعدادات التطبيق</p>

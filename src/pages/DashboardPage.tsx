@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { BookOpen, Users, UserCheck, Settings, ChevronLeft, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import IslamicDecorations from "@/components/IslamicDecorations";
 
 type TabId = "muhadera" | "warasha" | "settings" | "attendance" | "admin";
 
@@ -69,7 +70,8 @@ const DashboardPage = ({ onNavigate }: DashboardProps) => {
   ];
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto" dir="rtl">
+    <div className="flex flex-col h-full overflow-y-auto relative" dir="rtl">
+      <IslamicDecorations variant="dashboard" />
       {/* Header */}
       <motion.div
         variants={fadeUp}
