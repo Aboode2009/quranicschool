@@ -91,14 +91,33 @@ export function useLessons(category: "muhadera" | "warasha") {
     return true;
   };
 
+  const updateLesson = async (id: string, updates: Partial<Pick<Lesson, "surahName" | "notes" | "status">>): Promise<boolean> => {
+    const dbUpdates: Record<string, unknown> = {};
+    if (updates.surahName !== undefined) {
+      dbUpdates.surah_name = updates.surahName;
+      dbUpdates.title = updates.surahName;
+    }
+    if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+    if (updates.status !== undefined) dbUpdates.status = updates.status;
+
+    const { error } = await supabase.from("lessons").update(dbUpdates).eq("id", id);
+    if (error) {
+      toast.error("خطأ في التعديل");
+      return false;
+    }
+    toast.success("تم التعديل بنجاح");
+    return true;
+  };
+
   const deleteLesson = async (id: string): Promise<boolean> => {
     const { error } = await supabase.from("lessons").delete().eq("id", id);
     if (error) {
       toast.error("خطأ في الحذف");
       return false;
     }
+    toast.success("تم الحذف بنجاح");
     return true;
   };
 
-  return { lessons, loading, addLesson, deleteLesson, refetch: fetchLessons };
+  return { lessons, loading, addLesson, updateLesson, deleteLesson, refetch: fetchLessons };
 }

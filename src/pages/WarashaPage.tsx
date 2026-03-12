@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Users, Plus, ChevronLeft } from "lucide-react";
+import { Users, Plus, ChevronLeft, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import AddLessonDialog from "@/components/AddLessonDialog";
 import WorkshopAttendancePage from "./WorkshopAttendancePage";
 import type { Lesson } from "@/lib/quran-data";
@@ -8,16 +8,49 @@ import { formatSyriacDateString } from "@/lib/syriac-locale";
 import { useAuth } from "@/hooks/useAuth";
 import { useLessons } from "@/hooks/useLessons";
 import IslamicDecorations from "@/components/IslamicDecorations";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const WarashaPage = () => {
   const { permissions } = useAuth();
-  const { lessons: workshops, loading, addLesson: addWorkshop } = useLessons("warasha");
+  const { lessons: workshops, loading, addLesson: addWorkshop, updateLesson: updateWorkshop, deleteLesson: deleteWorkshop } = useLessons("warasha");
   const [showAdd, setShowAdd] = useState(false);
+  const [editingWorkshop, setEditingWorkshop] = useState<Lesson | null>(null);
+  const [deletingWorkshop, setDeletingWorkshop] = useState<Lesson | null>(null);
   const [selectedWorkshop, setSelectedWorkshop] = useState<Lesson | null>(null);
 
   const handleAddWorkshop = async (lesson: Lesson) => {
     const success = await addWorkshop(lesson);
     if (success) setShowAdd(false);
+  };
+
+  const handleEditWorkshop = async (lesson: Lesson) => {
+    if (!editingWorkshop) return;
+    const success = await updateWorkshop(editingWorkshop.id, {
+      surahName: lesson.surahName,
+      notes: lesson.notes,
+    });
+    if (success) setEditingWorkshop(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingWorkshop) return;
+    await deleteWorkshop(deletingWorkshop.id);
+    setDeletingWorkshop(null);
   };
 
   if (selectedWorkshop) {
@@ -68,7 +101,31 @@ const WarashaPage = () => {
                       <p className="text-xs text-muted-foreground/70 mt-1 truncate">{ws.notes}</p>
                     )}
                   </div>
-                  <ChevronLeft className="w-4 h-4 text-muted-foreground shrink-0" />
+                  {permissions.canCreateWorkshops && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          onClick={(e) => e.stopPropagation()}
+                          className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors shrink-0"
+                        >
+                          <MoreHorizontal className="w-4.5 h-4.5 text-muted-foreground" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="min-w-[140px]">
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setEditingWorkshop(ws); }}>
+                          <Pencil className="w-4 h-4 ml-2" />
+                          تعديل
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setDeletingWorkshop(ws); }} className="text-destructive focus:text-destructive">
+                          <Trash2 className="w-4 h-4 ml-2" />
+                          حذف
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                  {!permissions.canCreateWorkshops && (
+                    <ChevronLeft className="w-4 h-4 text-muted-foreground shrink-0" />
+                  )}
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -108,6 +165,31 @@ const WarashaPage = () => {
         namePlaceholder="اسم الورشة"
         addLabel="إضافة"
       />
+      <AddLessonDialog
+        open={!!editingWorkshop}
+        onClose={() => setEditingWorkshop(null)}
+        onAdd={handleEditWorkshop}
+        editLesson={editingWorkshop}
+        dialogTitle="تعديل الورشة"
+        namePlaceholder="اسم الورشة"
+      />
+
+      <AlertDialog open={!!deletingWorkshop} onOpenChange={(open) => !open && setDeletingWorkshop(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف "{deletingWorkshop?.surahName}"؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

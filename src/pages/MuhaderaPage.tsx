@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, Plus, ChevronLeft } from "lucide-react";
+import { BookOpen, Plus, ChevronLeft, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import AddLessonDialog from "@/components/AddLessonDialog";
 import LessonAttendancePage from "./LessonAttendancePage";
 import type { Lesson } from "@/lib/quran-data";
@@ -8,16 +8,49 @@ import { formatSyriacDateString } from "@/lib/syriac-locale";
 import { useAuth } from "@/hooks/useAuth";
 import { useLessons } from "@/hooks/useLessons";
 import IslamicDecorations from "@/components/IslamicDecorations";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const MuhaderaPage = () => {
   const { permissions } = useAuth();
-  const { lessons, loading, addLesson } = useLessons("muhadera");
+  const { lessons, loading, addLesson, updateLesson, deleteLesson } = useLessons("muhadera");
   const [showAdd, setShowAdd] = useState(false);
+  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+  const [deletingLesson, setDeletingLesson] = useState<Lesson | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
 
   const handleAddLesson = async (lesson: Lesson) => {
     const success = await addLesson(lesson);
     if (success) setShowAdd(false);
+  };
+
+  const handleEditLesson = async (lesson: Lesson) => {
+    if (!editingLesson) return;
+    const success = await updateLesson(editingLesson.id, {
+      surahName: lesson.surahName,
+      notes: lesson.notes,
+    });
+    if (success) setEditingLesson(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingLesson) return;
+    await deleteLesson(deletingLesson.id);
+    setDeletingLesson(null);
   };
 
   if (selectedLesson) {
@@ -68,7 +101,31 @@ const MuhaderaPage = () => {
                       <p className="text-xs text-muted-foreground/70 mt-1 truncate">{lesson.notes}</p>
                     )}
                   </div>
-                  <ChevronLeft className="w-4 h-4 text-muted-foreground shrink-0" />
+                  {permissions.canCreateLessons && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          onClick={(e) => e.stopPropagation()}
+                          className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors shrink-0"
+                        >
+                          <MoreHorizontal className="w-4.5 h-4.5 text-muted-foreground" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="min-w-[140px]">
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setEditingLesson(lesson); }}>
+                          <Pencil className="w-4 h-4 ml-2" />
+                          تعديل
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setDeletingLesson(lesson); }} className="text-destructive focus:text-destructive">
+                          <Trash2 className="w-4 h-4 ml-2" />
+                          حذف
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                  {!permissions.canCreateLessons && (
+                    <ChevronLeft className="w-4 h-4 text-muted-foreground shrink-0" />
+                  )}
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -101,6 +158,30 @@ const MuhaderaPage = () => {
       )}
 
       <AddLessonDialog open={showAdd} onClose={() => setShowAdd(false)} onAdd={handleAddLesson} />
+      <AddLessonDialog
+        open={!!editingLesson}
+        onClose={() => setEditingLesson(null)}
+        onAdd={handleEditLesson}
+        editLesson={editingLesson}
+        namePlaceholder="اسم المحاضرة"
+      />
+
+      <AlertDialog open={!!deletingLesson} onOpenChange={(open) => !open && setDeletingLesson(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف "{deletingLesson?.surahName}"؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
