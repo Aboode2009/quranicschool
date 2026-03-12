@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Users, UserPlus, Trash2, BookOpen, GraduationCap, ChevronLeft, ChevronDown, Calendar } from "lucide-react";
+import { Users, UserPlus, Trash2, BookOpen, GraduationCap, ChevronLeft, ChevronDown, Calendar, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 import type { Lesson } from "@/lib/quran-data";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -204,6 +205,54 @@ const AttendancePage = () => {
     setDetailView({ items, type, label });
   };
 
+  const exportToExcel = (person: Person, data: CategorizedRecords) => {
+    const mapRows = (items: AttendanceRecord[], includeExcuse: boolean) =>
+      items.map((r) => {
+        const row: Record<string, string> = {
+          "اسم الدرس": getLessonDisplayName(r.lesson_name),
+          "التاريخ": r.lesson_date,
+        };
+        if (includeExcuse) {
+          row["العذر"] = r.excuse === "with_excuse" ? "بعذر" : r.excuse === "without_excuse" ? "بدون عذر" : "-";
+        }
+        return row;
+      });
+
+    const wb = XLSX.utils.book_new();
+
+    const ws1 = XLSX.utils.json_to_sheet(mapRows(data.lecturePresent, false));
+    XLSX.utils.book_append_sheet(wb, ws1, "حضور المحاضرات");
+
+    const ws2 = XLSX.utils.json_to_sheet(mapRows(data.lectureAbsent, true));
+    XLSX.utils.book_append_sheet(wb, ws2, "غياب المحاضرات");
+
+    const ws3 = XLSX.utils.json_to_sheet(mapRows(data.workshopPresent, false));
+    XLSX.utils.book_append_sheet(wb, ws3, "حضور الورشات");
+
+    const ws4 = XLSX.utils.json_to_sheet(mapRows(data.workshopAbsent, true));
+    XLSX.utils.book_append_sheet(wb, ws4, "غياب الورشات");
+
+    const summary = [
+      { "البند": "حضور المحاضرات", "العدد": data.lecturePresent.length },
+      { "البند": "غياب المحاضرات", "العدد": data.lectureAbsent.length },
+      { "البند": "حضور الورشات", "العدد": data.workshopPresent.length },
+      { "البند": "غياب الورشات", "العدد": data.workshopAbsent.length },
+      { "البند": "إجمالي الحضور", "العدد": data.lecturePresent.length + data.workshopPresent.length },
+      { "البند": "إجمالي الغياب", "العدد": data.lectureAbsent.length + data.workshopAbsent.length },
+    ];
+    const ws5 = XLSX.utils.json_to_sheet(summary);
+    XLSX.utils.book_append_sheet(wb, ws5, "ملخص");
+
+    // Set RTL and column widths for all sheets
+    wb.SheetNames.forEach((name) => {
+      const ws = wb.Sheets[name];
+      ws["!cols"] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }];
+    });
+
+    XLSX.writeFile(wb, `${person.name}_تقرير_الحضور.xlsx`);
+    toast.success("تم تصدير الملف بنجاح");
+  };
+
   const title = activeCategory === "muhadera" ? "أسماء المحاضرة" : "أسماء الورشة";
   const subtitle = "اضغط على الاسم لعرض الإحصائيات";
 
@@ -319,6 +368,15 @@ const AttendancePage = () => {
             <span className="text-sm text-muted-foreground mt-1">
               {selectedPerson.category === "muhadera" ? "محاضرة" : "ورشة"}
             </span>
+            {records && (
+              <button
+                onClick={() => exportToExcel(selectedPerson, records)}
+                className="mt-3 flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary text-sm font-semibold transition-all active:scale-[0.97]"
+              >
+                <Download className="w-4 h-4" />
+                <span>تصدير Excel</span>
+              </button>
+            )}
           </motion.div>
 
           {statsLoading ? (
