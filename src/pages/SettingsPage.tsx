@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Moon, Sun, Info, DollarSign, ChevronLeft, Plus, Trash2, TrendingUp, TrendingDown, ArrowDownLeft, ArrowUpRight, Wallet, ClipboardList, BookOpen, Users, Wrench, Calendar as CalendarIcon, FileText, Edit2, CheckSquare, Clock, Flag, User, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -1214,6 +1215,7 @@ const AssignmentsPage = ({ onBack }: { onBack: () => void }) => {
 };
 
 const SettingsPage = () => {
+  const { permissions } = useAuth();
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains("dark");
   });
@@ -1284,25 +1286,27 @@ const SettingsPage = () => {
             </div>
           </motion.div>
 
-          {/* Finance Page */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="ios-card p-4 cursor-pointer active:scale-[0.98] transition-transform"
-            onClick={() => setShowFinance(true)}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                <DollarSign className="w-5 h-5 text-accent" />
+          {/* Finance Page - hidden for supervisors */}
+          {permissions.canAccessFinances && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="ios-card p-4 cursor-pointer active:scale-[0.98] transition-transform"
+              onClick={() => setShowFinance(true)}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                  <DollarSign className="w-5 h-5 text-accent" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[15px] font-semibold text-foreground">الأمور المالية</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">إدارة الإيرادات والمصروفات</p>
+                </div>
+                <ChevronLeft className="w-4 h-4 text-muted-foreground rotate-180" />
               </div>
-              <div className="flex-1">
-                <p className="text-[15px] font-semibold text-foreground">الأمور المالية</p>
-                <p className="text-xs text-muted-foreground mt-0.5">إدارة الإيرادات والمصروفات</p>
-              </div>
-              <ChevronLeft className="w-4 h-4 text-muted-foreground rotate-180" />
-            </div>
-          </motion.div>
+            </motion.div>
+          )}
 
           {/* Session Notes */}
           <motion.div

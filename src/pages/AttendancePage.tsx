@@ -4,6 +4,7 @@ import { Users, UserPlus, Trash2, BookOpen, GraduationCap, ChevronLeft, ChevronD
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getLessonsFromStorage, getWorkshopsFromStorage, type Lesson } from "@/lib/quran-data";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Person {
   id: string;
@@ -26,6 +27,7 @@ interface CategorizedRecords {
 }
 
 const AttendancePage = () => {
+  const { permissions } = useAuth();
   const [activeCategory, setActiveCategory] = useState<"muhadera" | "warasha">("muhadera");
   const [people, setPeople] = useState<Person[]>([]);
   const [newName, setNewName] = useState("");
@@ -405,16 +407,18 @@ const AttendancePage = () => {
           ) : null}
         </div>
 
-        {/* Delete */}
-        <div className="px-4 pb-4">
-          <button
-            onClick={() => deletePerson(selectedPerson.id, selectedPerson.name)}
-            className="w-full py-3 rounded-xl bg-destructive/10 text-destructive text-sm font-semibold flex items-center justify-center gap-2"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span>حذف الشخص</span>
-          </button>
-        </div>
+        {/* Delete - only if can edit */}
+        {permissions.canAddPeople && (
+          <div className="px-4 pb-4">
+            <button
+              onClick={() => deletePerson(selectedPerson.id, selectedPerson.name)}
+              className="w-full py-3 rounded-xl bg-destructive/10 text-destructive text-sm font-semibold flex items-center justify-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>حذف الشخص</span>
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -495,23 +499,25 @@ const AttendancePage = () => {
         )}
       </div>
 
-      <div className="px-4 pb-4 flex gap-2">
-        <input
-          type="text"
-          placeholder="اسم الشخص"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && addPerson()}
-          className="flex-1 px-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-        <button
-          onClick={addPerson}
-          className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-1.5"
-        >
-          <UserPlus className="w-4 h-4" />
-          <span>إضافة</span>
-        </button>
-      </div>
+      {permissions.canAddPeople && (
+        <div className="px-4 pb-4 flex gap-2">
+          <input
+            type="text"
+            placeholder="اسم الشخص"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && addPerson()}
+            className="flex-1 px-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+          <button
+            onClick={addPerson}
+            className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-1.5"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>إضافة</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Lesson } from "@/lib/quran-data";
 import { formatSyriacDateString } from "@/lib/syriac-locale";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Person {
   id: string;
@@ -35,6 +36,7 @@ interface WorkshopAttendancePageProps {
 }
 
 const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps) => {
+  const { permissions } = useAuth();
   const [people, setPeople] = useState<Person[]>([]);
   const [attendance, setAttendance] = useState<Record<string, WorkshopDetail>>({});
   const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
@@ -387,7 +389,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
       </div>
 
       {/* Save button */}
-      {people.length > 0 && (
+      {people.length > 0 && !permissions.isReadOnly && (
         <div className="px-4 pb-4">
           <button
             onClick={saveAttendance}

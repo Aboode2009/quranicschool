@@ -27,7 +27,8 @@ const fadeUp = {
 };
 
 const DashboardPage = ({ onNavigate }: DashboardProps) => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, userRole } = useAuth();
+  const showAdmin = isAdmin || userRole === "course_director";
 
   const navCards = [
     {
@@ -58,7 +59,7 @@ const DashboardPage = ({ onNavigate }: DashboardProps) => {
       icon: Settings,
       bg: "bg-gradient-to-br from-[#00897b] to-[#4db6ac]",
     },
-    ...(isAdmin ? [{
+    ...(showAdmin ? [{
       id: "admin" as TabId,
       title: "لوحة التحكم",
       desc: "إدارة المستخدمين والإحصائيات",
