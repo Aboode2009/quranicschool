@@ -35,6 +35,9 @@ const AttendancePage = () => {
   const [activeCategory, setActiveCategory] = useState<"muhadera" | "warasha">("muhadera");
   const [people, setPeople] = useState<Person[]>([]);
   const [newName, setNewName] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [newAddress, setNewAddress] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [records, setRecords] = useState<CategorizedRecords | null>(null);
