@@ -139,6 +139,48 @@ export type Database = {
         }
         Relationships: []
       }
+      lessons: {
+        Row: {
+          category: string
+          created_at: string
+          from_ayah: number
+          id: string
+          lesson_date: string
+          notes: string
+          status: string
+          surah_name: string
+          title: string
+          to_ayah: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          from_ayah?: number
+          id?: string
+          lesson_date?: string
+          notes?: string
+          status?: string
+          surah_name?: string
+          title: string
+          to_ayah?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          from_ayah?: number
+          id?: string
+          lesson_date?: string
+          notes?: string
+          status?: string
+          surah_name?: string
+          title?: string
+          to_ayah?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       people: {
         Row: {
           category: string
