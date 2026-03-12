@@ -499,23 +499,25 @@ const AttendancePage = () => {
         )}
       </div>
 
-      <div className="px-4 pb-4 flex gap-2">
-        <input
-          type="text"
-          placeholder="اسم الشخص"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && addPerson()}
-          className="flex-1 px-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-        <button
-          onClick={addPerson}
-          className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-1.5"
-        >
-          <UserPlus className="w-4 h-4" />
-          <span>إضافة</span>
-        </button>
-      </div>
+      {permissions.canAddPeople && (
+        <div className="px-4 pb-4 flex gap-2">
+          <input
+            type="text"
+            placeholder="اسم الشخص"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && addPerson()}
+            className="flex-1 px-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+          <button
+            onClick={addPerson}
+            className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-1.5"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>إضافة</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
