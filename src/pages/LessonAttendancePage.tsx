@@ -31,6 +31,7 @@ interface LessonAttendancePageProps {
 }
 
 const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonAttendancePageProps) => {
+  const { permissions } = useAuth();
   const [people, setPeople] = useState<Person[]>([]);
   const [attendance, setAttendance] = useState<Record<string, AttendanceDetail>>({});
   const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
