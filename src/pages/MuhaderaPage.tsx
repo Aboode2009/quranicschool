@@ -30,8 +30,9 @@ const MuhaderaPage = () => {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="px-4 pt-3 pb-2">
+    <div className="flex flex-col h-full relative">
+      <IslamicDecorations variant="lecture" />
+      <div className="px-4 pt-3 pb-2 relative z-10">
         <h1 className="text-2xl font-bold text-foreground mb-3">المحاضرة</h1>
       </div>
 

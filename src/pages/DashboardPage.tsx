@@ -70,7 +70,8 @@ const DashboardPage = ({ onNavigate }: DashboardProps) => {
   ];
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto" dir="rtl">
+    <div className="flex flex-col h-full overflow-y-auto relative" dir="rtl">
+      <IslamicDecorations variant="dashboard" />
       {/* Header */}
       <motion.div
         variants={fadeUp}
