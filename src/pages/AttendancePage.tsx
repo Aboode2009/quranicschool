@@ -4,6 +4,7 @@ import { Users, UserPlus, Trash2, BookOpen, GraduationCap, ChevronLeft, ChevronD
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getLessonsFromStorage, getWorkshopsFromStorage, type Lesson } from "@/lib/quran-data";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Person {
   id: string;
