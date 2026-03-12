@@ -2,19 +2,83 @@ import { useState, useEffect, createContext, useContext, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
+export type AppRole = "admin" | "user" | "supervisor" | "province_manager" | "course_director";
+
+interface Permissions {
+  canCreateLessons: boolean;
+  canCreateWorkshops: boolean;
+  canAddPeople: boolean;
+  canEditData: boolean;
+  canAccessFinances: boolean;
+  canManageUsers: boolean;
+  isReadOnly: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
+  userRole: AppRole | null;
+  permissions: Permissions;
   signOut: () => Promise<void>;
 }
+
+const defaultPermissions: Permissions = {
+  canCreateLessons: false,
+  canCreateWorkshops: false,
+  canAddPeople: false,
+  canEditData: false,
+  canAccessFinances: false,
+  canManageUsers: false,
+  isReadOnly: false,
+};
+
+const getPermissions = (role: AppRole | null): Permissions => {
+  switch (role) {
+    case "admin":
+    case "course_director":
+      return {
+        canCreateLessons: true,
+        canCreateWorkshops: true,
+        canAddPeople: true,
+        canEditData: true,
+        canAccessFinances: true,
+        canManageUsers: role === "admin",
+        isReadOnly: false,
+      };
+    case "supervisor":
+      return {
+        canCreateLessons: true,
+        canCreateWorkshops: true,
+        canAddPeople: true,
+        canEditData: true,
+        canAccessFinances: false,
+        canManageUsers: false,
+        isReadOnly: false,
+      };
+    case "province_manager":
+      return {
+        canCreateLessons: false,
+        canCreateWorkshops: false,
+        canAddPeople: false,
+        canEditData: false,
+        canAccessFinances: true,
+        canManageUsers: false,
+        isReadOnly: true,
+      };
+    default: // 'user' or null
+      return defaultPermissions;
+  }
+};
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   loading: true,
   isAdmin: false,
+  userRole: null,
+  permissions: defaultPermissions,
   signOut: async () => {},
 });
 
@@ -25,15 +89,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState<AppRole | null>(null);
 
-  const checkAdmin = async (userId: string) => {
+  const checkRole = async (userId: string) => {
     const { data } = await supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    setIsAdmin(!!data);
+      .eq("user_id", userId);
+    
+    if (data && data.length > 0) {
+      // Priority: admin > course_director > supervisor > province_manager > user
+      const roles = data.map((r) => r.role as AppRole);
+      if (roles.includes("admin")) {
+        setIsAdmin(true);
+        setUserRole("admin");
+      } else if (roles.includes("course_director")) {
+        setIsAdmin(true);
+        setUserRole("course_director");
+      } else if (roles.includes("supervisor")) {
+        setIsAdmin(false);
+        setUserRole("supervisor");
+      } else if (roles.includes("province_manager")) {
+        setIsAdmin(false);
+        setUserRole("province_manager");
+      } else {
+        setIsAdmin(false);
+        setUserRole("user");
+      }
+    } else {
+      setIsAdmin(false);
+      setUserRole("user");
+    }
   };
 
   useEffect(() => {
@@ -42,9 +128,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          await checkAdmin(session.user.id);
+          await checkRole(session.user.id);
         } else {
           setIsAdmin(false);
+          setUserRole(null);
         }
         setLoading(false);
       }
@@ -54,7 +141,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdmin(session.user.id);
+        checkRole(session.user.id);
       }
       setLoading(false);
     });
@@ -67,10 +154,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setSession(null);
     setIsAdmin(false);
+    setUserRole(null);
   };
 
+  const permissions = getPermissions(userRole);
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, userRole, permissions, signOut }}>
       {children}
     </AuthContext.Provider>
   );
