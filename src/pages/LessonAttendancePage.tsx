@@ -305,7 +305,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
                                 onClick={() => updateDetail(person.id, "activity", "average")} />
                               
                                     <Chip
-                                label="خامل"
+                                label="لم يكمل"
                                 active={detail.activity === "idle"}
                                 activeClass="bg-destructive text-destructive-foreground"
                                 onClick={() => updateDetail(person.id, "activity", "idle")} />
