@@ -328,15 +328,6 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
                                   </div>
                                 </div>
 
-                                {/* Listened lecture */}
-                                <div>
-                                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">هل سمع المحاضرة؟</p>
-                                  <div className="flex gap-2">
-                                    <Chip label="نعم" active={detail.listenedLecture === true} activeClass="bg-primary text-primary-foreground" onClick={() => setField(person.id, "listenedLecture", true)} />
-                                    <Chip label="لا" active={detail.listenedLecture === false} activeClass="bg-destructive text-destructive-foreground" onClick={() => setField(person.id, "listenedLecture", false)} />
-                                  </div>
-                                </div>
-
                                 {/* Extracted verse */}
                                 <div>
                                   <p className="text-[11px] font-medium text-muted-foreground mb-1.5">هل استخرج آية؟</p>
