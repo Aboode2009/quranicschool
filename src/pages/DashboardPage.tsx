@@ -27,7 +27,8 @@ const fadeUp = {
 };
 
 const DashboardPage = ({ onNavigate }: DashboardProps) => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, userRole } = useAuth();
+  const showAdmin = isAdmin || userRole === "course_director";
 
   const navCards = [
     {
