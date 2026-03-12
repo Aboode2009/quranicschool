@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Mail, Lock, Eye, EyeOff, UserPlus, LogIn } from "lucide-react";
+import IslamicDecorations from "@/components/IslamicDecorations";
 
 const LoginPage = () => {
   const [isSignUp, setIsSignUp] = useState(false);
