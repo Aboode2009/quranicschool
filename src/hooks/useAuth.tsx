@@ -92,13 +92,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userRole, setUserRole] = useState<AppRole | null>(null);
 
   const checkRole = async (userId: string) => {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId);
-    
-    if (data && data.length > 0) {
-      // Priority: admin > course_director > supervisor > province_manager > user
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+      
+      if (error || !data || data.length === 0) {
+        setIsAdmin(false);
+        setUserRole("user");
+        return;
+      }
+
       const roles = data.map((r) => r.role as AppRole);
       if (roles.includes("admin")) {
         setIsAdmin(true);
@@ -116,7 +121,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsAdmin(false);
         setUserRole("user");
       }
-    } else {
+    } catch {
       setIsAdmin(false);
       setUserRole("user");
     }
