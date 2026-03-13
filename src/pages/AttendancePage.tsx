@@ -659,8 +659,9 @@ const AttendancePage = () => {
               </motion.div>
             </div>
           ) : null}
-        </div>
+          </>
           )}
+        </div>
 
         {/* Delete - only if can edit */}
         {permissions.canAddPeople && (
