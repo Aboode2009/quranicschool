@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Users, UserPlus, Trash2, BookOpen, GraduationCap, ChevronLeft, ChevronDown, Calendar, Download, Phone, MapPin, Plus } from "lucide-react";
+import { Users, UserPlus, Trash2, BookOpen, GraduationCap, ChevronLeft, ChevronDown, Calendar, Download, Phone, MapPin, Plus, Pencil, X, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
