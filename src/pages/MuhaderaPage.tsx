@@ -157,7 +157,7 @@ const MuhaderaPage = () => {
         </div>
       )}
 
-      <AddLessonDialog open={showAdd} onClose={() => setShowAdd(false)} onAdd={handleAddLesson} />
+      <AddLessonDialog open={showAdd} onClose={() => setShowAdd(false)} onAdd={handleAddLesson} showCourseType />
       <AddLessonDialog
         open={!!editingLesson}
         onClose={() => setEditingLesson(null)}
