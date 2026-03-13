@@ -322,42 +322,47 @@ interface SessionNote {
   workshop_date: string | null;
   workshop_notes: string;
   resources: string;
+  assignments_notes: string;
+  recitation_notes: string;
+  activities_notes: string;
+  financial_notes: string;
+  logistics_notes: string;
   date: string;
 }
 
-const SessionNoteDetailPage = ({ note, onBack, onDelete, onUpdate }: { note: SessionNote; onBack: () => void; onDelete: (id: string) => void; onUpdate: (id: string, updated: Partial<SessionNote>) => void }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editLectureName, setEditLectureName] = useState(note.lecture_name);
-  const [editLectureDate, setEditLectureDate] = useState<Date | undefined>(note.lecture_date ? new Date(note.lecture_date) : undefined);
-  const [editLectureNotes, setEditLectureNotes] = useState(note.lecture_notes);
-  const [editWorkshopName, setEditWorkshopName] = useState(note.workshop_name);
-  const [editWorkshopDate, setEditWorkshopDate] = useState<Date | undefined>(note.workshop_date ? new Date(note.workshop_date) : undefined);
-  const [editWorkshopNotes, setEditWorkshopNotes] = useState(note.workshop_notes);
-  const [editResources, setEditResources] = useState(note.resources);
+type SessionTab = "assignments" | "lecture" | "workshop" | "resources" | "recitation" | "activities" | "financial" | "logistics";
 
-  const handleDelete = async () => {
-    onDelete(note.id);
-    onBack();
-  };
+const sessionTabs: { id: SessionTab; label: string; icon: React.ElementType }[] = [
+  { id: "assignments", label: "نحن والواجبات", icon: ClipboardList },
+  { id: "lecture", label: "المحاضرة", icon: BookOpen },
+  { id: "workshop", label: "الورشة", icon: Users },
+  { id: "resources", label: "الوسائل المصاحبة", icon: Wrench },
+  { id: "recitation", label: "التلاوة", icon: BookOpen },
+  { id: "activities", label: "النشاطات", icon: CheckSquare },
+  { id: "financial", label: "الأمور المالية", icon: DollarSign },
+  { id: "logistics", label: "لوجستية", icon: Wrench },
+];
+
+const SessionNoteDetailPage = ({ note, onBack, onDelete, onUpdate }: { note: SessionNote; onBack: () => void; onDelete: (id: string) => void; onUpdate: (id: string, updated: Partial<SessionNote>) => void }) => {
+  const [activeTab, setActiveTab] = useState<SessionTab>("assignments");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({ ...note });
 
   const handleSaveEdit = async () => {
-    if (!editLectureName.trim() && !editWorkshopName.trim()) {
-      toast.error("يرجى إدخال اسم المحاضرة أو الورشة على الأقل");
-      return;
-    }
-
-    const toDateStr = (d: Date | undefined) => d ? d.toISOString().split("T")[0] : null;
     const { error } = await supabase
       .from("session_notes")
       .update({
-        lecture_name: editLectureName.trim(),
-        lecture_date: toDateStr(editLectureDate),
-        lecture_notes: editLectureNotes.trim(),
-        workshop_name: editWorkshopName.trim(),
-        workshop_date: toDateStr(editWorkshopDate),
-        workshop_notes: editWorkshopNotes.trim(),
-        resources: editResources.trim(),
-        content: `${editLectureName.trim()} - ${editWorkshopName.trim()}`,
+        lecture_name: editData.lecture_name.trim(),
+        lecture_notes: editData.lecture_notes.trim(),
+        workshop_name: editData.workshop_name.trim(),
+        workshop_notes: editData.workshop_notes.trim(),
+        resources: editData.resources.trim(),
+        assignments_notes: editData.assignments_notes.trim(),
+        recitation_notes: editData.recitation_notes.trim(),
+        activities_notes: editData.activities_notes.trim(),
+        financial_notes: editData.financial_notes.trim(),
+        logistics_notes: editData.logistics_notes.trim(),
+        content: `${editData.lecture_name.trim()} - ${editData.workshop_name.trim()}`,
       })
       .eq("id", note.id);
 
@@ -365,13 +370,16 @@ const SessionNoteDetailPage = ({ note, onBack, onDelete, onUpdate }: { note: Ses
       toast.error("خطأ في التعديل");
     } else {
       onUpdate(note.id, {
-        lecture_name: editLectureName.trim(),
-        lecture_date: toDateStr(editLectureDate),
-        lecture_notes: editLectureNotes.trim(),
-        workshop_name: editWorkshopName.trim(),
-        workshop_date: toDateStr(editWorkshopDate),
-        workshop_notes: editWorkshopNotes.trim(),
-        resources: editResources.trim(),
+        lecture_name: editData.lecture_name.trim(),
+        lecture_notes: editData.lecture_notes.trim(),
+        workshop_name: editData.workshop_name.trim(),
+        workshop_notes: editData.workshop_notes.trim(),
+        resources: editData.resources.trim(),
+        assignments_notes: editData.assignments_notes.trim(),
+        recitation_notes: editData.recitation_notes.trim(),
+        activities_notes: editData.activities_notes.trim(),
+        financial_notes: editData.financial_notes.trim(),
+        logistics_notes: editData.logistics_notes.trim(),
       });
       setIsEditing(false);
       toast.success("تم التعديل بنجاح");
@@ -380,88 +388,80 @@ const SessionNoteDetailPage = ({ note, onBack, onDelete, onUpdate }: { note: Ses
 
   const inputClass = "w-full px-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground text-sm outline-none focus:ring-2 focus:ring-primary/30";
 
-  if (isEditing) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="flex flex-col h-full"
-        dir="rtl"
-      >
-        <div className="px-4 pt-3 pb-2">
-          <button onClick={() => setIsEditing(false)} className="flex items-center gap-1 text-primary text-sm font-medium mb-3">
-            <ChevronLeft className="w-4 h-4 rotate-180" /><span>إلغاء</span>
-          </button>
-          <h1 className="text-2xl font-bold text-foreground">تعديل المقرر</h1>
+  const getTabContent = (tab: SessionTab) => {
+    if (isEditing) {
+      const fieldMap: Record<SessionTab, { field: keyof SessionNote; nameField?: keyof SessionNote; namePlaceholder?: string; placeholder: string }> = {
+        assignments: { field: "assignments_notes", placeholder: "ملاحظات نحن والواجبات..." },
+        lecture: { field: "lecture_notes", nameField: "lecture_name", namePlaceholder: "اسم المحاضرة", placeholder: "ملاحظات المحاضرة..." },
+        workshop: { field: "workshop_notes", nameField: "workshop_name", namePlaceholder: "اسم الورشة", placeholder: "ملاحظات الورشة..." },
+        resources: { field: "resources", placeholder: "الوسائل المصاحبة..." },
+        recitation: { field: "recitation_notes", placeholder: "ملاحظات التلاوة..." },
+        activities: { field: "activities_notes", placeholder: "ملاحظات النشاطات..." },
+        financial: { field: "financial_notes", placeholder: "ملاحظات الأمور المالية..." },
+        logistics: { field: "logistics_notes", placeholder: "ملاحظات لوجستية..." },
+      };
+      const config = fieldMap[tab];
+      return (
+        <div className="flex flex-col gap-3 mt-3">
+          {config.nameField && (
+            <input
+              type="text"
+              value={editData[config.nameField] as string}
+              onChange={(e) => setEditData({ ...editData, [config.nameField!]: e.target.value })}
+              placeholder={config.namePlaceholder}
+              className={inputClass}
+            />
+          )}
+          <textarea
+            value={editData[config.field] as string}
+            onChange={(e) => setEditData({ ...editData, [config.field]: e.target.value })}
+            placeholder={config.placeholder}
+            rows={6}
+            className={`${inputClass} resize-none`}
+          />
         </div>
+      );
+    }
 
-        <div className="flex-1 overflow-y-auto px-4 pb-4">
-          <div className="flex flex-col gap-3 mt-3">
-            <div className="ios-card p-4 flex flex-col gap-3">
-              <div className="flex items-center gap-2 mb-1">
-                <BookOpen className="w-4 h-4 text-primary" />
-                <p className="text-sm font-bold text-foreground">المحاضرة</p>
-              </div>
-              <input type="text" value={editLectureName} onChange={(e) => setEditLectureName(e.target.value)}
-                placeholder="اسم المحاضرة" className={inputClass} />
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className={cn(inputClass, "flex items-center justify-between text-right", !editLectureDate && "text-muted-foreground")}>
-                    {editLectureDate ? formatSyriacDate(editLectureDate) : "اختر التاريخ"}
-                    <CalendarIcon className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={editLectureDate} onSelect={setEditLectureDate}
-                    locale={syriacLocale} initialFocus className={cn("p-3 pointer-events-auto")} />
-                </PopoverContent>
-              </Popover>
-              <textarea value={editLectureNotes} onChange={(e) => setEditLectureNotes(e.target.value)}
-                placeholder="ملاحظات على المحاضرة..." rows={3} className={`${inputClass} resize-none`} />
-            </div>
-
-            <div className="ios-card p-4 flex flex-col gap-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Users className="w-4 h-4 text-accent" />
-                <p className="text-sm font-bold text-foreground">الورشة</p>
-              </div>
-              <input type="text" value={editWorkshopName} onChange={(e) => setEditWorkshopName(e.target.value)}
-                placeholder="اسم الورشة" className={inputClass} />
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className={cn(inputClass, "flex items-center justify-between text-right", !editWorkshopDate && "text-muted-foreground")}>
-                    {editWorkshopDate ? formatSyriacDate(editWorkshopDate) : "اختر التاريخ"}
-                    <CalendarIcon className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={editWorkshopDate} onSelect={setEditWorkshopDate}
-                    locale={syriacLocale} initialFocus className={cn("p-3 pointer-events-auto")} />
-                </PopoverContent>
-              </Popover>
-              <textarea value={editWorkshopNotes} onChange={(e) => setEditWorkshopNotes(e.target.value)}
-                placeholder="ملاحظات على الورشة..." rows={3} className={`${inputClass} resize-none`} />
-            </div>
-
-            <div className="ios-card p-4 flex flex-col gap-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Wrench className="w-4 h-4 text-muted-foreground" />
-                <p className="text-sm font-bold text-foreground">الوسائل المصاحبة</p>
-              </div>
-              <textarea value={editResources} onChange={(e) => setEditResources(e.target.value)}
-                placeholder="اكتب الوسائل المصاحبة..." rows={3} className={`${inputClass} resize-none`} />
+    // View mode
+    const contentMap: Record<SessionTab, { name?: string; notes: string }> = {
+      assignments: { notes: note.assignments_notes },
+      lecture: { name: note.lecture_name, notes: note.lecture_notes },
+      workshop: { name: note.workshop_name, notes: note.workshop_notes },
+      resources: { notes: note.resources },
+      recitation: { notes: note.recitation_notes },
+      activities: { notes: note.activities_notes },
+      financial: { notes: note.financial_notes },
+      logistics: { notes: note.logistics_notes },
+    };
+    const content = contentMap[tab];
+    if (!content.name && !content.notes) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+          <FileText className="w-8 h-8 mb-2 opacity-30" />
+          <p className="text-sm">لا توجد بيانات</p>
+        </div>
+      );
+    }
+    return (
+      <div className="flex flex-col gap-3 mt-3">
+        {content.name && (
+          <div className="ios-card px-4 py-3">
+            <p className="text-[11px] text-muted-foreground font-semibold mb-0.5">الاسم</p>
+            <p className="text-[15px] font-semibold text-foreground">{content.name}</p>
+          </div>
+        )}
+        {content.notes && (
+          <div className="ios-card px-4 py-3">
+            <p className="text-[11px] text-muted-foreground font-semibold mb-1.5">الملاحظات</p>
+            <div className="bg-secondary/60 rounded-xl p-3">
+              <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{content.notes}</p>
             </div>
           </div>
-        </div>
-
-        <div className="px-4 pb-4">
-          <button onClick={handleSaveEdit} className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform">
-            حفظ التعديلات
-          </button>
-        </div>
-      </motion.div>
+        )}
+      </div>
     );
-  }
+  };
 
   return (
     <motion.div
@@ -471,133 +471,72 @@ const SessionNoteDetailPage = ({ note, onBack, onDelete, onUpdate }: { note: Ses
       className="flex flex-col h-full"
       dir="rtl"
     >
-      {/* Header */}
       <div className="px-4 pt-3 pb-2">
-        <button onClick={onBack} className="flex items-center gap-1 text-primary text-sm font-medium mb-3">
-          <ChevronLeft className="w-4 h-4 rotate-180" /><span>رجوع</span>
+        <button onClick={isEditing ? () => { setIsEditing(false); setEditData({ ...note }); } : onBack} className="flex items-center gap-1 text-primary text-sm font-medium mb-3">
+          <ChevronLeft className="w-4 h-4 rotate-180" /><span>{isEditing ? "إلغاء" : "رجوع"}</span>
         </button>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">تفاصيل المقرر</h1>
+            <h1 className="text-2xl font-bold text-foreground">{isEditing ? "تعديل المقرر" : "تفاصيل المقرر"}</h1>
             <p className="text-sm text-muted-foreground mt-0.5">{formatSyriacDateString(note.date)}</p>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setIsEditing(true)}
-              className="p-2 rounded-xl bg-primary/10 text-primary active:scale-[0.95] transition-transform"
-            >
-              <Edit2 className="w-4.5 h-4.5" />
-            </button>
-            <button
-              onClick={handleDelete}
-              className="p-2 rounded-xl bg-destructive/10 text-destructive active:scale-[0.95] transition-transform"
-            >
-              <Trash2 className="w-4.5 h-4.5" />
-            </button>
-          </div>
+          {!isEditing && (
+            <div className="flex gap-2">
+              <button onClick={() => setIsEditing(true)} className="p-2 rounded-xl bg-primary/10 text-primary active:scale-[0.95] transition-transform">
+                <Edit2 className="w-4.5 h-4.5" />
+              </button>
+              <button onClick={() => { onDelete(note.id); onBack(); }} className="p-2 rounded-xl bg-destructive/10 text-destructive active:scale-[0.95] transition-transform">
+                <Trash2 className="w-4.5 h-4.5" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-6 flex flex-col gap-3">
-        {/* Lecture Section */}
-        {(note.lecture_name || note.lecture_notes) && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="ios-card overflow-hidden">
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50">
-              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                <BookOpen className="w-4.5 h-4.5 text-primary" />
-              </div>
-              <p className="text-base font-bold text-foreground">المحاضرة</p>
-            </div>
-            <div className="px-4 py-3 flex flex-col gap-2">
-              {note.lecture_name && (
-                <div>
-                  <p className="text-[11px] text-muted-foreground font-semibold mb-0.5">اسم المحاضرة</p>
-                  <p className="text-[15px] font-semibold text-foreground">{note.lecture_name}</p>
-                </div>
-              )}
-              {note.lecture_date && (
-                <div>
-                  <p className="text-[11px] text-muted-foreground font-semibold mb-0.5">التاريخ</p>
-                  <div className="flex items-center gap-1.5">
-                    <CalendarIcon className="w-3.5 h-3.5 text-primary" />
-                    <p className="text-sm text-foreground">{formatSyriacDateString(note.lecture_date)}</p>
-                  </div>
-                </div>
-              )}
-              {note.lecture_notes && (
-                <div className="mt-1">
-                  <p className="text-[11px] text-muted-foreground font-semibold mb-1.5">الملاحظات</p>
-                  <div className="bg-secondary/60 rounded-xl p-3">
-                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{note.lecture_notes}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Workshop Section */}
-        {(note.workshop_name || note.workshop_notes) && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="ios-card overflow-hidden">
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50">
-              <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                <Users className="w-4.5 h-4.5 text-accent" />
-              </div>
-              <p className="text-base font-bold text-foreground">الورشة</p>
-            </div>
-            <div className="px-4 py-3 flex flex-col gap-2">
-              {note.workshop_name && (
-                <div>
-                  <p className="text-[11px] text-muted-foreground font-semibold mb-0.5">اسم الورشة</p>
-                  <p className="text-[15px] font-semibold text-foreground">{note.workshop_name}</p>
-                </div>
-              )}
-              {note.workshop_date && (
-                <div>
-                  <p className="text-[11px] text-muted-foreground font-semibold mb-0.5">التاريخ</p>
-                  <div className="flex items-center gap-1.5">
-                    <CalendarIcon className="w-3.5 h-3.5 text-accent" />
-                    <p className="text-sm text-foreground">{formatSyriacDateString(note.workshop_date)}</p>
-                  </div>
-                </div>
-              )}
-              {note.workshop_notes && (
-                <div className="mt-1">
-                  <p className="text-[11px] text-muted-foreground font-semibold mb-1.5">الملاحظات</p>
-                  <div className="bg-secondary/60 rounded-xl p-3">
-                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{note.workshop_notes}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Resources Section */}
-        {note.resources && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="ios-card overflow-hidden">
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50">
-              <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                <Wrench className="w-4.5 h-4.5 text-muted-foreground" />
-              </div>
-              <p className="text-base font-bold text-foreground">الوسائل المصاحبة</p>
-            </div>
-            <div className="px-4 py-3">
-              <div className="bg-secondary/60 rounded-xl p-3">
-                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{note.resources}</p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Empty state if nothing */}
-        {!note.lecture_name && !note.lecture_notes && !note.workshop_name && !note.workshop_notes && !note.resources && (
-          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-            <FileText className="w-10 h-10 mb-3 opacity-30" />
-            <p className="text-base font-medium">لا توجد تفاصيل</p>
-          </div>
-        )}
+      {/* Tabs */}
+      <div className="px-4 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-1.5 pb-2" style={{ minWidth: "max-content" }}>
+          {sessionTabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                  activeTab === tab.id
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-secondary text-muted-foreground"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
+
+      <div className="flex-1 overflow-y-auto px-4 pb-4">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.15 }}
+          >
+            {getTabContent(activeTab)}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {isEditing && (
+        <div className="px-4 pb-4">
+          <button onClick={handleSaveEdit} className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform">
+            حفظ التعديلات
+          </button>
+        </div>
+      )}
     </motion.div>
   );
 };
@@ -607,13 +546,15 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [selectedNote, setSelectedNote] = useState<SessionNote | null>(null);
-  const [lectureName, setLectureName] = useState("");
-  const [lectureDate, setLectureDate] = useState<Date | undefined>();
-  const [lectureNotes, setLectureNotes] = useState("");
-  const [workshopName, setWorkshopName] = useState("");
-  const [workshopDate, setWorkshopDate] = useState<Date | undefined>();
-  const [workshopNotes, setWorkshopNotes] = useState("");
-  const [resources, setResources] = useState("");
+  const [newDate, setNewDate] = useState<Date | undefined>(new Date());
+  const [newActiveTab, setNewActiveTab] = useState<SessionTab>("assignments");
+  const [newData, setNewData] = useState({
+    lecture_name: "", lecture_notes: "",
+    workshop_name: "", workshop_notes: "",
+    resources: "", assignments_notes: "",
+    recitation_notes: "", activities_notes: "",
+    financial_notes: "", logistics_notes: "",
+  });
 
   useEffect(() => { fetchNotes(); }, []);
 
@@ -626,30 +567,43 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
   };
 
   const resetForm = () => {
-    setLectureName(""); setLectureDate(undefined); setLectureNotes("");
-    setWorkshopName(""); setWorkshopDate(undefined); setWorkshopNotes(""); setResources("");
+    setNewDate(new Date());
+    setNewActiveTab("assignments");
+    setNewData({
+      lecture_name: "", lecture_notes: "",
+      workshop_name: "", workshop_notes: "",
+      resources: "", assignments_notes: "",
+      recitation_notes: "", activities_notes: "",
+      financial_notes: "", logistics_notes: "",
+    });
+    setShowAdd(false);
   };
 
   const addNote = async () => {
-    if (!lectureName.trim() && !workshopName.trim()) {
-      toast.error("يرجى إدخال اسم المحاضرة أو الورشة على الأقل"); return;
+    if (!newDate) {
+      toast.error("يرجى اختيار التاريخ"); return;
     }
-    const toDateStr = (d: Date | undefined) => d ? d.toISOString().split("T")[0] : null;
+    const dateStr = newDate.toISOString().split("T")[0];
     const { data, error } = await supabase.from("session_notes").insert([{
-      lecture_name: lectureName.trim(),
-      lecture_date: toDateStr(lectureDate),
-      lecture_notes: lectureNotes.trim(),
-      workshop_name: workshopName.trim(),
-      workshop_date: toDateStr(workshopDate),
-      workshop_notes: workshopNotes.trim(),
-      resources: resources.trim(),
-      content: `${lectureName.trim()} - ${workshopName.trim()}`,
-      date: new Date().toISOString().split("T")[0],
+      lecture_name: newData.lecture_name.trim(),
+      lecture_notes: newData.lecture_notes.trim(),
+      lecture_date: dateStr,
+      workshop_name: newData.workshop_name.trim(),
+      workshop_notes: newData.workshop_notes.trim(),
+      workshop_date: dateStr,
+      resources: newData.resources.trim(),
+      assignments_notes: newData.assignments_notes.trim(),
+      recitation_notes: newData.recitation_notes.trim(),
+      activities_notes: newData.activities_notes.trim(),
+      financial_notes: newData.financial_notes.trim(),
+      logistics_notes: newData.logistics_notes.trim(),
+      content: `${newData.lecture_name.trim()} - ${newData.workshop_name.trim()}`,
+      date: dateStr,
     }]).select().single();
     if (error) { toast.error("خطأ في الإضافة"); }
     else if (data) {
       setNotes((prev) => [data as any, ...prev]);
-      resetForm(); setShowAdd(false); toast.success("تمت الإضافة");
+      resetForm(); toast.success("تمت الإضافة");
     }
   };
 
@@ -661,6 +615,7 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
 
   const updateNote = (id: string, updated: Partial<SessionNote>) => {
     setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, ...updated } : n)));
+    setSelectedNote((prev) => prev && prev.id === id ? { ...prev, ...updated } : prev);
   };
 
   const inputClass = "w-full px-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground text-sm outline-none focus:ring-2 focus:ring-primary/30";
@@ -675,6 +630,40 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
       />
     );
   }
+
+  const getNewTabContent = (tab: SessionTab) => {
+    const fieldMap: Record<SessionTab, { field: keyof typeof newData; nameField?: keyof typeof newData; namePlaceholder?: string; placeholder: string }> = {
+      assignments: { field: "assignments_notes", placeholder: "ملاحظات نحن والواجبات..." },
+      lecture: { field: "lecture_notes", nameField: "lecture_name", namePlaceholder: "اسم المحاضرة", placeholder: "ملاحظات المحاضرة..." },
+      workshop: { field: "workshop_notes", nameField: "workshop_name", namePlaceholder: "اسم الورشة", placeholder: "ملاحظات الورشة..." },
+      resources: { field: "resources", placeholder: "الوسائل المصاحبة..." },
+      recitation: { field: "recitation_notes", placeholder: "ملاحظات التلاوة..." },
+      activities: { field: "activities_notes", placeholder: "ملاحظات النشاطات..." },
+      financial: { field: "financial_notes", placeholder: "ملاحظات الأمور المالية..." },
+      logistics: { field: "logistics_notes", placeholder: "ملاحظات لوجستية..." },
+    };
+    const config = fieldMap[tab];
+    return (
+      <div className="flex flex-col gap-3">
+        {config.nameField && (
+          <input
+            type="text"
+            value={newData[config.nameField]}
+            onChange={(e) => setNewData({ ...newData, [config.nameField!]: e.target.value })}
+            placeholder={config.namePlaceholder}
+            className={inputClass}
+          />
+        )}
+        <textarea
+          value={newData[config.field]}
+          onChange={(e) => setNewData({ ...newData, [config.field]: e.target.value })}
+          placeholder={config.placeholder}
+          rows={5}
+          className={`${inputClass} resize-none`}
+        />
+      </div>
+    );
+  };
 
   return (
     <div className="flex flex-col h-full" dir="rtl">
@@ -695,64 +684,66 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
               exit={{ opacity: 0, height: 0 }}
               className="mt-3 flex flex-col gap-3"
             >
-              <div className="ios-card p-4 flex flex-col gap-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <BookOpen className="w-4 h-4 text-primary" />
-                  <p className="text-sm font-bold text-foreground">المحاضرة</p>
+              {/* Date picker - entered once */}
+              <div className="ios-card p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <CalendarIcon className="w-4 h-4 text-primary" />
+                  <p className="text-sm font-bold text-foreground">تاريخ الجلسة</p>
                 </div>
-                <input type="text" value={lectureName} onChange={(e) => setLectureName(e.target.value)}
-                  placeholder="اسم المحاضرة" className={inputClass} />
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className={cn(inputClass, "flex items-center justify-between text-right", !lectureDate && "text-muted-foreground")}>
-                      {lectureDate ? formatSyriacDate(lectureDate) : "اختر التاريخ"}
+                    <button className={cn(inputClass, "flex items-center justify-between text-right", !newDate && "text-muted-foreground")}>
+                      {newDate ? formatSyriacDate(newDate) : "اختر التاريخ"}
                       <CalendarIcon className="w-4 h-4 text-muted-foreground" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={lectureDate} onSelect={setLectureDate}
+                    <Calendar mode="single" selected={newDate} onSelect={setNewDate}
                       locale={syriacLocale} initialFocus className={cn("p-3 pointer-events-auto")} />
                   </PopoverContent>
                 </Popover>
-                <textarea value={lectureNotes} onChange={(e) => setLectureNotes(e.target.value)}
-                  placeholder="ملاحظات على المحاضرة..." rows={3} className={`${inputClass} resize-none`} />
               </div>
 
-              <div className="ios-card p-4 flex flex-col gap-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <Users className="w-4 h-4 text-accent" />
-                  <p className="text-sm font-bold text-foreground">الورشة</p>
+              {/* Tabs for new entry */}
+              <div className="overflow-x-auto scrollbar-hide">
+                <div className="flex gap-1.5 pb-1" style={{ minWidth: "max-content" }}>
+                  {sessionTabs.map((tab) => {
+                    const Icon = tab.icon;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setNewActiveTab(tab.id)}
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                          newActiveTab === tab.id
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "bg-secondary text-muted-foreground"
+                        }`}
+                      >
+                        <Icon className="w-3.5 h-3.5" />
+                        {tab.label}
+                      </button>
+                    );
+                  })}
                 </div>
-                <input type="text" value={workshopName} onChange={(e) => setWorkshopName(e.target.value)}
-                  placeholder="اسم الورشة" className={inputClass} />
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button className={cn(inputClass, "flex items-center justify-between text-right", !workshopDate && "text-muted-foreground")}>
-                      {workshopDate ? formatSyriacDate(workshopDate) : "اختر التاريخ"}
-                      <CalendarIcon className="w-4 h-4 text-muted-foreground" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={workshopDate} onSelect={setWorkshopDate}
-                      locale={syriacLocale} initialFocus className={cn("p-3 pointer-events-auto")} />
-                  </PopoverContent>
-                </Popover>
-                <textarea value={workshopNotes} onChange={(e) => setWorkshopNotes(e.target.value)}
-                  placeholder="ملاحظات على الورشة..." rows={3} className={`${inputClass} resize-none`} />
               </div>
 
-              <div className="ios-card p-4 flex flex-col gap-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <Wrench className="w-4 h-4 text-muted-foreground" />
-                  <p className="text-sm font-bold text-foreground">الوسائل المصاحبة</p>
-                </div>
-                <textarea value={resources} onChange={(e) => setResources(e.target.value)}
-                  placeholder="اكتب الوسائل المصاحبة..." rows={3} className={`${inputClass} resize-none`} />
+              <div className="ios-card p-4">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={newActiveTab}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    transition={{ duration: 0.12 }}
+                  >
+                    {getNewTabContent(newActiveTab)}
+                  </motion.div>
+                </AnimatePresence>
               </div>
 
               <div className="flex gap-2 pb-2">
                 <button onClick={addNote} className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold active:scale-[0.97] transition-transform">حفظ المقرر</button>
-                <button onClick={() => { setShowAdd(false); resetForm(); }} className="py-3 px-5 rounded-xl bg-secondary text-muted-foreground text-sm font-semibold active:scale-[0.97] transition-transform">إلغاء</button>
+                <button onClick={resetForm} className="py-3 px-5 rounded-xl bg-secondary text-muted-foreground text-sm font-semibold active:scale-[0.97] transition-transform">إلغاء</button>
               </div>
             </motion.div>
           )}
