@@ -246,13 +246,18 @@ export type Database = {
       }
       session_notes: {
         Row: {
+          activities_notes: string
+          assignments_notes: string
           content: string
           created_at: string
           date: string
+          financial_notes: string
           id: string
           lecture_date: string | null
           lecture_name: string
           lecture_notes: string
+          logistics_notes: string
+          recitation_notes: string
           resources: string
           updated_at: string
           workshop_date: string | null
@@ -260,13 +265,18 @@ export type Database = {
           workshop_notes: string
         }
         Insert: {
+          activities_notes?: string
+          assignments_notes?: string
           content?: string
           created_at?: string
           date?: string
+          financial_notes?: string
           id?: string
           lecture_date?: string | null
           lecture_name?: string
           lecture_notes?: string
+          logistics_notes?: string
+          recitation_notes?: string
           resources?: string
           updated_at?: string
           workshop_date?: string | null
@@ -274,13 +284,18 @@ export type Database = {
           workshop_notes?: string
         }
         Update: {
+          activities_notes?: string
+          assignments_notes?: string
           content?: string
           created_at?: string
           date?: string
+          financial_notes?: string
           id?: string
           lecture_date?: string | null
           lecture_name?: string
           lecture_notes?: string
+          logistics_notes?: string
+          recitation_notes?: string
           resources?: string
           updated_at?: string
           workshop_date?: string | null
