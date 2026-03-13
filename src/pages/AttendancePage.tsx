@@ -659,6 +659,7 @@ const AttendancePage = () => {
             </div>
           ) : null}
         </div>
+          )}
 
         {/* Delete - only if can edit */}
         {permissions.canAddPeople && (
