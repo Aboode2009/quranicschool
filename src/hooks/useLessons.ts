@@ -80,7 +80,7 @@ export function useLessons(category: "muhadera" | "warasha") {
       to_ayah: lesson.toAyah,
       notes: lesson.notes,
       status: lesson.status,
-      lesson_date: new Date().toISOString().split("T")[0],
+      lesson_date: lesson.date || new Date().toISOString().split("T")[0],
       category,
     });
 
