@@ -94,6 +94,9 @@ const MuhaderaPage = () => {
                     <p className="text-[15px] font-semibold leading-tight text-foreground">
                       {lesson.surahName}
                     </p>
+                    {lesson.courseType && (
+                      <p className="text-xs text-primary/80 mt-0.5">{lesson.courseType}</p>
+                    )}
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {formatSyriacDateString(lesson.date)}
                     </p>
