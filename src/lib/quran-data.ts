@@ -6,6 +6,7 @@ export interface Lesson {
   notes: string;
   status: "pending" | "in-progress" | "completed";
   date: string;
+  courseType?: string;
 }
 
 export const SURAH_LIST = [
