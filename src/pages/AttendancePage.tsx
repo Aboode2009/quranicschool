@@ -197,8 +197,8 @@ const AttendancePage = () => {
       supabase.from("lessons").select("id, surah_name, from_ayah, to_ayah, lesson_date, notes, status").eq("category", "muhadera"),
       supabase.from("lessons").select("id, surah_name, from_ayah, to_ayah, lesson_date, notes, status").eq("category", "warasha"),
     ]);
-    const freshLessons = (lessonsRes.data || []).map((l: any) => ({ id: l.id, surahName: l.surah_name, fromAyah: l.from_ayah, toAyah: l.to_ayah, date: l.lesson_date, notes: l.notes, status: l.status }));
-    const freshWorkshops = (workshopsRes.data || []).map((w: any) => ({ id: w.id, surahName: w.surah_name, fromAyah: w.from_ayah, toAyah: w.to_ayah, date: w.lesson_date, notes: w.notes, status: w.status }));
+    const freshLessons = (lessonsRes.data || []).map((l: any) => ({ id: l.id, surahName: l.surah_name, fromAyah: l.from_ayah, toAyah: l.to_ayah, date: l.lesson_date, notes: l.notes, status: l.status, courseType: l.course_type || "" }));
+    const freshWorkshops = (workshopsRes.data || []).map((w: any) => ({ id: w.id, surahName: w.surah_name, fromAyah: w.from_ayah, toAyah: w.to_ayah, date: w.lesson_date, notes: w.notes, status: w.status, courseType: w.course_type || "" }));
     const lMap: Record<string, Lesson> = {};
     freshLessons.forEach((l: Lesson) => { lMap[l.id] = l; });
     const wMap: Record<string, Lesson> = {};
