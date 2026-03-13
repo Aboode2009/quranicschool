@@ -50,6 +50,8 @@ const AttendancePage = () => {
   const [statsLoading, setStatsLoading] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [detailView, setDetailView] = useState<{ items: AttendanceRecord[]; type: "present" | "absent"; label: string } | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState<Partial<Person>>({});
 
   // Lookup maps for lesson/workshop names
   const [lessonMap, setLessonMap] = useState<Record<string, Lesson>>({});
