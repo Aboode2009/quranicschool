@@ -13,6 +13,7 @@ interface DbLesson {
   lesson_date: string;
   category: string;
   created_at: string;
+  course_type: string;
 }
 
 function dbToLesson(db: DbLesson): Lesson {
@@ -24,6 +25,7 @@ function dbToLesson(db: DbLesson): Lesson {
     notes: db.notes,
     status: db.status as Lesson["status"],
     date: db.lesson_date,
+    courseType: db.course_type || "",
   };
 }
 
@@ -82,6 +84,7 @@ export function useLessons(category: "muhadera" | "warasha") {
       status: lesson.status,
       lesson_date: lesson.date || new Date().toISOString().split("T")[0],
       category,
+      course_type: (lesson as any).courseType || "",
     });
 
     if (error) {

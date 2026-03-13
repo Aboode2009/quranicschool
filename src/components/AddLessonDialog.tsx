@@ -7,6 +7,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { syriacLocale, formatSyriacDate } from "@/lib/syriac-locale";
 
+const COURSE_TYPES = [
+  "دورة اليقظة الايمانية",
+  "دورة التربية الايمانية",
+  "دورة التربية النفسية",
+  "دورة التربية الفكرية",
+] as const;
+
 interface AddLessonDialogProps {
   open: boolean;
   onClose: () => void;
@@ -15,12 +22,14 @@ interface AddLessonDialogProps {
   namePlaceholder?: string;
   addLabel?: string;
   editLesson?: Lesson | null;
+  showCourseType?: boolean;
 }
 
-const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد", namePlaceholder = "اسم المحاضرة", addLabel = "إضافة", editLesson }: AddLessonDialogProps) => {
+const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد", namePlaceholder = "اسم المحاضرة", addLabel = "إضافة", editLesson, showCourseType = false }: AddLessonDialogProps) => {
   const [lessonName, setLessonName] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [notes, setNotes] = useState("");
+  const [courseType, setCourseType] = useState("");
 
   const isEdit = !!editLesson;
 
@@ -28,10 +37,12 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
     if (editLesson && open) {
       setLessonName(editLesson.surahName);
       setNotes(editLesson.notes || "");
+      setCourseType((editLesson as any).courseType || "");
     } else if (!open) {
       setLessonName("");
       setNotes("");
       setSelectedDate(new Date());
+      setCourseType("");
     }
   }, [editLesson, open]);
 
@@ -48,7 +59,8 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
       notes,
       status: editLesson?.status || "pending",
       date: editLesson?.date || dateStr,
-    });
+      courseType: courseType,
+    } as any);
   };
 
   return (
@@ -67,7 +79,7 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            className="fixed bottom-0 inset-x-0 z-50 max-h-[90vh]"
+            className="fixed bottom-0 inset-x-0 z-50 max-h-[90vh] overflow-y-auto"
           >
             <div className="bg-card rounded-t-3xl px-5 pt-3 pb-8 max-w-lg mx-auto shadow-ios">
               {/* Handle */}
@@ -92,7 +104,7 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
                     />
                   </div>
                   {!isEdit && (
-                    <div className="px-4 py-3">
+                    <div className="px-4 py-3 border-b border-ios-separator">
                       <Popover>
                         <PopoverTrigger asChild>
                           <button
@@ -116,6 +128,27 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
                           />
                         </PopoverContent>
                       </Popover>
+                    </div>
+                  )}
+                  {showCourseType && (
+                    <div className="px-4 py-3">
+                      <label className="text-sm text-foreground font-medium mb-2 block">نوع الدورة</label>
+                      <div className="flex flex-col gap-2">
+                        {COURSE_TYPES.map((type) => (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => setCourseType(type)}
+                            className={`w-full text-right px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                              courseType === type
+                                ? "bg-primary text-primary-foreground font-medium"
+                                : "bg-muted/50 text-foreground hover:bg-muted"
+                            }`}
+                          >
+                            {type}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
