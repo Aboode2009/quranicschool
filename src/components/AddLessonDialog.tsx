@@ -39,7 +39,7 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
     e.preventDefault();
     if (!lessonName.trim() || !selectedDate) return;
     
-    const dateStr = selectedDate.toLocaleDateString("ar-SA", { year: "numeric", month: "short", day: "numeric" });
+    const dateStr = selectedDate.toISOString().split("T")[0];
     onAdd({
       id: editLesson?.id || generateId(),
       surahName: lessonName,
