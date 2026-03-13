@@ -177,10 +177,14 @@ const AttendancePage = () => {
   const getLessonDisplayName = (lessonId: string): string => {
     const lesson = lessonMap[lessonId];
     if (lesson) {
+      let name = lesson.surahName || lessonId;
       if (lesson.surahName && lesson.fromAyah && lesson.toAyah) {
-        return `${lesson.surahName} (${lesson.fromAyah}-${lesson.toAyah})`;
+        name = `${lesson.surahName} (${lesson.fromAyah}-${lesson.toAyah})`;
       }
-      return lesson.surahName || lessonId;
+      if (lesson.courseType) {
+        name = `${name} (${lesson.courseType})`;
+      }
+      return name;
     }
     const workshop = workshopMap[lessonId];
     if (workshop) return workshop.surahName || lessonId;
