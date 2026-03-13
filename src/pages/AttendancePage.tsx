@@ -140,6 +140,40 @@ const AttendancePage = () => {
     }
   };
 
+  const startEditing = (person: Person) => {
+    setEditData({
+      name: person.name,
+      phone: person.phone || "",
+      address: person.address || "",
+      birth_date: person.birth_date || "",
+      join_date: person.join_date || "",
+      education_level: person.education_level || "",
+    });
+    setIsEditing(true);
+  };
+
+  const updatePerson = async () => {
+    if (!selectedPerson || !editData.name?.trim()) return;
+    const updateData: any = {
+      name: editData.name!.trim(),
+      phone: editData.phone?.trim() || null,
+      address: editData.address?.trim() || null,
+      birth_date: editData.birth_date || null,
+      join_date: editData.join_date || null,
+      education_level: editData.education_level?.trim() || null,
+    };
+    const { error } = await supabase.from("people").update(updateData).eq("id", selectedPerson.id);
+    if (error) {
+      toast.error("خطأ في تحديث البيانات");
+    } else {
+      const updated = { ...selectedPerson, ...updateData };
+      setSelectedPerson(updated);
+      setPeople((prev) => prev.map((p) => p.id === updated.id ? updated : p));
+      setIsEditing(false);
+      toast.success("تم تحديث البيانات");
+    }
+  };
+
   const getLessonDisplayName = (lessonId: string): string => {
     const lesson = lessonMap[lessonId];
     if (lesson) {
