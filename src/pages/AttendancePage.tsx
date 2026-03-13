@@ -99,6 +99,9 @@ const AttendancePage = () => {
     const insertData: any = { name: trimmed, category: activeCategory };
     if (newPhone.trim()) insertData.phone = newPhone.trim();
     if (newAddress.trim()) insertData.address = newAddress.trim();
+    if (newBirthDate) insertData.birth_date = newBirthDate;
+    if (newJoinDate) insertData.join_date = newJoinDate;
+    if (newEducation.trim()) insertData.education_level = newEducation.trim();
 
     const { data, error } = await supabase
       .from("people")
