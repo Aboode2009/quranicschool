@@ -116,6 +116,9 @@ const AttendancePage = () => {
       setNewName("");
       setNewPhone("");
       setNewAddress("");
+      setNewBirthDate("");
+      setNewJoinDate("");
+      setNewEducation("");
       setShowAddForm(false);
       toast.success(`تمت إضافة ${trimmed}`);
     }
