@@ -184,27 +184,36 @@ export type Database = {
       people: {
         Row: {
           address: string | null
+          birth_date: string | null
           category: string
           created_at: string
+          education_level: string | null
           id: string
+          join_date: string | null
           name: string
           phone: string | null
           updated_at: string
         }
         Insert: {
           address?: string | null
+          birth_date?: string | null
           category?: string
           created_at?: string
+          education_level?: string | null
           id?: string
+          join_date?: string | null
           name: string
           phone?: string | null
           updated_at?: string
         }
         Update: {
           address?: string | null
+          birth_date?: string | null
           category?: string
           created_at?: string
+          education_level?: string | null
           id?: string
+          join_date?: string | null
           name?: string
           phone?: string | null
           updated_at?: string
