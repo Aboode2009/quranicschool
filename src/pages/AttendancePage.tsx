@@ -14,6 +14,9 @@ interface Person {
   category: string;
   phone?: string | null;
   address?: string | null;
+  birth_date?: string | null;
+  join_date?: string | null;
+  education_level?: string | null;
 }
 
 interface AttendanceRecord {
