@@ -142,6 +142,7 @@ export type Database = {
       lessons: {
         Row: {
           category: string
+          course_type: string
           created_at: string
           from_ayah: number
           id: string
@@ -155,6 +156,7 @@ export type Database = {
         }
         Insert: {
           category?: string
+          course_type?: string
           created_at?: string
           from_ayah?: number
           id?: string
@@ -168,6 +170,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          course_type?: string
           created_at?: string
           from_ayah?: number
           id?: string
