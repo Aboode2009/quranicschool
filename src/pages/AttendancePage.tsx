@@ -37,6 +37,9 @@ const AttendancePage = () => {
   const [newName, setNewName] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [newAddress, setNewAddress] = useState("");
+  const [newBirthDate, setNewBirthDate] = useState("");
+  const [newJoinDate, setNewJoinDate] = useState("");
+  const [newEducation, setNewEducation] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
@@ -96,6 +99,9 @@ const AttendancePage = () => {
     const insertData: any = { name: trimmed, category: activeCategory };
     if (newPhone.trim()) insertData.phone = newPhone.trim();
     if (newAddress.trim()) insertData.address = newAddress.trim();
+    if (newBirthDate) insertData.birth_date = newBirthDate;
+    if (newJoinDate) insertData.join_date = newJoinDate;
+    if (newEducation.trim()) insertData.education_level = newEducation.trim();
 
     const { data, error } = await supabase
       .from("people")
@@ -110,6 +116,9 @@ const AttendancePage = () => {
       setNewName("");
       setNewPhone("");
       setNewAddress("");
+      setNewBirthDate("");
+      setNewJoinDate("");
+      setNewEducation("");
       setShowAddForm(false);
       toast.success(`تمت إضافة ${trimmed}`);
     }
@@ -637,6 +646,38 @@ const AttendancePage = () => {
                   placeholder="العنوان (اختياري)"
                   value={newAddress}
                   onChange={(e) => setNewAddress(e.target.value)}
+                 className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              <div className="relative">
+                <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="date"
+                  placeholder="المواليد (اختياري)"
+                  value={newBirthDate}
+                  onChange={(e) => setNewBirthDate(e.target.value)}
+                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+                {!newBirthDate && <span className="absolute right-10 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">المواليد (اختياري)</span>}
+              </div>
+              <div className="relative">
+                <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="date"
+                  placeholder="تاريخ الانضمام (اختياري)"
+                  value={newJoinDate}
+                  onChange={(e) => setNewJoinDate(e.target.value)}
+                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+                {!newJoinDate && <span className="absolute right-10 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">تاريخ الانضمام (اختياري)</span>}
+              </div>
+              <div className="relative">
+                <GraduationCap className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="التحصيل الدراسي (اختياري)"
+                  value={newEducation}
+                  onChange={(e) => setNewEducation(e.target.value)}
                   className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
@@ -649,7 +690,7 @@ const AttendancePage = () => {
                   <span>إضافة</span>
                 </button>
                 <button
-                  onClick={() => { setShowAddForm(false); setNewName(""); setNewPhone(""); setNewAddress(""); }}
+                  onClick={() => { setShowAddForm(false); setNewName(""); setNewPhone(""); setNewAddress(""); setNewBirthDate(""); setNewJoinDate(""); setNewEducation(""); }}
                   className="px-4 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold"
                 >
                   إلغاء
