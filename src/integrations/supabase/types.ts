@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          id: string
+          maintenance_mode: boolean
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          maintenance_mode?: boolean
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          maintenance_mode?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       assignments: {
         Row: {
           assigned_to: string
