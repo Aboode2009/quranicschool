@@ -63,7 +63,7 @@ const AttendancePage = () => {
 
   useEffect(() => {
     fetchPeople();
-  }, [activeCategory]);
+  }, [activeCategory, userRole, supervisedWorkshop]);
 
   useEffect(() => {
     const fetchLessonMaps = async () => {
