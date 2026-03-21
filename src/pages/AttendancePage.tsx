@@ -8,6 +8,8 @@ import type { Lesson } from "@/lib/quran-data";
 import { useAuth } from "@/hooks/useAuth";
 import IslamicDecorations from "@/components/IslamicDecorations";
 
+const WORKSHOP_NUMBERS = ["ورشة أولى", "ورشة ثانية", "ورشة ثالثة", "ورشة رابعة", "ورشة خامسة"] as const;
+
 interface Person {
   id: string;
   name: string;
@@ -17,6 +19,7 @@ interface Person {
   birth_date?: string | null;
   join_date?: string | null;
   education_level?: string | null;
+  workshop_number?: string | null;
 }
 
 interface AttendanceRecord {
