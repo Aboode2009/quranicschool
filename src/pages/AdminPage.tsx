@@ -250,6 +250,9 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
                       </div>
                       <span className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold ${getRoleColor(currentRole)}`}>
                         {getRoleLabel(currentRole)}
+                        {currentRole === "supervisor" && getUserWorkshop(profile.id) && (
+                          <span className="mr-1">({getUserWorkshop(profile.id)})</span>
+                        )}
                       </span>
                     </div>
 
