@@ -164,6 +164,7 @@ const WarashaPage = () => {
         dialogTitle="ورشة جديدة"
         namePlaceholder="اسم الورشة"
         addLabel="إضافة"
+        showWorkshopNumber
       />
       <AddLessonDialog
         open={!!editingWorkshop}
