@@ -154,6 +154,7 @@ const AttendancePage = () => {
       birth_date: person.birth_date || "",
       join_date: person.join_date || "",
       education_level: person.education_level || "",
+      workshop_number: person.workshop_number || "",
     });
     setIsEditing(true);
   };
