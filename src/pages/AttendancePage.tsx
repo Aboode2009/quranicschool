@@ -111,6 +111,7 @@ const AttendancePage = () => {
     if (newBirthDate) insertData.birth_date = newBirthDate;
     if (newJoinDate) insertData.join_date = newJoinDate;
     if (newEducation.trim()) insertData.education_level = newEducation.trim();
+    if (newWorkshopNumber && activeCategory === "warasha") insertData.workshop_number = newWorkshopNumber;
 
     const { data, error } = await supabase
       .from("people")
