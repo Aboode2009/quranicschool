@@ -193,7 +193,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const permissions = getPermissions(userRole);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, userRole, permissions, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, userRole, supervisedWorkshop, permissions, signOut }}>
       {children}
     </AuthContext.Provider>
   );
