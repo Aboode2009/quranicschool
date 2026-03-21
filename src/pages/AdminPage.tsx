@@ -110,7 +110,7 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
     return ROLE_CONFIG.find((r) => r.role === role)?.color || "bg-muted text-muted-foreground";
   };
 
-  const setUserRole = async (userId: string, newRole: AppRole | null) => {
+  const setUserRole = async (userId: string, newRole: AppRole | null, workshopNum?: string | null) => {
     if (userId === user?.id) {
       toast.error("لا يمكنك تغيير صلاحياتك الخاصة");
       return;
@@ -124,10 +124,14 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
     }
 
     if (newRole && newRole !== "user") {
-      const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: newRole });
+      const insertData: any = { user_id: userId, role: newRole };
+      if (newRole === "supervisor" && workshopNum) {
+        insertData.supervised_workshop = workshopNum;
+      }
+      const { error } = await supabase.from("user_roles").insert(insertData);
       if (error) { toast.error("خطأ في إضافة الصلاحية"); return; }
-      setRoles((prev) => [...prev.filter((r) => r.user_id !== userId), { user_id: userId, role: newRole }]);
-      toast.success(`تم تعيين الدور: ${getRoleLabel(newRole)}`);
+      setRoles((prev) => [...prev.filter((r) => r.user_id !== userId), { user_id: userId, role: newRole, supervised_workshop: workshopNum || null }]);
+      toast.success(`تم تعيين الدور: ${getRoleLabel(newRole)}${workshopNum ? ` - ${workshopNum}` : ""}`);
     } else {
       setRoles((prev) => prev.filter((r) => r.user_id !== userId));
       toast.success("تم إزالة جميع الصلاحيات");
