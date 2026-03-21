@@ -8,6 +8,8 @@ import type { Lesson } from "@/lib/quran-data";
 import { useAuth } from "@/hooks/useAuth";
 import IslamicDecorations from "@/components/IslamicDecorations";
 
+const WORKSHOP_NUMBERS = ["ورشة أولى", "ورشة ثانية", "ورشة ثالثة", "ورشة رابعة", "ورشة خامسة"] as const;
+
 interface Person {
   id: string;
   name: string;
@@ -17,6 +19,7 @@ interface Person {
   birth_date?: string | null;
   join_date?: string | null;
   education_level?: string | null;
+  workshop_number?: string | null;
 }
 
 interface AttendanceRecord {
@@ -43,6 +46,7 @@ const AttendancePage = () => {
   const [newBirthDate, setNewBirthDate] = useState("");
   const [newJoinDate, setNewJoinDate] = useState("");
   const [newEducation, setNewEducation] = useState("");
+  const [newWorkshopNumber, setNewWorkshopNumber] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
@@ -107,6 +111,7 @@ const AttendancePage = () => {
     if (newBirthDate) insertData.birth_date = newBirthDate;
     if (newJoinDate) insertData.join_date = newJoinDate;
     if (newEducation.trim()) insertData.education_level = newEducation.trim();
+    if (newWorkshopNumber && activeCategory === "warasha") insertData.workshop_number = newWorkshopNumber;
 
     const { data, error } = await supabase
       .from("people")
@@ -124,6 +129,7 @@ const AttendancePage = () => {
       setNewBirthDate("");
       setNewJoinDate("");
       setNewEducation("");
+      setNewWorkshopNumber("");
       setShowAddForm(false);
       toast.success(`تمت إضافة ${trimmed}`);
     }
@@ -148,6 +154,7 @@ const AttendancePage = () => {
       birth_date: person.birth_date || "",
       join_date: person.join_date || "",
       education_level: person.education_level || "",
+      workshop_number: person.workshop_number || "",
     });
     setIsEditing(true);
   };
@@ -161,6 +168,7 @@ const AttendancePage = () => {
       birth_date: editData.birth_date || null,
       join_date: editData.join_date || null,
       education_level: editData.education_level?.trim() || null,
+      workshop_number: editData.workshop_number || null,
     };
     const { error } = await supabase.from("people").update(updateData).eq("id", selectedPerson.id);
     if (error) {
@@ -495,6 +503,27 @@ const AttendancePage = () => {
                   className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
+              {selectedPerson.category === "warasha" && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm text-muted-foreground">رقم الورشة (اختياري)</label>
+                  <div className="flex flex-wrap gap-2">
+                    {WORKSHOP_NUMBERS.map((ws) => (
+                      <button
+                        key={ws}
+                        type="button"
+                        onClick={() => setEditData({ ...editData, workshop_number: editData.workshop_number === ws ? "" : ws })}
+                        className={`px-3 py-2 rounded-lg text-xs transition-colors ${
+                          editData.workshop_number === ws
+                            ? "bg-primary text-primary-foreground font-medium"
+                            : "bg-muted/50 text-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {ws}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="flex gap-2 mt-1">
                 <button
                   onClick={updatePerson}
@@ -524,6 +553,7 @@ const AttendancePage = () => {
             <h2 className="text-xl font-bold text-foreground">{selectedPerson.name}</h2>
             <span className="text-sm text-muted-foreground mt-1">
               {selectedPerson.category === "muhadera" ? "محاضرة" : "ورشة"}
+              {selectedPerson.workshop_number && ` - ${selectedPerson.workshop_number}`}
             </span>
             {selectedPerson.phone && (
               <div className="flex items-center gap-1.5 mt-2 text-sm text-muted-foreground">
@@ -835,7 +865,28 @@ const AttendancePage = () => {
                   onChange={(e) => setNewEducation(e.target.value)}
                   className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
-              </div>
+               </div>
+              {activeCategory === "warasha" && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm text-muted-foreground">رقم الورشة (اختياري)</label>
+                  <div className="flex flex-wrap gap-2">
+                    {WORKSHOP_NUMBERS.map((ws) => (
+                      <button
+                        key={ws}
+                        type="button"
+                        onClick={() => setNewWorkshopNumber(newWorkshopNumber === ws ? "" : ws)}
+                        className={`px-3 py-2 rounded-lg text-xs transition-colors ${
+                          newWorkshopNumber === ws
+                            ? "bg-primary text-primary-foreground font-medium"
+                            : "bg-muted/50 text-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {ws}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="flex gap-2">
                 <button
                   onClick={addPerson}
@@ -845,7 +896,7 @@ const AttendancePage = () => {
                   <span>إضافة</span>
                 </button>
                 <button
-                  onClick={() => { setShowAddForm(false); setNewName(""); setNewPhone(""); setNewAddress(""); setNewBirthDate(""); setNewJoinDate(""); setNewEducation(""); }}
+                  onClick={() => { setShowAddForm(false); setNewName(""); setNewPhone(""); setNewAddress(""); setNewBirthDate(""); setNewJoinDate(""); setNewEducation(""); setNewWorkshopNumber(""); }}
                   className="px-4 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold"
                 >
                   إلغاء
