@@ -97,6 +97,7 @@ const WarashaPage = () => {
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {formatSyriacDateString(ws.date)}
+                      {ws.courseType && ` • ${ws.courseType}`}
                     </p>
                     {ws.notes && (
                       <p className="text-xs text-muted-foreground/70 mt-1 truncate">{ws.notes}</p>
