@@ -295,6 +295,9 @@ const AttendancePage = () => {
           "اسم الدرس": getLessonDisplayName(r.lesson_name),
           "التاريخ": r.lesson_date,
         };
+        if (r.workshop_number) {
+          row["الورشة"] = r.workshop_number;
+        }
         if (includeExcuse) {
           row["العذر"] = r.excuse === "with_excuse" ? "بعذر" : r.excuse === "without_excuse" ? "بدون عذر" : "-";
         }
