@@ -67,7 +67,7 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
     
     const [profilesRes, rolesRes, peopleRes, attendanceRes, incomeRes, expenseRes, sessionsRes, questionsRes] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
-      supabase.from("user_roles").select("*"),
+      supabase.from("user_roles").select("user_id, role, supervised_workshop"),
       supabase.from("people").select("id", { count: "exact", head: true }),
       supabase.from("attendance").select("id", { count: "exact", head: true }),
       supabase.from("finances").select("amount").eq("type", "income"),
