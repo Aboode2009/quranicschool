@@ -1,0 +1,1 @@
+ALTER TABLE public.people ADD COLUMN workshop_number text NULL;
