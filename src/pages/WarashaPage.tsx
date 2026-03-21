@@ -173,6 +173,7 @@ const WarashaPage = () => {
         editLesson={editingWorkshop}
         dialogTitle="تعديل الورشة"
         namePlaceholder="اسم الورشة"
+        showWorkshopNumber
       />
 
       <AlertDialog open={!!deletingWorkshop} onOpenChange={(open) => !open && setDeletingWorkshop(null)}>
