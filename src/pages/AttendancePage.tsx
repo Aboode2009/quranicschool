@@ -553,6 +553,7 @@ const AttendancePage = () => {
             <h2 className="text-xl font-bold text-foreground">{selectedPerson.name}</h2>
             <span className="text-sm text-muted-foreground mt-1">
               {selectedPerson.category === "muhadera" ? "محاضرة" : "ورشة"}
+              {selectedPerson.workshop_number && ` - ${selectedPerson.workshop_number}`}
             </span>
             {selectedPerson.phone && (
               <div className="flex items-center gap-1.5 mt-2 text-sm text-muted-foreground">
