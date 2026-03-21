@@ -168,6 +168,7 @@ const AttendancePage = () => {
       birth_date: editData.birth_date || null,
       join_date: editData.join_date || null,
       education_level: editData.education_level?.trim() || null,
+      workshop_number: editData.workshop_number || null,
     };
     const { error } = await supabase.from("people").update(updateData).eq("id", selectedPerson.id);
     if (error) {
