@@ -92,6 +92,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState<AppRole | null>(null);
+  const [supervisedWorkshop, setSupervisedWorkshop] = useState<string | null>(null);
 
   const checkRole = async (userId: string) => {
     try {
