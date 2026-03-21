@@ -231,7 +231,7 @@ const AttendancePage = () => {
 
     const { data, error } = await supabase
       .from("attendance")
-      .select("is_present, lesson_name, lesson_date, excuse")
+      .select("is_present, lesson_name, lesson_date, excuse, workshop_number")
       .eq("person_id", person.id);
 
     if (error) {
