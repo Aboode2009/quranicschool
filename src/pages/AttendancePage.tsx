@@ -27,6 +27,7 @@ interface AttendanceRecord {
   lesson_date: string;
   is_present: boolean;
   excuse: string | null;
+  workshop_number: string | null;
 }
 
 interface CategorizedRecords {
