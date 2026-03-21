@@ -16,7 +16,10 @@ interface Profile {
 interface UserRole {
   user_id: string;
   role: string;
+  supervised_workshop?: string | null;
 }
+
+const WORKSHOP_NUMBERS = ["ورشة أولى", "ورشة ثانية", "ورشة ثالثة", "ورشة رابعة", "ورشة خامسة"] as const;
 
 interface CustomQuestion {
   id: string;
