@@ -31,6 +31,7 @@ interface AddLessonDialogProps {
   addLabel?: string;
   editLesson?: Lesson | null;
   showCourseType?: boolean;
+  showWorkshopNumber?: boolean;
 }
 
 const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد", namePlaceholder = "اسم المحاضرة", addLabel = "إضافة", editLesson, showCourseType = false }: AddLessonDialogProps) => {
