@@ -20,6 +20,7 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   userRole: AppRole | null;
+  supervisedWorkshop: string | null;
   permissions: Permissions;
   signOut: () => Promise<void>;
 }
