@@ -46,6 +46,7 @@ const AttendancePage = () => {
   const [newBirthDate, setNewBirthDate] = useState("");
   const [newJoinDate, setNewJoinDate] = useState("");
   const [newEducation, setNewEducation] = useState("");
+  const [newWorkshopNumber, setNewWorkshopNumber] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
