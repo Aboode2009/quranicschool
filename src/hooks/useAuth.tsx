@@ -187,6 +187,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSession(null);
     setIsAdmin(false);
     setUserRole(null);
+    setSupervisedWorkshop(null);
   };
 
   const permissions = getPermissions(userRole);
