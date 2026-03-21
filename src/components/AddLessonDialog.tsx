@@ -72,6 +72,7 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
       status: editLesson?.status || "pending",
       date: editLesson?.date || dateStr,
       courseType: courseType,
+      workshopNumber: workshopNumber,
     } as any);
   };
 
