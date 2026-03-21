@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 interface Person {
   id: string;
   name: string;
+  workshop_number?: string | null;
 }
 
 type Status = "present" | "absent" | null;
@@ -50,7 +51,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
 
   const fetchData = async () => {
     const [peopleRes, questionsRes] = await Promise.all([
-      supabase.from("people").select("id, name").eq("category", "warasha").order("created_at", { ascending: true }),
+      supabase.from("people").select("id, name, workshop_number").eq("category", "warasha").order("created_at", { ascending: true }),
       supabase.from("workshop_questions").select("*").order("sort_order", { ascending: true }),
     ]);
 
@@ -159,6 +160,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
         listened_lecture: isPresent ? (detail?.listenedLecture || false) : false,
         extracted_verse: isPresent ? (detail?.extractedVerse || false) : false,
         excuse: detail?.status === "absent" ? (detail?.excuse || null) : null,
+        workshop_number: p.workshop_number || null,
       };
     });
 

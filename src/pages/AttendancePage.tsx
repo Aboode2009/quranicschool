@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Users, UserPlus, Trash2, BookOpen, GraduationCap, ChevronLeft, ChevronDown, Calendar, Download, Phone, MapPin, Plus, Pencil, X, Save } from "lucide-react";
+import { Users, UserPlus, Trash2, BookOpen, GraduationCap, ChevronLeft, ChevronDown, Calendar, Download, Phone, MapPin, Plus, Pencil, X, Save, ArrowRightLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -27,6 +27,7 @@ interface AttendanceRecord {
   lesson_date: string;
   is_present: boolean;
   excuse: string | null;
+  workshop_number: string | null;
 }
 
 interface CategorizedRecords {
@@ -56,6 +57,7 @@ const AttendancePage = () => {
   const [detailView, setDetailView] = useState<{ items: AttendanceRecord[]; type: "present" | "absent"; label: string } | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<Person>>({});
+  const [showTransfer, setShowTransfer] = useState(false);
 
   // Lookup maps for lesson/workshop names
   const [lessonMap, setLessonMap] = useState<Record<string, Lesson>>({});
@@ -230,7 +232,7 @@ const AttendancePage = () => {
 
     const { data, error } = await supabase
       .from("attendance")
-      .select("is_present, lesson_name, lesson_date, excuse")
+      .select("is_present, lesson_name, lesson_date, excuse, workshop_number")
       .eq("person_id", person.id);
 
     if (error) {
@@ -252,6 +254,7 @@ const AttendancePage = () => {
         lesson_date: row.lesson_date,
         is_present: row.is_present,
         excuse: row.excuse,
+        workshop_number: (row as any).workshop_number || null,
       };
       const isWorkshop = workshopIds.has(row.lesson_name);
       const isLecture = lessonIds.has(row.lesson_name);
@@ -292,6 +295,9 @@ const AttendancePage = () => {
           "اسم الدرس": getLessonDisplayName(r.lesson_name),
           "التاريخ": r.lesson_date,
         };
+        if (r.workshop_number) {
+          row["الورشة"] = r.workshop_number;
+        }
         if (includeExcuse) {
           row["العذر"] = r.excuse === "with_excuse" ? "بعذر" : r.excuse === "without_excuse" ? "بدون عذر" : "-";
         }
@@ -400,7 +406,14 @@ const AttendancePage = () => {
                     <p className="text-[15px] font-semibold text-foreground truncate">
                       {getLessonDisplayName(rec.lesson_name)}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{rec.lesson_date}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <p className="text-xs text-muted-foreground">{rec.lesson_date}</p>
+                      {rec.workshop_number && (
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">
+                          {rec.workshop_number}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   {detailView.type === "absent" && rec.excuse && (
                     <span className={`text-xs px-2.5 py-1 rounded-full shrink-0 font-medium ${
@@ -591,6 +604,46 @@ const AttendancePage = () => {
                 <GraduationCap className="w-3.5 h-3.5" />
                 <span>{selectedPerson.education_level}</span>
               </div>
+            )}
+            {selectedPerson.category === "warasha" && permissions.canEditData && (
+              <>
+                {!showTransfer ? (
+                  <button
+                    onClick={() => setShowTransfer(true)}
+                    className="mt-3 flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold transition-all active:scale-[0.97]"
+                  >
+                    <ArrowRightLeft className="w-4 h-4" />
+                    <span>نقل إلى ورشة أخرى</span>
+                  </button>
+                ) : (
+                  <div className="mt-3 flex flex-col items-center gap-2">
+                    <p className="text-sm font-medium text-foreground">اختر الورشة الجديدة:</p>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {WORKSHOP_NUMBERS.filter(ws => ws !== selectedPerson.workshop_number).map((ws) => (
+                        <button
+                          key={ws}
+                          onClick={async () => {
+                            const { error } = await supabase.from("people").update({ workshop_number: ws }).eq("id", selectedPerson.id);
+                            if (error) {
+                              toast.error("خطأ في نقل الشخص");
+                            } else {
+                              const updated = { ...selectedPerson, workshop_number: ws };
+                              setSelectedPerson(updated);
+                              setPeople((prev) => prev.map((p) => p.id === updated.id ? updated : p));
+                              toast.success(`تم نقل ${selectedPerson.name} إلى ${ws}`);
+                              setShowTransfer(false);
+                            }
+                          }}
+                          className="px-3 py-2 rounded-lg text-xs bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors"
+                        >
+                          {ws}
+                        </button>
+                      ))}
+                    </div>
+                    <button onClick={() => setShowTransfer(false)} className="text-xs text-muted-foreground mt-1">إلغاء</button>
+                  </div>
+                )}
+              </>
             )}
             {records && (
               <button

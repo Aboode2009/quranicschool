@@ -84,6 +84,7 @@ export type Database = {
           read_material_status: string | null
           timing: string | null
           updated_at: string
+          workshop_number: string | null
         }
         Insert: {
           activity?: string | null
@@ -100,6 +101,7 @@ export type Database = {
           read_material_status?: string | null
           timing?: string | null
           updated_at?: string
+          workshop_number?: string | null
         }
         Update: {
           activity?: string | null
@@ -116,6 +118,7 @@ export type Database = {
           read_material_status?: string | null
           timing?: string | null
           updated_at?: string
+          workshop_number?: string | null
         }
         Relationships: [
           {
