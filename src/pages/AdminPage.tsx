@@ -100,6 +100,11 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
     return null;
   };
 
+  const getUserWorkshop = (userId: string): string | null => {
+    const supervisorRole = roles.find((r) => r.user_id === userId && r.role === "supervisor");
+    return supervisorRole?.supervised_workshop || null;
+  };
+
   const getRoleLabel = (role: AppRole | null): string => {
     if (!role) return "مستخدم عادي";
     return ROLE_CONFIG.find((r) => r.role === role)?.label || "مستخدم";
