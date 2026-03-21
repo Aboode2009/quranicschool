@@ -48,11 +48,13 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
       setLessonName(editLesson.surahName);
       setNotes(editLesson.notes || "");
       setCourseType((editLesson as any).courseType || "");
+      setWorkshopNumber((editLesson as any).workshopNumber || "");
     } else if (!open) {
       setLessonName("");
       setNotes("");
       setSelectedDate(new Date());
       setCourseType("");
+      setWorkshopNumber("");
     }
   }, [editLesson, open]);
 
