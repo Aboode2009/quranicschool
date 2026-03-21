@@ -43,7 +43,8 @@ const WarashaPage = () => {
     const success = await updateWorkshop(editingWorkshop.id, {
       surahName: lesson.surahName,
       notes: lesson.notes,
-    });
+      courseType: (lesson as any).workshopNumber || (lesson as any).courseType,
+    } as any);
     if (success) setEditingWorkshop(null);
   };
 
