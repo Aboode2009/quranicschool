@@ -272,20 +272,48 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
                                 const Icon = r.icon;
                                 const isActive = currentRole === r.role;
                                 return (
-                                  <button
-                                    key={r.role}
-                                    onClick={() => setUserRole(profile.id, isActive ? null : r.role)}
-                                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-right transition-all ${
-                                      isActive ? r.color : "bg-secondary text-foreground"
-                                    }`}
-                                  >
-                                    <Icon className="w-4 h-4 shrink-0" />
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-xs font-semibold">{r.label}</p>
-                                      <p className="text-[10px] opacity-70">{r.desc}</p>
-                                    </div>
-                                    {isActive && <span className="text-xs">✓</span>}
-                                  </button>
+                                  <div key={r.role}>
+                                    <button
+                                      onClick={() => {
+                                        if (r.role === "supervisor" && !isActive) {
+                                          // Don't set role yet, show workshop picker
+                                          setUserRole(profile.id, "supervisor", null);
+                                        } else {
+                                          setUserRole(profile.id, isActive ? null : r.role);
+                                        }
+                                      }}
+                                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-right transition-all ${
+                                        isActive ? r.color : "bg-secondary text-foreground"
+                                      }`}
+                                    >
+                                      <Icon className="w-4 h-4 shrink-0" />
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-semibold">{r.label}</p>
+                                        <p className="text-[10px] opacity-70">{r.desc}</p>
+                                      </div>
+                                      {isActive && <span className="text-xs">✓</span>}
+                                    </button>
+                                    {r.role === "supervisor" && isActive && (
+                                      <div className="mt-2 mr-6">
+                                        <p className="text-[10px] font-medium text-muted-foreground mb-1.5">اختر الورشة المشرف عليها:</p>
+                                        <div className="flex flex-wrap gap-1.5">
+                                          {WORKSHOP_NUMBERS.map((ws) => (
+                                            <button
+                                              key={ws}
+                                              onClick={() => setUserRole(profile.id, "supervisor", ws)}
+                                              className={`px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
+                                                getUserWorkshop(profile.id) === ws
+                                                  ? "bg-primary text-primary-foreground"
+                                                  : "bg-secondary text-foreground"
+                                              }`}
+                                            >
+                                              {ws}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
                                 );
                               })}
                               <button
