@@ -253,6 +253,7 @@ const AttendancePage = () => {
         lesson_date: row.lesson_date,
         is_present: row.is_present,
         excuse: row.excuse,
+        workshop_number: (row as any).workshop_number || null,
       };
       const isWorkshop = workshopIds.has(row.lesson_name);
       const isLecture = lessonIds.has(row.lesson_name);
