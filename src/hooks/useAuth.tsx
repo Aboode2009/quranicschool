@@ -98,12 +98,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data, error } = await supabase
         .from("user_roles")
-        .select("role")
+        .select("role, supervised_workshop")
         .eq("user_id", userId);
 
       if (error || !data || data.length === 0) {
         setIsAdmin(false);
         setUserRole("user");
+        setSupervisedWorkshop(null);
         return;
       }
 
@@ -111,22 +112,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (roles.includes("admin")) {
         setIsAdmin(true);
         setUserRole("admin");
+        setSupervisedWorkshop(null);
       } else if (roles.includes("course_director")) {
         setIsAdmin(true);
         setUserRole("course_director");
+        setSupervisedWorkshop(null);
       } else if (roles.includes("supervisor")) {
         setIsAdmin(false);
         setUserRole("supervisor");
+        const supervisorRow = data.find((r) => r.role === "supervisor");
+        setSupervisedWorkshop((supervisorRow as any)?.supervised_workshop || null);
       } else if (roles.includes("province_manager")) {
         setIsAdmin(false);
         setUserRole("province_manager");
+        setSupervisedWorkshop(null);
       } else {
         setIsAdmin(false);
         setUserRole("user");
+        setSupervisedWorkshop(null);
       }
     } catch {
       setIsAdmin(false);
       setUserRole("user");
+      setSupervisedWorkshop(null);
     }
   };
 
