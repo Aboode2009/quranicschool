@@ -84,7 +84,7 @@ export function useLessons(category: "muhadera" | "warasha") {
       status: lesson.status,
       lesson_date: lesson.date || new Date().toISOString().split("T")[0],
       category,
-      course_type: (lesson as any).courseType || "",
+      course_type: (lesson as any).workshopNumber || (lesson as any).courseType || "",
     });
 
     if (error) {
@@ -94,7 +94,7 @@ export function useLessons(category: "muhadera" | "warasha") {
     return true;
   };
 
-  const updateLesson = async (id: string, updates: Partial<Pick<Lesson, "surahName" | "notes" | "status">>): Promise<boolean> => {
+  const updateLesson = async (id: string, updates: Partial<Pick<Lesson, "surahName" | "notes" | "status"> & { courseType?: string }>): Promise<boolean> => {
     const dbUpdates: Record<string, unknown> = {};
     if (updates.surahName !== undefined) {
       dbUpdates.surah_name = updates.surahName;
@@ -102,6 +102,7 @@ export function useLessons(category: "muhadera" | "warasha") {
     }
     if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
     if (updates.status !== undefined) dbUpdates.status = updates.status;
+    if ((updates as any).courseType !== undefined) dbUpdates.course_type = (updates as any).courseType;
 
     const { error } = await supabase.from("lessons").update(dbUpdates).eq("id", id);
     if (error) {

@@ -14,6 +14,14 @@ const COURSE_TYPES = [
   "دورة التربية الفكرية",
 ] as const;
 
+const WORKSHOP_NUMBERS = [
+  "ورشة أولى",
+  "ورشة ثانية",
+  "ورشة ثالثة",
+  "ورشة رابعة",
+  "ورشة خامسة",
+] as const;
+
 interface AddLessonDialogProps {
   open: boolean;
   onClose: () => void;
@@ -23,13 +31,15 @@ interface AddLessonDialogProps {
   addLabel?: string;
   editLesson?: Lesson | null;
   showCourseType?: boolean;
+  showWorkshopNumber?: boolean;
 }
 
-const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد", namePlaceholder = "اسم المحاضرة", addLabel = "إضافة", editLesson, showCourseType = false }: AddLessonDialogProps) => {
+const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد", namePlaceholder = "اسم المحاضرة", addLabel = "إضافة", editLesson, showCourseType = false, showWorkshopNumber = false }: AddLessonDialogProps) => {
   const [lessonName, setLessonName] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [notes, setNotes] = useState("");
   const [courseType, setCourseType] = useState("");
+  const [workshopNumber, setWorkshopNumber] = useState("");
 
   const isEdit = !!editLesson;
 
@@ -38,11 +48,13 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
       setLessonName(editLesson.surahName);
       setNotes(editLesson.notes || "");
       setCourseType((editLesson as any).courseType || "");
+      setWorkshopNumber((editLesson as any).workshopNumber || "");
     } else if (!open) {
       setLessonName("");
       setNotes("");
       setSelectedDate(new Date());
       setCourseType("");
+      setWorkshopNumber("");
     }
   }, [editLesson, open]);
 
@@ -60,6 +72,7 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
       status: editLesson?.status || "pending",
       date: editLesson?.date || dateStr,
       courseType: courseType,
+      workshopNumber: workshopNumber,
     } as any);
   };
 
@@ -146,6 +159,27 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
                             }`}
                           >
                             {type}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {showWorkshopNumber && (
+                    <div className="px-4 py-3">
+                      <label className="text-sm text-foreground font-medium mb-2 block">رقم الورشة</label>
+                      <div className="flex flex-col gap-2">
+                        {WORKSHOP_NUMBERS.map((ws) => (
+                          <button
+                            key={ws}
+                            type="button"
+                            onClick={() => setWorkshopNumber(ws)}
+                            className={`w-full text-right px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                              workshopNumber === ws
+                                ? "bg-primary text-primary-foreground font-medium"
+                                : "bg-muted/50 text-foreground hover:bg-muted"
+                            }`}
+                          >
+                            {ws}
                           </button>
                         ))}
                       </div>

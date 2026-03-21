@@ -43,7 +43,8 @@ const WarashaPage = () => {
     const success = await updateWorkshop(editingWorkshop.id, {
       surahName: lesson.surahName,
       notes: lesson.notes,
-    });
+      courseType: (lesson as any).workshopNumber || (lesson as any).courseType,
+    } as any);
     if (success) setEditingWorkshop(null);
   };
 
@@ -96,6 +97,7 @@ const WarashaPage = () => {
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {formatSyriacDateString(ws.date)}
+                      {ws.courseType && ` • ${ws.courseType}`}
                     </p>
                     {ws.notes && (
                       <p className="text-xs text-muted-foreground/70 mt-1 truncate">{ws.notes}</p>
@@ -164,6 +166,7 @@ const WarashaPage = () => {
         dialogTitle="ورشة جديدة"
         namePlaceholder="اسم الورشة"
         addLabel="إضافة"
+        showWorkshopNumber
       />
       <AddLessonDialog
         open={!!editingWorkshop}
@@ -172,6 +175,7 @@ const WarashaPage = () => {
         editLesson={editingWorkshop}
         dialogTitle="تعديل الورشة"
         namePlaceholder="اسم الورشة"
+        showWorkshopNumber
       />
 
       <AlertDialog open={!!deletingWorkshop} onOpenChange={(open) => !open && setDeletingWorkshop(null)}>
