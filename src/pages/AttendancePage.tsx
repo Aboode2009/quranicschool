@@ -37,7 +37,7 @@ interface CategorizedRecords {
 }
 
 const AttendancePage = () => {
-  const { permissions } = useAuth();
+  const { permissions, userRole, supervisedWorkshop } = useAuth();
   const [activeCategory, setActiveCategory] = useState<"muhadera" | "warasha">("muhadera");
   const [people, setPeople] = useState<Person[]>([]);
   const [newName, setNewName] = useState("");
@@ -63,7 +63,7 @@ const AttendancePage = () => {
 
   useEffect(() => {
     fetchPeople();
-  }, [activeCategory]);
+  }, [activeCategory, userRole, supervisedWorkshop]);
 
   useEffect(() => {
     const fetchLessonMaps = async () => {
@@ -87,11 +87,18 @@ const AttendancePage = () => {
 
   const fetchPeople = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    let query = supabase
       .from("people")
-      .select("id, name, category, phone, address, birth_date, join_date, education_level")
+      .select("id, name, category, phone, address, birth_date, join_date, education_level, workshop_number")
       .eq("category", activeCategory)
       .order("created_at", { ascending: true });
+
+    // If supervisor, filter by their assigned workshop
+    if (userRole === "supervisor" && supervisedWorkshop && activeCategory === "warasha") {
+      query = query.eq("workshop_number", supervisedWorkshop);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       toast.error("خطأ في تحميل الأسماء");

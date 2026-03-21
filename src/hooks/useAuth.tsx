@@ -20,6 +20,7 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   userRole: AppRole | null;
+  supervisedWorkshop: string | null;
   permissions: Permissions;
   signOut: () => Promise<void>;
 }
@@ -78,6 +79,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   isAdmin: false,
   userRole: null,
+  supervisedWorkshop: null,
   permissions: defaultPermissions,
   signOut: async () => {},
 });
@@ -90,17 +92,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState<AppRole | null>(null);
+  const [supervisedWorkshop, setSupervisedWorkshop] = useState<string | null>(null);
 
   const checkRole = async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from("user_roles")
-        .select("role")
+        .select("role, supervised_workshop")
         .eq("user_id", userId);
 
       if (error || !data || data.length === 0) {
         setIsAdmin(false);
         setUserRole("user");
+        setSupervisedWorkshop(null);
         return;
       }
 
@@ -108,22 +112,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (roles.includes("admin")) {
         setIsAdmin(true);
         setUserRole("admin");
+        setSupervisedWorkshop(null);
       } else if (roles.includes("course_director")) {
         setIsAdmin(true);
         setUserRole("course_director");
+        setSupervisedWorkshop(null);
       } else if (roles.includes("supervisor")) {
         setIsAdmin(false);
         setUserRole("supervisor");
+        const supervisorRow = data.find((r) => r.role === "supervisor");
+        setSupervisedWorkshop((supervisorRow as any)?.supervised_workshop || null);
       } else if (roles.includes("province_manager")) {
         setIsAdmin(false);
         setUserRole("province_manager");
+        setSupervisedWorkshop(null);
       } else {
         setIsAdmin(false);
         setUserRole("user");
+        setSupervisedWorkshop(null);
       }
     } catch {
       setIsAdmin(false);
       setUserRole("user");
+      setSupervisedWorkshop(null);
     }
   };
 
@@ -141,6 +152,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } else {
         setIsAdmin(false);
         setUserRole(null);
+        setSupervisedWorkshop(null);
       }
 
       setLoading(false);
@@ -175,12 +187,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSession(null);
     setIsAdmin(false);
     setUserRole(null);
+    setSupervisedWorkshop(null);
   };
 
   const permissions = getPermissions(userRole);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, userRole, permissions, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, userRole, supervisedWorkshop, permissions, signOut }}>
       {children}
     </AuthContext.Provider>
   );

@@ -16,7 +16,10 @@ interface Profile {
 interface UserRole {
   user_id: string;
   role: string;
+  supervised_workshop?: string | null;
 }
+
+const WORKSHOP_NUMBERS = ["ورشة أولى", "ورشة ثانية", "ورشة ثالثة", "ورشة رابعة", "ورشة خامسة"] as const;
 
 interface CustomQuestion {
   id: string;
@@ -64,7 +67,7 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
     
     const [profilesRes, rolesRes, peopleRes, attendanceRes, incomeRes, expenseRes, sessionsRes, questionsRes] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
-      supabase.from("user_roles").select("*"),
+      supabase.from("user_roles").select("user_id, role, supervised_workshop"),
       supabase.from("people").select("id", { count: "exact", head: true }),
       supabase.from("attendance").select("id", { count: "exact", head: true }),
       supabase.from("finances").select("amount").eq("type", "income"),
@@ -97,6 +100,11 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
     return null;
   };
 
+  const getUserWorkshop = (userId: string): string | null => {
+    const supervisorRole = roles.find((r) => r.user_id === userId && r.role === "supervisor");
+    return supervisorRole?.supervised_workshop || null;
+  };
+
   const getRoleLabel = (role: AppRole | null): string => {
     if (!role) return "مستخدم عادي";
     return ROLE_CONFIG.find((r) => r.role === role)?.label || "مستخدم";
@@ -107,7 +115,7 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
     return ROLE_CONFIG.find((r) => r.role === role)?.color || "bg-muted text-muted-foreground";
   };
 
-  const setUserRole = async (userId: string, newRole: AppRole | null) => {
+  const setUserRole = async (userId: string, newRole: AppRole | null, workshopNum?: string | null) => {
     if (userId === user?.id) {
       toast.error("لا يمكنك تغيير صلاحياتك الخاصة");
       return;
@@ -121,10 +129,14 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
     }
 
     if (newRole && newRole !== "user") {
-      const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: newRole });
+      const insertData: any = { user_id: userId, role: newRole };
+      if (newRole === "supervisor" && workshopNum) {
+        insertData.supervised_workshop = workshopNum;
+      }
+      const { error } = await supabase.from("user_roles").insert(insertData);
       if (error) { toast.error("خطأ في إضافة الصلاحية"); return; }
-      setRoles((prev) => [...prev.filter((r) => r.user_id !== userId), { user_id: userId, role: newRole }]);
-      toast.success(`تم تعيين الدور: ${getRoleLabel(newRole)}`);
+      setRoles((prev) => [...prev.filter((r) => r.user_id !== userId), { user_id: userId, role: newRole, supervised_workshop: workshopNum || null }]);
+      toast.success(`تم تعيين الدور: ${getRoleLabel(newRole)}${workshopNum ? ` - ${workshopNum}` : ""}`);
     } else {
       setRoles((prev) => prev.filter((r) => r.user_id !== userId));
       toast.success("تم إزالة جميع الصلاحيات");
@@ -238,6 +250,9 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
                       </div>
                       <span className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold ${getRoleColor(currentRole)}`}>
                         {getRoleLabel(currentRole)}
+                        {currentRole === "supervisor" && getUserWorkshop(profile.id) && (
+                          <span className="mr-1">({getUserWorkshop(profile.id)})</span>
+                        )}
                       </span>
                     </div>
 
@@ -257,20 +272,48 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
                                 const Icon = r.icon;
                                 const isActive = currentRole === r.role;
                                 return (
-                                  <button
-                                    key={r.role}
-                                    onClick={() => setUserRole(profile.id, isActive ? null : r.role)}
-                                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-right transition-all ${
-                                      isActive ? r.color : "bg-secondary text-foreground"
-                                    }`}
-                                  >
-                                    <Icon className="w-4 h-4 shrink-0" />
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-xs font-semibold">{r.label}</p>
-                                      <p className="text-[10px] opacity-70">{r.desc}</p>
-                                    </div>
-                                    {isActive && <span className="text-xs">✓</span>}
-                                  </button>
+                                  <div key={r.role}>
+                                    <button
+                                      onClick={() => {
+                                        if (r.role === "supervisor" && !isActive) {
+                                          // Don't set role yet, show workshop picker
+                                          setUserRole(profile.id, "supervisor", null);
+                                        } else {
+                                          setUserRole(profile.id, isActive ? null : r.role);
+                                        }
+                                      }}
+                                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-right transition-all ${
+                                        isActive ? r.color : "bg-secondary text-foreground"
+                                      }`}
+                                    >
+                                      <Icon className="w-4 h-4 shrink-0" />
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-semibold">{r.label}</p>
+                                        <p className="text-[10px] opacity-70">{r.desc}</p>
+                                      </div>
+                                      {isActive && <span className="text-xs">✓</span>}
+                                    </button>
+                                    {r.role === "supervisor" && isActive && (
+                                      <div className="mt-2 mr-6">
+                                        <p className="text-[10px] font-medium text-muted-foreground mb-1.5">اختر الورشة المشرف عليها:</p>
+                                        <div className="flex flex-wrap gap-1.5">
+                                          {WORKSHOP_NUMBERS.map((ws) => (
+                                            <button
+                                              key={ws}
+                                              onClick={() => setUserRole(profile.id, "supervisor", ws)}
+                                              className={`px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
+                                                getUserWorkshop(profile.id) === ws
+                                                  ? "bg-primary text-primary-foreground"
+                                                  : "bg-secondary text-foreground"
+                                              }`}
+                                            >
+                                              {ws}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
                                 );
                               })}
                               <button
