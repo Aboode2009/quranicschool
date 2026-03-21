@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 interface Person {
   id: string;
   name: string;
+  workshop_number?: string | null;
 }
 
 type Status = "present" | "absent" | null;
