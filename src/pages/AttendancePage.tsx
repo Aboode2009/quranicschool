@@ -129,6 +129,7 @@ const AttendancePage = () => {
       setNewBirthDate("");
       setNewJoinDate("");
       setNewEducation("");
+      setNewWorkshopNumber("");
       setShowAddForm(false);
       toast.success(`تمت إضافة ${trimmed}`);
     }
