@@ -79,6 +79,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   isAdmin: false,
   userRole: null,
+  supervisedWorkshop: null,
   permissions: defaultPermissions,
   signOut: async () => {},
 });
