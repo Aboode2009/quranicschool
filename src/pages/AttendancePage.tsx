@@ -602,6 +602,46 @@ const AttendancePage = () => {
                 <span>{selectedPerson.education_level}</span>
               </div>
             )}
+            {selectedPerson.category === "warasha" && permissions.canEditData && (
+              <>
+                {!showTransfer ? (
+                  <button
+                    onClick={() => setShowTransfer(true)}
+                    className="mt-3 flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold transition-all active:scale-[0.97]"
+                  >
+                    <ArrowRightLeft className="w-4 h-4" />
+                    <span>نقل إلى ورشة أخرى</span>
+                  </button>
+                ) : (
+                  <div className="mt-3 flex flex-col items-center gap-2">
+                    <p className="text-sm font-medium text-foreground">اختر الورشة الجديدة:</p>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {WORKSHOP_NUMBERS.filter(ws => ws !== selectedPerson.workshop_number).map((ws) => (
+                        <button
+                          key={ws}
+                          onClick={async () => {
+                            const { error } = await supabase.from("people").update({ workshop_number: ws }).eq("id", selectedPerson.id);
+                            if (error) {
+                              toast.error("خطأ في نقل الشخص");
+                            } else {
+                              const updated = { ...selectedPerson, workshop_number: ws };
+                              setSelectedPerson(updated);
+                              setPeople((prev) => prev.map((p) => p.id === updated.id ? updated : p));
+                              toast.success(`تم نقل ${selectedPerson.name} إلى ${ws}`);
+                              setShowTransfer(false);
+                            }
+                          }}
+                          className="px-3 py-2 rounded-lg text-xs bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors"
+                        >
+                          {ws}
+                        </button>
+                      ))}
+                    </div>
+                    <button onClick={() => setShowTransfer(false)} className="text-xs text-muted-foreground mt-1">إلغاء</button>
+                  </div>
+                )}
+              </>
+            )}
             {records && (
               <button
                 onClick={() => exportToExcel(selectedPerson, records)}
