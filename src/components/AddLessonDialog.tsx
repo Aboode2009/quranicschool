@@ -14,6 +14,14 @@ const COURSE_TYPES = [
   "دورة التربية الفكرية",
 ] as const;
 
+const WORKSHOP_NUMBERS = [
+  "ورشة أولى",
+  "ورشة ثانية",
+  "ورشة ثالثة",
+  "ورشة رابعة",
+  "ورشة خامسة",
+] as const;
+
 interface AddLessonDialogProps {
   open: boolean;
   onClose: () => void;
