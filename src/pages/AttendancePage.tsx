@@ -37,7 +37,7 @@ interface CategorizedRecords {
 }
 
 const AttendancePage = () => {
-  const { permissions } = useAuth();
+  const { permissions, userRole, supervisedWorkshop } = useAuth();
   const [activeCategory, setActiveCategory] = useState<"muhadera" | "warasha">("muhadera");
   const [people, setPeople] = useState<Person[]>([]);
   const [newName, setNewName] = useState("");
