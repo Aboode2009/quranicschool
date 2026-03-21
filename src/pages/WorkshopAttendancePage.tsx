@@ -160,6 +160,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
         listened_lecture: isPresent ? (detail?.listenedLecture || false) : false,
         extracted_verse: isPresent ? (detail?.extractedVerse || false) : false,
         excuse: detail?.status === "absent" ? (detail?.excuse || null) : null,
+        workshop_number: p.workshop_number || null,
       };
     });
 

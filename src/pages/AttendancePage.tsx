@@ -402,7 +402,14 @@ const AttendancePage = () => {
                     <p className="text-[15px] font-semibold text-foreground truncate">
                       {getLessonDisplayName(rec.lesson_name)}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{rec.lesson_date}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <p className="text-xs text-muted-foreground">{rec.lesson_date}</p>
+                      {rec.workshop_number && (
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">
+                          {rec.workshop_number}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   {detailView.type === "absent" && rec.excuse && (
                     <span className={`text-xs px-2.5 py-1 rounded-full shrink-0 font-medium ${
