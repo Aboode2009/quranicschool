@@ -594,11 +594,16 @@ const AttendancePage = () => {
             </motion.div>
           ) : (
           <>
-          <AvatarUpload person={selectedPerson} onUpdate={(url) => {
-            const updated = { ...selectedPerson, avatar_url: url };
-            setSelectedPerson(updated);
-            setPeople(prev => prev.map(p => p.id === updated.id ? updated : p));
-          }} />
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center pt-4 pb-6"
+          >
+            <AvatarUpload person={selectedPerson} onUpdate={(url) => {
+              const updated = { ...selectedPerson, avatar_url: url };
+              setSelectedPerson(updated);
+              setPeople(prev => prev.map(p => p.id === updated.id ? updated : p));
+            }} />
             <h2 className="text-xl font-bold text-foreground">{selectedPerson.name}</h2>
             <span className="text-sm text-muted-foreground mt-1">
               {selectedPerson.category === "muhadera" ? "محاضرة" : "ورشة"}
