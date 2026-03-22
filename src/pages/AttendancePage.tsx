@@ -21,6 +21,7 @@ interface Person {
   education_level?: string | null;
   workshop_number?: string | null;
   notes?: string | null;
+  avatar_url?: string | null;
 }
 
 interface AttendanceRecord {
