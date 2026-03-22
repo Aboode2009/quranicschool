@@ -201,6 +201,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
     if (!detail?.status) return "لم يُحدد";
     if (detail.status === "present") {
       const parts: string[] = ["حاضر"];
+      if (detail.timing === "late") parts.push("متأخر");
       if (detail.readMaterial === "yes") parts.push("قرأ المادة");
       else if (detail.readMaterial === "incomplete") parts.push("لم يكمل المادة");
       
