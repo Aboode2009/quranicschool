@@ -73,7 +73,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
 
     const [attRes, answersRes] = await Promise.all([
       supabase.from("attendance")
-        .select("person_id, is_present, read_material, read_material_status, listened_lecture, extracted_verse, excuse")
+        .select("person_id, is_present, read_material, read_material_status, listened_lecture, extracted_verse, excuse, timing")
         .eq("lesson_name", lesson.id),
       supabase.from("workshop_answers")
         .select("person_id, question_id, answer")
