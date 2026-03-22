@@ -961,9 +961,8 @@ const AttendancePage = () => {
                   className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
                </div>
-              {activeCategory === "warasha" && (
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm text-muted-foreground">رقم الورشة (اختياري)</label>
+              <div className="flex flex-col gap-1.5">
+                  <label className="text-sm text-muted-foreground">رقم الورشة *</label>
                   <div className="flex flex-wrap gap-2">
                     {WORKSHOP_NUMBERS.map((ws) => (
                       <button
@@ -981,7 +980,16 @@ const AttendancePage = () => {
                     ))}
                   </div>
                 </div>
-              )}
+              <div className="relative">
+                <FileText className="absolute right-3 top-3 w-4 h-4 text-muted-foreground" />
+                <textarea
+                  placeholder="ملاحظات (اختياري)"
+                  value={newNotes}
+                  onChange={(e) => setNewNotes(e.target.value)}
+                  rows={3}
+                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                />
+              </div>
               <div className="flex gap-2">
                 <button
                   onClick={addPerson}
