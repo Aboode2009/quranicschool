@@ -97,6 +97,7 @@ const AvatarUpload = ({ person, onUpdate }: { person: Person; onUpdate: (url: st
   );
 };
 
+const AttendancePage = () => {
 
   const { permissions, userRole, supervisedWorkshop } = useAuth();
   const [activeCategory, setActiveCategory] = useState<"muhadera" | "warasha">("muhadera");
