@@ -324,12 +324,21 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
                             {/* Present details */}
                             {detail.status === "present" && (
                               <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+                                {/* Timing */}
+                                <div>
+                                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">التوقيت</p>
+                                  <div className="flex gap-2">
+                                    <Chip label="على الوقت" active={detail.timing === "on_time"} activeClass="bg-green-500 text-white" onClick={() => setField(person.id, "timing", "on_time")} />
+                                    <Chip label="متأخر" active={detail.timing === "late"} activeClass="bg-orange-500 text-white" onClick={() => setField(person.id, "timing", "late")} />
+                                  </div>
+                                </div>
+
                                 {/* Read material - 3 options */}
                                 <div>
                                   <p className="text-[11px] font-medium text-muted-foreground mb-1.5">هل قرأ المادة؟</p>
                                   <div className="flex gap-2 flex-wrap">
-                                    <Chip label="نعم" active={detail.readMaterial === "yes"} activeClass="bg-primary text-primary-foreground" onClick={() => setField(person.id, "readMaterial", "yes")} />
-                                    <Chip label="لم يكمل" active={detail.readMaterial === "incomplete"} activeClass="bg-accent text-accent-foreground" onClick={() => setField(person.id, "readMaterial", "incomplete")} />
+                                    <Chip label="نعم" active={detail.readMaterial === "yes"} activeClass="bg-green-500 text-white" onClick={() => setField(person.id, "readMaterial", "yes")} />
+                                    <Chip label="لم يكمل" active={detail.readMaterial === "incomplete"} activeClass="bg-orange-500 text-white" onClick={() => setField(person.id, "readMaterial", "incomplete")} />
                                     <Chip label="لا" active={detail.readMaterial === "no"} activeClass="bg-destructive text-destructive-foreground" onClick={() => setField(person.id, "readMaterial", "no")} />
                                   </div>
                                 </div>
