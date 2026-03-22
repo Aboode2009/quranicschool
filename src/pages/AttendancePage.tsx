@@ -181,6 +181,7 @@ const AttendancePage = () => {
       join_date: person.join_date || "",
       education_level: person.education_level || "",
       workshop_number: person.workshop_number || "",
+      notes: person.notes || "",
     });
     setIsEditing(true);
   };
