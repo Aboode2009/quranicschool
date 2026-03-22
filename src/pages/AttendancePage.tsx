@@ -126,7 +126,7 @@ const AttendancePage = () => {
       name: trimmed,
       phone: newPhone.trim(),
       address: newAddress.trim(),
-      birth_date: newBirthDate,
+      birth_date: newBirthDate ? `${newBirthDate}-01-01` : null,
       join_date: newJoinDate,
       education_level: newEducation.trim(),
       notes: newNotes.trim() || null,
@@ -177,7 +177,7 @@ const AttendancePage = () => {
       name: person.name,
       phone: person.phone || "",
       address: person.address || "",
-      birth_date: person.birth_date || "",
+      birth_date: person.birth_date?.substring(0, 4) || "",
       join_date: person.join_date || "",
       education_level: person.education_level || "",
       workshop_number: person.workshop_number || "",
@@ -192,7 +192,7 @@ const AttendancePage = () => {
       name: editData.name!.trim(),
       phone: editData.phone?.trim() || null,
       address: editData.address?.trim() || null,
-      birth_date: editData.birth_date || null,
+      birth_date: editData.birth_date ? `${editData.birth_date}-01-01` : null,
       join_date: editData.join_date || null,
       education_level: editData.education_level?.trim() || null,
       workshop_number: editData.workshop_number || null,
@@ -515,12 +515,14 @@ const AttendancePage = () => {
               <div className="relative">
                 <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
-                  type="date"
+                  type="number"
+                  min="1950"
+                  max="2025"
+                  placeholder="سنة المواليد (مثال: 2009)"
                   value={editData.birth_date || ""}
                   onChange={(e) => setEditData({ ...editData, birth_date: e.target.value })}
                   className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
-                {!editData.birth_date && <span className="absolute right-10 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">المواليد *</span>}
               </div>
               <div className="relative">
                 <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -619,7 +621,7 @@ const AttendancePage = () => {
             {selectedPerson.birth_date && (
               <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
                 <Calendar className="w-3.5 h-3.5" />
-                <span>المواليد: {selectedPerson.birth_date}</span>
+                <span>المواليد: {selectedPerson.birth_date?.substring(0, 4)}</span>
               </div>
             )}
             {selectedPerson.join_date && (
@@ -932,13 +934,14 @@ const AttendancePage = () => {
               <div className="relative">
                 <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
-                  type="date"
-                  placeholder="المواليد (اختياري)"
+                  type="number"
+                  min="1950"
+                  max="2025"
+                  placeholder="سنة المواليد (مثال: 2009)"
                   value={newBirthDate}
                   onChange={(e) => setNewBirthDate(e.target.value)}
                   className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
-                {!newBirthDate && <span className="absolute right-10 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">المواليد *</span>}
               </div>
               <div className="relative">
                 <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
