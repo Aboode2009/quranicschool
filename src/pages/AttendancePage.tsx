@@ -999,7 +999,7 @@ const AttendancePage = () => {
                   <span>إضافة</span>
                 </button>
                 <button
-                  onClick={() => { setShowAddForm(false); setNewName(""); setNewPhone(""); setNewAddress(""); setNewBirthDate(""); setNewJoinDate(""); setNewEducation(""); setNewWorkshopNumber(""); }}
+                  onClick={() => { setShowAddForm(false); setNewName(""); setNewPhone(""); setNewAddress(""); setNewBirthDate(""); setNewJoinDate(""); setNewEducation(""); setNewWorkshopNumber(""); setNewNotes(""); }}
                   className="px-4 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold"
                 >
                   إلغاء
