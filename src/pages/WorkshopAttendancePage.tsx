@@ -28,6 +28,7 @@ interface WorkshopDetail {
   listenedLecture: boolean;
   extractedVerse: boolean;
   excuse?: "with_excuse" | "without_excuse";
+  timing?: "on_time" | "late";
   customAnswers: Record<string, string>; // question_id -> answer
 }
 
