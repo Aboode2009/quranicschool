@@ -634,6 +634,12 @@ const AttendancePage = () => {
                 <span>{selectedPerson.education_level}</span>
               </div>
             )}
+            {selectedPerson.notes && (
+              <div className="flex items-start gap-1.5 mt-1 text-sm text-muted-foreground">
+                <FileText className="w-3.5 h-3.5 mt-0.5" />
+                <span>{selectedPerson.notes}</span>
+              </div>
+            )}
             {selectedPerson.category === "warasha" && permissions.canEditData && (
               <>
                 {!showTransfer ? (
