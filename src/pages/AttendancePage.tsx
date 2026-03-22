@@ -938,7 +938,7 @@ const AttendancePage = () => {
                   onChange={(e) => setNewBirthDate(e.target.value)}
                   className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
-                {!newBirthDate && <span className="absolute right-10 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">المواليد (اختياري)</span>}
+                {!newBirthDate && <span className="absolute right-10 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">المواليد *</span>}
               </div>
               <div className="relative">
                 <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
