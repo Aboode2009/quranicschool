@@ -39,7 +39,65 @@ interface CategorizedRecords {
   workshopAbsent: AttendanceRecord[];
 }
 
-const AttendancePage = () => {
+const AvatarUpload = ({ person, onUpdate }: { person: Person; onUpdate: (url: string) => void }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const initials = person.name.split(" ").map(w => w[0]).join("").substring(0, 2);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const ext = file.name.split(".").pop();
+    const filePath = `${person.id}.${ext}`;
+
+    // Remove old file if exists
+    await supabase.storage.from("avatars").remove([filePath]);
+
+    const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true });
+    if (uploadError) {
+      toast.error("خطأ في رفع الصورة");
+      setUploading(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
+    const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+    const { error: updateError } = await supabase.from("people").update({ avatar_url: publicUrl }).eq("id", person.id);
+    if (updateError) {
+      toast.error("خطأ في حفظ الصورة");
+    } else {
+      onUpdate(publicUrl);
+      toast.success("تم تحديث الصورة");
+    }
+    setUploading(false);
+  };
+
+  return (
+    <div className="relative mb-3 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+      {person.avatar_url ? (
+        <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-primary/20">
+          <img src={person.avatar_url} alt={person.name} className="w-full h-full object-cover" />
+        </div>
+      ) : (
+        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+          <span className="text-3xl font-bold text-primary">{initials}</span>
+        </div>
+      )}
+      <div className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md">
+        {uploading ? (
+          <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+        ) : (
+          <Camera className="w-3.5 h-3.5 text-primary-foreground" />
+        )}
+      </div>
+    </div>
+  );
+};
+
+
   const { permissions, userRole, supervisedWorkshop } = useAuth();
   const [activeCategory, setActiveCategory] = useState<"muhadera" | "warasha">("muhadera");
   const [people, setPeople] = useState<Person[]>([]);
