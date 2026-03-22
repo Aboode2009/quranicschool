@@ -506,7 +506,7 @@ const AttendancePage = () => {
                 <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="العنوان (اختياري)"
+                  placeholder="العنوان *"
                   value={editData.address || ""}
                   onChange={(e) => setEditData({ ...editData, address: e.target.value })}
                   className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
