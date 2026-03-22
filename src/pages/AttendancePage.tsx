@@ -495,7 +495,7 @@ const AttendancePage = () => {
                 <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="tel"
-                  placeholder="رقم الهاتف (اختياري)"
+                  placeholder="رقم الهاتف *"
                   value={editData.phone || ""}
                   onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
                   dir="ltr"
