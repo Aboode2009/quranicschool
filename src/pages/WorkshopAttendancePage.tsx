@@ -98,6 +98,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
         listenedLecture: r.listened_lecture || false,
         extractedVerse: r.extracted_verse || false,
         excuse: r.excuse || undefined,
+        timing: r.timing || undefined,
         customAnswers: answersMap[r.person_id] || {},
       };
     });
