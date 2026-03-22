@@ -126,7 +126,7 @@ const AttendancePage = () => {
       name: trimmed,
       phone: newPhone.trim(),
       address: newAddress.trim(),
-      birth_date: newBirthDate,
+      birth_date: newBirthDate ? `${newBirthDate}-01-01` : null,
       join_date: newJoinDate,
       education_level: newEducation.trim(),
       notes: newNotes.trim() || null,
