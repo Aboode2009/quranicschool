@@ -192,7 +192,7 @@ const AttendancePage = () => {
       name: editData.name!.trim(),
       phone: editData.phone?.trim() || null,
       address: editData.address?.trim() || null,
-      birth_date: editData.birth_date || null,
+      birth_date: editData.birth_date ? `${editData.birth_date}-01-01` : null,
       join_date: editData.join_date || null,
       education_level: editData.education_level?.trim() || null,
       workshop_number: editData.workshop_number || null,
