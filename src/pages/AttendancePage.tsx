@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Users, UserPlus, Trash2, BookOpen, GraduationCap, ChevronLeft, ChevronDown, Calendar, Download, Phone, MapPin, Plus, Pencil, X, Save, ArrowRightLeft } from "lucide-react";
+import { Users, UserPlus, Trash2, BookOpen, GraduationCap, ChevronLeft, ChevronDown, Calendar, Download, Phone, MapPin, Plus, Pencil, X, Save, ArrowRightLeft, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -20,6 +20,7 @@ interface Person {
   join_date?: string | null;
   education_level?: string | null;
   workshop_number?: string | null;
+  notes?: string | null;
 }
 
 interface AttendanceRecord {
@@ -48,6 +49,7 @@ const AttendancePage = () => {
   const [newJoinDate, setNewJoinDate] = useState("");
   const [newEducation, setNewEducation] = useState("");
   const [newWorkshopNumber, setNewWorkshopNumber] = useState("");
+  const [newNotes, setNewNotes] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
@@ -91,7 +93,7 @@ const AttendancePage = () => {
     setLoading(true);
     let query = supabase
       .from("people")
-      .select("id, name, category, phone, address, birth_date, join_date, education_level, workshop_number")
+      .select("id, name, category, phone, address, birth_date, join_date, education_level, workshop_number, notes")
       .eq("category", activeCategory)
       .order("created_at", { ascending: true });
 
@@ -112,26 +114,40 @@ const AttendancePage = () => {
 
   const addPerson = async () => {
     const trimmed = newName.trim();
-    if (!trimmed) return;
+    if (!trimmed) { toast.error("يرجى إدخال الاسم"); return; }
+    if (!newPhone.trim()) { toast.error("يرجى إدخال رقم الهاتف"); return; }
+    if (!newAddress.trim()) { toast.error("يرجى إدخال العنوان"); return; }
+    if (!newBirthDate) { toast.error("يرجى إدخال المواليد"); return; }
+    if (!newJoinDate) { toast.error("يرجى إدخال تاريخ الانضمام"); return; }
+    if (!newEducation.trim()) { toast.error("يرجى إدخال التحصيل الدراسي"); return; }
+    if (!newWorkshopNumber) { toast.error("يرجى اختيار رقم الورشة"); return; }
 
-    const insertData: any = { name: trimmed, category: activeCategory };
-    if (newPhone.trim()) insertData.phone = newPhone.trim();
-    if (newAddress.trim()) insertData.address = newAddress.trim();
-    if (newBirthDate) insertData.birth_date = newBirthDate;
-    if (newJoinDate) insertData.join_date = newJoinDate;
-    if (newEducation.trim()) insertData.education_level = newEducation.trim();
-    if (newWorkshopNumber && activeCategory === "warasha") insertData.workshop_number = newWorkshopNumber;
+    const baseData: any = {
+      name: trimmed,
+      phone: newPhone.trim(),
+      address: newAddress.trim(),
+      birth_date: newBirthDate,
+      join_date: newJoinDate,
+      education_level: newEducation.trim(),
+      notes: newNotes.trim() || null,
+    };
+
+    const records = [
+      { ...baseData, category: "muhadera" },
+      { ...baseData, category: "warasha", workshop_number: newWorkshopNumber },
+    ];
 
     const { data, error } = await supabase
       .from("people")
-      .insert(insertData)
-      .select()
-      .single();
+      .insert(records)
+      .select();
 
     if (error) {
       toast.error("خطأ في إضافة الاسم");
     } else if (data) {
-      setPeople((prev) => [...prev, data]);
+      // Add the person matching the current view
+      const matching = data.find((p: any) => p.category === activeCategory);
+      if (matching) setPeople((prev) => [...prev, matching]);
       setNewName("");
       setNewPhone("");
       setNewAddress("");
@@ -139,8 +155,9 @@ const AttendancePage = () => {
       setNewJoinDate("");
       setNewEducation("");
       setNewWorkshopNumber("");
+      setNewNotes("");
       setShowAddForm(false);
-      toast.success(`تمت إضافة ${trimmed}`);
+      toast.success(`تمت إضافة ${trimmed} للمحاضرة والورشة`);
     }
   };
 
@@ -164,6 +181,7 @@ const AttendancePage = () => {
       join_date: person.join_date || "",
       education_level: person.education_level || "",
       workshop_number: person.workshop_number || "",
+      notes: person.notes || "",
     });
     setIsEditing(true);
   };
@@ -178,6 +196,7 @@ const AttendancePage = () => {
       join_date: editData.join_date || null,
       education_level: editData.education_level?.trim() || null,
       workshop_number: editData.workshop_number || null,
+      notes: (editData as any).notes?.trim() || null,
     };
     const { error } = await supabase.from("people").update(updateData).eq("id", selectedPerson.id);
     if (error) {
@@ -476,7 +495,7 @@ const AttendancePage = () => {
                 <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="tel"
-                  placeholder="رقم الهاتف (اختياري)"
+                  placeholder="رقم الهاتف *"
                   value={editData.phone || ""}
                   onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
                   dir="ltr"
@@ -487,7 +506,7 @@ const AttendancePage = () => {
                 <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="العنوان (اختياري)"
+                  placeholder="العنوان *"
                   value={editData.address || ""}
                   onChange={(e) => setEditData({ ...editData, address: e.target.value })}
                   className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
@@ -501,7 +520,7 @@ const AttendancePage = () => {
                   onChange={(e) => setEditData({ ...editData, birth_date: e.target.value })}
                   className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
-                {!editData.birth_date && <span className="absolute right-10 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">المواليد (اختياري)</span>}
+                {!editData.birth_date && <span className="absolute right-10 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">المواليد *</span>}
               </div>
               <div className="relative">
                 <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -511,13 +530,13 @@ const AttendancePage = () => {
                   onChange={(e) => setEditData({ ...editData, join_date: e.target.value })}
                   className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
-                {!editData.join_date && <span className="absolute right-10 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">تاريخ الانضمام (اختياري)</span>}
+                {!editData.join_date && <span className="absolute right-10 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">تاريخ الانضمام *</span>}
               </div>
               <div className="relative">
                 <GraduationCap className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="التحصيل الدراسي (اختياري)"
+                  placeholder="التحصيل الدراسي *"
                   value={editData.education_level || ""}
                   onChange={(e) => setEditData({ ...editData, education_level: e.target.value })}
                   className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
@@ -525,7 +544,7 @@ const AttendancePage = () => {
               </div>
               {selectedPerson.category === "warasha" && (
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm text-muted-foreground">رقم الورشة (اختياري)</label>
+                  <label className="text-sm text-muted-foreground">رقم الورشة *</label>
                   <div className="flex flex-wrap gap-2">
                     {WORKSHOP_NUMBERS.map((ws) => (
                       <button
@@ -544,6 +563,16 @@ const AttendancePage = () => {
                   </div>
                 </div>
               )}
+              <div className="relative">
+                <FileText className="absolute right-3 top-3 w-4 h-4 text-muted-foreground" />
+                <textarea
+                  placeholder="ملاحظات (اختياري)"
+                  value={(editData as any).notes || ""}
+                  onChange={(e) => setEditData({ ...editData, notes: e.target.value } as any)}
+                  rows={3}
+                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                />
+              </div>
               <div className="flex gap-2 mt-1">
                 <button
                   onClick={updatePerson}
@@ -603,6 +632,12 @@ const AttendancePage = () => {
               <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
                 <GraduationCap className="w-3.5 h-3.5" />
                 <span>{selectedPerson.education_level}</span>
+              </div>
+            )}
+            {selectedPerson.notes && (
+              <div className="flex items-start gap-1.5 mt-1 text-sm text-muted-foreground">
+                <FileText className="w-3.5 h-3.5 mt-0.5" />
+                <span>{selectedPerson.notes}</span>
               </div>
             )}
             {selectedPerson.category === "warasha" && permissions.canEditData && (
@@ -877,7 +912,7 @@ const AttendancePage = () => {
                 <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="tel"
-                  placeholder="رقم الهاتف (اختياري)"
+                  placeholder="رقم الهاتف *"
                   value={newPhone}
                   onChange={(e) => setNewPhone(e.target.value)}
                   dir="ltr"
@@ -888,7 +923,7 @@ const AttendancePage = () => {
                 <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="العنوان (اختياري)"
+                  placeholder="العنوان *"
                   value={newAddress}
                   onChange={(e) => setNewAddress(e.target.value)}
                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
@@ -903,7 +938,7 @@ const AttendancePage = () => {
                   onChange={(e) => setNewBirthDate(e.target.value)}
                   className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
-                {!newBirthDate && <span className="absolute right-10 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">المواليد (اختياري)</span>}
+                {!newBirthDate && <span className="absolute right-10 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">المواليد *</span>}
               </div>
               <div className="relative">
                 <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -914,21 +949,20 @@ const AttendancePage = () => {
                   onChange={(e) => setNewJoinDate(e.target.value)}
                   className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
-                {!newJoinDate && <span className="absolute right-10 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">تاريخ الانضمام (اختياري)</span>}
+                {!newJoinDate && <span className="absolute right-10 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">تاريخ الانضمام *</span>}
               </div>
               <div className="relative">
                 <GraduationCap className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="التحصيل الدراسي (اختياري)"
+                  placeholder="التحصيل الدراسي *"
                   value={newEducation}
                   onChange={(e) => setNewEducation(e.target.value)}
                   className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
                </div>
-              {activeCategory === "warasha" && (
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm text-muted-foreground">رقم الورشة (اختياري)</label>
+              <div className="flex flex-col gap-1.5">
+                  <label className="text-sm text-muted-foreground">رقم الورشة *</label>
                   <div className="flex flex-wrap gap-2">
                     {WORKSHOP_NUMBERS.map((ws) => (
                       <button
@@ -946,7 +980,16 @@ const AttendancePage = () => {
                     ))}
                   </div>
                 </div>
-              )}
+              <div className="relative">
+                <FileText className="absolute right-3 top-3 w-4 h-4 text-muted-foreground" />
+                <textarea
+                  placeholder="ملاحظات (اختياري)"
+                  value={newNotes}
+                  onChange={(e) => setNewNotes(e.target.value)}
+                  rows={3}
+                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                />
+              </div>
               <div className="flex gap-2">
                 <button
                   onClick={addPerson}
@@ -956,7 +999,7 @@ const AttendancePage = () => {
                   <span>إضافة</span>
                 </button>
                 <button
-                  onClick={() => { setShowAddForm(false); setNewName(""); setNewPhone(""); setNewAddress(""); setNewBirthDate(""); setNewJoinDate(""); setNewEducation(""); setNewWorkshopNumber(""); }}
+                  onClick={() => { setShowAddForm(false); setNewName(""); setNewPhone(""); setNewAddress(""); setNewBirthDate(""); setNewJoinDate(""); setNewEducation(""); setNewWorkshopNumber(""); setNewNotes(""); }}
                   className="px-4 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold"
                 >
                   إلغاء
