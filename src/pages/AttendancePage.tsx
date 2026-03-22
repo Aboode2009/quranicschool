@@ -177,7 +177,7 @@ const AttendancePage = () => {
       name: person.name,
       phone: person.phone || "",
       address: person.address || "",
-      birth_date: person.birth_date || "",
+      birth_date: person.birth_date?.substring(0, 4) || "",
       join_date: person.join_date || "",
       education_level: person.education_level || "",
       workshop_number: person.workshop_number || "",
