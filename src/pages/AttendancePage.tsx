@@ -20,6 +20,7 @@ interface Person {
   join_date?: string | null;
   education_level?: string | null;
   workshop_number?: string | null;
+  notes?: string | null;
 }
 
 interface AttendanceRecord {
