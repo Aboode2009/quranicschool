@@ -114,26 +114,40 @@ const AttendancePage = () => {
 
   const addPerson = async () => {
     const trimmed = newName.trim();
-    if (!trimmed) return;
+    if (!trimmed) { toast.error("يرجى إدخال الاسم"); return; }
+    if (!newPhone.trim()) { toast.error("يرجى إدخال رقم الهاتف"); return; }
+    if (!newAddress.trim()) { toast.error("يرجى إدخال العنوان"); return; }
+    if (!newBirthDate) { toast.error("يرجى إدخال المواليد"); return; }
+    if (!newJoinDate) { toast.error("يرجى إدخال تاريخ الانضمام"); return; }
+    if (!newEducation.trim()) { toast.error("يرجى إدخال التحصيل الدراسي"); return; }
+    if (!newWorkshopNumber) { toast.error("يرجى اختيار رقم الورشة"); return; }
 
-    const insertData: any = { name: trimmed, category: activeCategory };
-    if (newPhone.trim()) insertData.phone = newPhone.trim();
-    if (newAddress.trim()) insertData.address = newAddress.trim();
-    if (newBirthDate) insertData.birth_date = newBirthDate;
-    if (newJoinDate) insertData.join_date = newJoinDate;
-    if (newEducation.trim()) insertData.education_level = newEducation.trim();
-    if (newWorkshopNumber && activeCategory === "warasha") insertData.workshop_number = newWorkshopNumber;
+    const baseData: any = {
+      name: trimmed,
+      phone: newPhone.trim(),
+      address: newAddress.trim(),
+      birth_date: newBirthDate,
+      join_date: newJoinDate,
+      education_level: newEducation.trim(),
+      notes: newNotes.trim() || null,
+    };
+
+    const records = [
+      { ...baseData, category: "muhadera" },
+      { ...baseData, category: "warasha", workshop_number: newWorkshopNumber },
+    ];
 
     const { data, error } = await supabase
       .from("people")
-      .insert(insertData)
-      .select()
-      .single();
+      .insert(records)
+      .select();
 
     if (error) {
       toast.error("خطأ في إضافة الاسم");
     } else if (data) {
-      setPeople((prev) => [...prev, data]);
+      // Add the person matching the current view
+      const matching = data.find((p: any) => p.category === activeCategory);
+      if (matching) setPeople((prev) => [...prev, matching]);
       setNewName("");
       setNewPhone("");
       setNewAddress("");
@@ -141,8 +155,9 @@ const AttendancePage = () => {
       setNewJoinDate("");
       setNewEducation("");
       setNewWorkshopNumber("");
+      setNewNotes("");
       setShowAddForm(false);
-      toast.success(`تمت إضافة ${trimmed}`);
+      toast.success(`تمت إضافة ${trimmed} للمحاضرة والورشة`);
     }
   };
 
