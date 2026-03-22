@@ -621,7 +621,7 @@ const AttendancePage = () => {
             {selectedPerson.birth_date && (
               <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
                 <Calendar className="w-3.5 h-3.5" />
-                <span>المواليد: {selectedPerson.birth_date}</span>
+                <span>المواليد: {selectedPerson.birth_date?.substring(0, 4)}</span>
               </div>
             )}
             {selectedPerson.join_date && (
