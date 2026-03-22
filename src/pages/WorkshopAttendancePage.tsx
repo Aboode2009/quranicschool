@@ -28,6 +28,7 @@ interface WorkshopDetail {
   listenedLecture: boolean;
   extractedVerse: boolean;
   excuse?: "with_excuse" | "without_excuse";
+  timing?: "on_time" | "late";
   customAnswers: Record<string, string>; // question_id -> answer
 }
 
@@ -72,7 +73,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
 
     const [attRes, answersRes] = await Promise.all([
       supabase.from("attendance")
-        .select("person_id, is_present, read_material, read_material_status, listened_lecture, extracted_verse, excuse")
+        .select("person_id, is_present, read_material, read_material_status, listened_lecture, extracted_verse, excuse, timing")
         .eq("lesson_name", lesson.id),
       supabase.from("workshop_answers")
         .select("person_id, question_id, answer")
@@ -97,6 +98,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
         listenedLecture: r.listened_lecture || false,
         extractedVerse: r.extracted_verse || false,
         excuse: r.excuse || undefined,
+        timing: r.timing || undefined,
         customAnswers: answersMap[r.person_id] || {},
       };
     });
@@ -160,6 +162,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
         listened_lecture: isPresent ? (detail?.listenedLecture || false) : false,
         extracted_verse: isPresent ? (detail?.extractedVerse || false) : false,
         excuse: detail?.status === "absent" ? (detail?.excuse || null) : null,
+        timing: isPresent ? (detail?.timing || null) : null,
         workshop_number: p.workshop_number || null,
       };
     });
@@ -198,6 +201,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
     if (!detail?.status) return "لم يُحدد";
     if (detail.status === "present") {
       const parts: string[] = ["حاضر"];
+      if (detail.timing === "late") parts.push("متأخر");
       if (detail.readMaterial === "yes") parts.push("قرأ المادة");
       else if (detail.readMaterial === "incomplete") parts.push("لم يكمل المادة");
       
@@ -320,12 +324,21 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
                             {/* Present details */}
                             {detail.status === "present" && (
                               <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+                                {/* Timing */}
+                                <div>
+                                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">التوقيت</p>
+                                  <div className="flex gap-2">
+                                    <Chip label="على الوقت" active={detail.timing === "on_time"} activeClass="bg-green-500 text-white" onClick={() => setField(person.id, "timing", "on_time")} />
+                                    <Chip label="متأخر" active={detail.timing === "late"} activeClass="bg-orange-500 text-white" onClick={() => setField(person.id, "timing", "late")} />
+                                  </div>
+                                </div>
+
                                 {/* Read material - 3 options */}
                                 <div>
                                   <p className="text-[11px] font-medium text-muted-foreground mb-1.5">هل قرأ المادة؟</p>
                                   <div className="flex gap-2 flex-wrap">
-                                    <Chip label="نعم" active={detail.readMaterial === "yes"} activeClass="bg-primary text-primary-foreground" onClick={() => setField(person.id, "readMaterial", "yes")} />
-                                    <Chip label="لم يكمل" active={detail.readMaterial === "incomplete"} activeClass="bg-accent text-accent-foreground" onClick={() => setField(person.id, "readMaterial", "incomplete")} />
+                                    <Chip label="نعم" active={detail.readMaterial === "yes"} activeClass="bg-green-500 text-white" onClick={() => setField(person.id, "readMaterial", "yes")} />
+                                    <Chip label="لم يكمل" active={detail.readMaterial === "incomplete"} activeClass="bg-orange-500 text-white" onClick={() => setField(person.id, "readMaterial", "incomplete")} />
                                     <Chip label="لا" active={detail.readMaterial === "no"} activeClass="bg-destructive text-destructive-foreground" onClick={() => setField(person.id, "readMaterial", "no")} />
                                   </div>
                                 </div>
