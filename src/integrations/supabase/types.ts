@@ -215,6 +215,7 @@ export type Database = {
           id: string
           join_date: string | null
           name: string
+          notes: string | null
           phone: string | null
           updated_at: string
           workshop_number: string | null
@@ -228,6 +229,7 @@ export type Database = {
           id?: string
           join_date?: string | null
           name: string
+          notes?: string | null
           phone?: string | null
           updated_at?: string
           workshop_number?: string | null
@@ -241,6 +243,7 @@ export type Database = {
           id?: string
           join_date?: string | null
           name?: string
+          notes?: string | null
           phone?: string | null
           updated_at?: string
           workshop_number?: string | null
