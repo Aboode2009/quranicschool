@@ -94,7 +94,7 @@ const AttendancePage = () => {
     setLoading(true);
     let query = supabase
       .from("people")
-      .select("id, name, category, phone, address, birth_date, join_date, education_level, workshop_number, notes")
+      .select("id, name, category, phone, address, birth_date, join_date, education_level, workshop_number, notes, avatar_url")
       .eq("category", activeCategory)
       .order("created_at", { ascending: true });
 
