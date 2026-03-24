@@ -52,7 +52,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
 
   const fetchData = async () => {
     const [peopleRes, questionsRes] = await Promise.all([
-      supabase.from("people").select("id, name, workshop_number").eq("category", "warasha").order("created_at", { ascending: true }),
+      supabase.from("people").select("id, name, workshop_number").eq("category", "warasha").eq("workshop_number", (lesson as any).workshopNumber || (lesson as any).courseType || "").order("created_at", { ascending: true }),
       supabase.from("workshop_questions").select("*").order("sort_order", { ascending: true }),
     ]);
 
