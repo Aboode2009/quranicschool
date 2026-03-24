@@ -62,7 +62,10 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
     e.preventDefault();
     if (!lessonName.trim() || !selectedDate) return;
     
-    const dateStr = selectedDate.toISOString().split("T")[0];
+    const y = selectedDate.getFullYear();
+    const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
+    const d = String(selectedDate.getDate()).padStart(2, "0");
+    const dateStr = `${y}-${m}-${d}`;
     onAdd({
       id: editLesson?.id || generateId(),
       surahName: lessonName,

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { AppRole } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { ChevronLeft, Users, Shield, ShieldCheck, BarChart3, UserCheck, BookOpen, DollarSign, Plus, Trash2, MessageSquarePlus, Crown, Eye, Briefcase } from "lucide-react";
+import { ChevronLeft, Users, Shield, ShieldCheck, BarChart3, UserCheck, BookOpen, DollarSign, Plus, Trash2, MessageSquarePlus, Crown, Eye, Briefcase, Ban, CheckCircle } from "lucide-react";
 
 interface Profile {
   id: string;
@@ -142,6 +142,35 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
       toast.success("تم إزالة جميع الصلاحيات");
     }
     setExpandedUser(null);
+  };
+
+  const banUser = async (userId: string) => {
+    if (userId === user?.id) {
+      toast.error("لا يمكنك حظر نفسك");
+      return;
+    }
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("manage-user", {
+        body: { action: "ban", userId },
+      });
+      if (res.error) throw res.error;
+      toast.success("تم حظر المستخدم");
+    } catch (e: any) {
+      toast.error("خطأ في حظر المستخدم");
+    }
+  };
+
+  const unbanUser = async (userId: string) => {
+    try {
+      const res = await supabase.functions.invoke("manage-user", {
+        body: { action: "unban", userId },
+      });
+      if (res.error) throw res.error;
+      toast.success("تم إلغاء حظر المستخدم");
+    } catch (e: any) {
+      toast.error("خطأ في إلغاء الحظر");
+    }
   };
 
   const addQuestion = async () => {
@@ -330,6 +359,26 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
                                 {!currentRole && <span className="text-xs">✓</span>}
                               </button>
                             </div>
+                            
+                            {/* Ban/Unban buttons */}
+                            {profile.id !== user?.id && (
+                              <div className="border-t border-ios-separator pt-3 mt-2 flex gap-2">
+                                <button
+                                  onClick={() => banUser(profile.id)}
+                                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-destructive text-destructive-foreground text-xs font-semibold transition-all active:scale-95"
+                                >
+                                  <Ban className="w-3.5 h-3.5" />
+                                  حظر
+                                </button>
+                                <button
+                                  onClick={() => unbanUser(profile.id)}
+                                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-accent text-accent-foreground text-xs font-semibold transition-all active:scale-95"
+                                >
+                                  <CheckCircle className="w-3.5 h-3.5" />
+                                  إلغاء الحظر
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </motion.div>
                       )}
