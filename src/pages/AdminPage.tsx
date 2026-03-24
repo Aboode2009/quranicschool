@@ -359,6 +359,26 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
                                 {!currentRole && <span className="text-xs">✓</span>}
                               </button>
                             </div>
+                            
+                            {/* Ban/Unban buttons */}
+                            {profile.id !== user?.id && (
+                              <div className="border-t border-ios-separator pt-3 mt-2 flex gap-2">
+                                <button
+                                  onClick={() => banUser(profile.id)}
+                                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-destructive text-destructive-foreground text-xs font-semibold transition-all active:scale-95"
+                                >
+                                  <Ban className="w-3.5 h-3.5" />
+                                  حظر
+                                </button>
+                                <button
+                                  onClick={() => unbanUser(profile.id)}
+                                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-accent text-accent-foreground text-xs font-semibold transition-all active:scale-95"
+                                >
+                                  <CheckCircle className="w-3.5 h-3.5" />
+                                  إلغاء الحظر
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </motion.div>
                       )}
