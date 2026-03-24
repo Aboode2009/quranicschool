@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { AppRole } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { ChevronLeft, Users, Shield, ShieldCheck, BarChart3, UserCheck, BookOpen, DollarSign, Plus, Trash2, MessageSquarePlus, Crown, Eye, Briefcase } from "lucide-react";
+import { ChevronLeft, Users, Shield, ShieldCheck, BarChart3, UserCheck, BookOpen, DollarSign, Plus, Trash2, MessageSquarePlus, Crown, Eye, Briefcase, Ban, CheckCircle } from "lucide-react";
 
 interface Profile {
   id: string;
