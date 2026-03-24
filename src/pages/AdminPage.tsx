@@ -144,6 +144,35 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
     setExpandedUser(null);
   };
 
+  const banUser = async (userId: string) => {
+    if (userId === user?.id) {
+      toast.error("لا يمكنك حظر نفسك");
+      return;
+    }
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("manage-user", {
+        body: { action: "ban", userId },
+      });
+      if (res.error) throw res.error;
+      toast.success("تم حظر المستخدم");
+    } catch (e: any) {
+      toast.error("خطأ في حظر المستخدم");
+    }
+  };
+
+  const unbanUser = async (userId: string) => {
+    try {
+      const res = await supabase.functions.invoke("manage-user", {
+        body: { action: "unban", userId },
+      });
+      if (res.error) throw res.error;
+      toast.success("تم إلغاء حظر المستخدم");
+    } catch (e: any) {
+      toast.error("خطأ في إلغاء الحظر");
+    }
+  };
+
   const addQuestion = async () => {
     const text = newQuestionText.trim();
     const opts = newOptions.map((o) => o.trim()).filter(Boolean);
