@@ -1,30 +1,54 @@
 
 
-# تغيير حقل المواليد إلى سنة فقط
+# ثلاث تعديلات مطلوبة
 
-## الفكرة
-بدلاً من إدخال تاريخ كامل (يوم/شهر/سنة) للمواليد، يكتفي المستخدم بإدخال **السنة فقط** (مثل 2009).
+## 1. فلترة أسماء الورشة حسب رقمها
+**المشكلة**: عند الدخول على ورشة معينة (مثلاً "ورشة أولى")، تظهر جميع الأسماء بدلاً من أسماء تلك الورشة فقط.
 
-## الخطوات
+**الحل**: في `WorkshopAttendancePage.tsx`، عند جلب الأسماء، نضيف فلتر على `workshop_number` بحيث يطابق `lesson.courseType` (الذي يخزن رقم الورشة مثل "ورشة أولى").
 
-### 1. تعديل `src/pages/AttendancePage.tsx`
-- **نموذج الإضافة**: تغيير حقل المواليد من `type="date"` إلى `type="number"` مع `placeholder="مثال: 2009"` و `min="1950"` `max="2025"`
-- **نموذج التعديل**: نفس التغيير
-- **عرض البروفايل**: عرض السنة فقط بدون تحويل تاريخ
-- **حفظ البيانات**: حفظ السنة كنص (مثل `"2009"`) في عمود `birth_date` الموجود
-
-### 2. لا حاجة لتعديل قاعدة البيانات
-- عمود `birth_date` من نوع `date` لكن nullable، سنحفظ القيمة كـ `"2009-01-01"` للتوافق مع النوع، ونعرض السنة فقط
-
-## التفاصيل التقنية
 ```typescript
-// حقل الإدخال
-<input type="number" min="1950" max="2025" placeholder="مثال: 2009" />
+// قبل
+supabase.from("people").select("...").eq("category", "warasha")
 
-// عند الحفظ - تحويل السنة لتاريخ متوافق
-birth_date: `${newBirthDate}-01-01`
-
-// عند العرض - استخراج السنة فقط
-المواليد: {selectedPerson.birth_date?.substring(0, 4)}
+// بعد
+supabase.from("people").select("...").eq("category", "warasha").eq("workshop_number", lesson.courseType)
 ```
+
+**ملف**: `src/pages/WorkshopAttendancePage.tsx` — سطر 55
+
+---
+
+## 2. إصلاح مشكلة التاريخ (ينقص يوم)
+**المشكلة**: عند اختيار تاريخ مثل 1/7، يُحفظ كـ 30/6 بسبب تحويل `toISOString()` الذي يستخدم UTC.
+
+**الحل**: في `AddLessonDialog.tsx`، استبدال `toISOString()` بتنسيق يدوي يحترم التوقيت المحلي:
+
+```typescript
+// قبل
+const dateStr = selectedDate.toISOString().split("T")[0];
+
+// بعد
+const y = selectedDate.getFullYear();
+const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
+const d = String(selectedDate.getDate()).padStart(2, "0");
+const dateStr = `${y}-${m}-${d}`;
+```
+
+**ملف**: `src/components/AddLessonDialog.tsx` — سطر 65
+
+---
+
+## 3. حظر وإلغاء حظر المستخدمين من لوحة التحكم
+**المشكلة**: الأدمن لا يستطيع حظر أو إلغاء حظر حسابات المستخدمين.
+
+**الحل**:
+- إنشاء Edge Function جديدة (`manage-user`) تستخدم Supabase Admin API لتعطيل/تفعيل المستخدم (`ban_duration` أو إزالة الحظر)
+- إضافة أزرار "حظر" و"إلغاء حظر" في `AdminPage.tsx` بجانب كل مستخدم
+- عند الحظر: يتم تعطيل الحساب ولا يستطيع المستخدم تسجيل الدخول
+- عند إلغاء الحظر: يعود الحساب للعمل بشكل طبيعي
+
+**الملفات**:
+- `supabase/functions/manage-user/index.ts` — Edge Function جديدة
+- `src/pages/AdminPage.tsx` — إضافة أزرار الحظر/إلغاء الحظر
 
