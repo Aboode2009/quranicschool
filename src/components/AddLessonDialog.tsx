@@ -168,25 +168,46 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
                     </div>
                   )}
                   {showWorkshopNumber && (
-                    <div className="px-4 py-3">
-                      <label className="text-sm text-foreground font-medium mb-2 block">نوع الدورة</label>
-                      <div className="flex flex-col gap-2">
-                        {COURSE_TYPES.map((type) => (
-                          <button
-                            key={type}
-                            type="button"
-                            onClick={() => setCourseType(type)}
-                            className={`w-full text-right px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                              courseType === type
-                                ? "bg-primary text-primary-foreground font-medium"
-                                : "bg-muted/50 text-foreground hover:bg-muted"
-                            }`}
-                          >
-                            {type}
-                          </button>
-                        ))}
+                    <>
+                      <div className="px-4 py-3 border-b border-ios-separator">
+                        <label className="text-sm text-foreground font-medium mb-2 block">نوع الدورة</label>
+                        <div className="flex flex-col gap-2">
+                          {COURSE_TYPES.map((type) => (
+                            <button
+                              key={type}
+                              type="button"
+                              onClick={() => setCourseType(type)}
+                              className={`w-full text-right px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                                courseType === type
+                                  ? "bg-primary text-primary-foreground font-medium"
+                                  : "bg-muted/50 text-foreground hover:bg-muted"
+                              }`}
+                            >
+                              {type}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                      <div className="px-4 py-3">
+                        <label className="text-sm text-foreground font-medium mb-2 block">رقم الورشة</label>
+                        <div className="flex flex-col gap-2">
+                          {WORKSHOP_NUMBERS.map((ws) => (
+                            <button
+                              key={ws}
+                              type="button"
+                              onClick={() => setWorkshopNumber(ws)}
+                              className={`w-full text-right px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                                workshopNumber === ws
+                                  ? "bg-primary text-primary-foreground font-medium"
+                                  : "bg-muted/50 text-foreground hover:bg-muted"
+                              }`}
+                            >
+                              {ws}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
 
