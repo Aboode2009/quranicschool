@@ -50,8 +50,8 @@ const getPermissions = (role: AppRole | null): Permissions => {
       };
     case "supervisor":
       return {
-        canCreateLessons: true,
-        canCreateWorkshops: true,
+        canCreateLessons: false,
+        canCreateWorkshops: false,
         canAddPeople: true,
         canEditData: true,
         canAccessFinances: false,
