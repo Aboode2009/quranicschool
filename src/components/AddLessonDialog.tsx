@@ -169,20 +169,20 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
                   )}
                   {showWorkshopNumber && (
                     <div className="px-4 py-3">
-                      <label className="text-sm text-foreground font-medium mb-2 block">رقم الورشة</label>
+                      <label className="text-sm text-foreground font-medium mb-2 block">نوع الدورة</label>
                       <div className="flex flex-col gap-2">
-                        {WORKSHOP_NUMBERS.map((ws) => (
+                        {COURSE_TYPES.map((type) => (
                           <button
-                            key={ws}
+                            key={type}
                             type="button"
-                            onClick={() => setWorkshopNumber(ws)}
+                            onClick={() => setCourseType(type)}
                             className={`w-full text-right px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                              workshopNumber === ws
+                              courseType === type
                                 ? "bg-primary text-primary-foreground font-medium"
                                 : "bg-muted/50 text-foreground hover:bg-muted"
                             }`}
                           >
-                            {ws}
+                            {type}
                           </button>
                         ))}
                       </div>
