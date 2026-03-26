@@ -293,29 +293,6 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
                               
                                   </div>
                                 </div>
-                                <div>
-                                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">سمع المحاضره </p>
-                                  <div className="flex gap-2">
-                                    <Chip
-                                label="نعم"
-                                active={detail.activity === "active"}
-                                activeClass="bg-primary text-primary-foreground"
-                                onClick={() => updateDetail(person.id, "activity", "active")} />
-                              
-                                    <Chip
-                                label="لا"
-                                active={detail.activity === "average"}
-                                activeClass="bg-accent text-accent-foreground"
-                                onClick={() => updateDetail(person.id, "activity", "average")} />
-                              
-                                    <Chip
-                                label="لم يكمل"
-                                active={detail.activity === "idle"}
-                                activeClass="bg-destructive text-destructive-foreground"
-                                onClick={() => updateDetail(person.id, "activity", "idle")} />
-                              
-                                  </div>
-                                </div>
                               </motion.div>
                         }
 
