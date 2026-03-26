@@ -1,32 +1,42 @@
 
 
-# فلترة أسماء المحاضرة حسب ورشة المشرف
+# تعديل نموذج إضافة الورشة + صلاحيات الإنشاء
 
-## المشكلة
-المشرف المسؤول عن ورشة معينة (مثلاً ورشة واحد) عند دخوله على حضور المحاضرة يرى جميع الأسماء. المطلوب أن يرى فقط الأسماء المسجلة في ورشته.
+## التعديلات المطلوبة
 
-## الحل
-تعديل `src/pages/LessonAttendancePage.tsx` في دالة `fetchData`:
-- جلب `supervisedWorkshop` من `useAuth()`
-- إذا كان المستخدم مشرف (`userRole === "supervisor"`)، نجلب أسماء الورشة (`category: warasha` + `workshop_number` = ورشته) بدلاً من أسماء المحاضرة العامة
-- الأدمن ومدير الدورة يبقون يشوفون جميع الأسماء كالمعتاد
+### 1. ترتيب حقول نموذج إضافة الورشة
+في `AddLessonDialog.tsx`، عند عرض نموذج الورشة (`showWorkshopNumber`):
+- **اسم الورشة** (موجود)
+- **تاريخ الورشة** (موجود)
+- **نوع الدورة** — نفس الدورات الموجودة بالمحاضرة (دورة اليقظة الايمانية، دورة التربية الايمانية...)، نعرض `COURSE_TYPES` بدلاً من `WORKSHOP_NUMBERS` (رقم الورشة)
+- **ملاحظات** (موجود بالأسفل)
+
+**ملاحظة**: رقم الورشة (ورشة أولى، ثانية...) يبقى مرتبط بالأشخاص وليس بالورشة نفسها، فالورشة تتبع لدورة معينة.
+
+### 2. تقييد صلاحية الإنشاء للأدمن ومدير الدورة فقط
+في `useAuth.tsx`، تعديل صلاحيات المشرف:
+- `canCreateLessons: false` (بدلاً من `true`)
+- `canCreateWorkshops: false` (بدلاً من `true`)
+
+المشرف يبقى يقدر يدير الحضور والغياب فقط.
 
 ## التفاصيل التقنية
 
+### `src/components/AddLessonDialog.tsx`
+- عند `showWorkshopNumber`: عرض `COURSE_TYPES` بدلاً من `WORKSHOP_NUMBERS` وحفظ القيمة في `courseType`
+- إزالة عرض `WORKSHOP_NUMBERS` من نموذج الورشة (يبقى فقط عند إضافة شخص)
+
+### `src/hooks/useAuth.tsx`
 ```typescript
-const { permissions, userRole, supervisedWorkshop } = useAuth();
-
-// في fetchData:
-let query = supabase.from("people").select("id, name");
-
-if (userRole === "supervisor" && supervisedWorkshop) {
-  // المشرف يشوف فقط طلاب ورشته
-  query = query.eq("category", "warasha").eq("workshop_number", supervisedWorkshop);
-} else {
-  query = query.eq("category", category);
-}
+case "supervisor":
+  return {
+    canCreateLessons: false,  // كان true
+    canCreateWorkshops: false, // كان true
+    ...
+  };
 ```
 
-### الملف المتأثر
-- `src/pages/LessonAttendancePage.tsx` — تعديل استعلام جلب الأسماء فقط
+### الملفات المتأثرة
+- `src/components/AddLessonDialog.tsx` — تغيير ترتيب وعرض حقول الورشة
+- `src/hooks/useAuth.tsx` — تقييد صلاحيات المشرف
 
