@@ -31,7 +31,7 @@ interface LessonAttendancePageProps {
 }
 
 const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonAttendancePageProps) => {
-  const { permissions } = useAuth();
+  const { permissions, userRole, supervisedWorkshop } = useAuth();
   const [people, setPeople] = useState<Person[]>([]);
   const [attendance, setAttendance] = useState<Record<string, AttendanceDetail>>({});
   const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
@@ -43,11 +43,15 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
   }, [lesson.id]);
 
   const fetchData = async () => {
-    const { data: peopleData, error: peopleErr } = await supabase.
-    from("people").
-    select("id, name").
-    eq("category", category).
-    order("created_at", { ascending: true });
+    let query = supabase.from("people").select("id, name");
+
+    if (userRole === "supervisor" && supervisedWorkshop) {
+      query = query.eq("category", "warasha").eq("workshop_number", supervisedWorkshop);
+    } else {
+      query = query.eq("category", category);
+    }
+
+    const { data: peopleData, error: peopleErr } = await query.order("created_at", { ascending: true });
 
     if (peopleErr) {
       toast.error("خطأ في تحميل الأسماء");
