@@ -82,6 +82,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
     });
 
     setAttendance(map);
+    setIsEditing((attData || []).length > 0);
     setLoading(false);
   };
 
