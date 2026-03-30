@@ -43,6 +43,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
   const [attendance, setAttendance] = useState<Record<string, WorkshopDetail>>({});
   const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([]);
 
