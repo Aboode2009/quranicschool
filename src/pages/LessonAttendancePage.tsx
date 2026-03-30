@@ -37,6 +37,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
   const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     fetchData();
