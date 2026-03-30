@@ -37,6 +37,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
   const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -81,6 +82,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
     });
 
     setAttendance(map);
+    setIsEditing((attData || []).length > 0);
     setLoading(false);
   };
 
@@ -339,7 +341,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
           disabled={saving}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground text-base font-semibold shadow-sm disabled:opacity-50 active:scale-[0.98] transition-transform">
           
-            {saving ? "جاري الحفظ..." : "حفظ الحضور"}
+            {saving ? "جاري الحفظ..." : isEditing ? "تعديل الحضور" : "حفظ الحضور"}
           </button>
         </div>
       }

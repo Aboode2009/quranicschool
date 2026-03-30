@@ -43,6 +43,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
   const [attendance, setAttendance] = useState<Record<string, WorkshopDetail>>({});
   const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([]);
 
@@ -111,6 +112,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
     });
 
     setAttendance(map);
+    setIsEditing((attRes.data || []).length > 0);
     setLoading(false);
   };
 
@@ -409,7 +411,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
             disabled={saving}
             className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground text-base font-semibold shadow-sm disabled:opacity-50 active:scale-[0.98] transition-transform"
           >
-            {saving ? "جاري الحفظ..." : "حفظ الحضور"}
+            {saving ? "جاري الحفظ..." : isEditing ? "تعديل الحضور" : "حفظ الحضور"}
           </button>
         </div>
       )}
