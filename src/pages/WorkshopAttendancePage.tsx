@@ -112,6 +112,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
     });
 
     setAttendance(map);
+    setIsEditing((attRes.data || []).length > 0);
     setLoading(false);
   };
 
