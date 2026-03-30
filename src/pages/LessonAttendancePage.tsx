@@ -341,7 +341,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
           disabled={saving}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground text-base font-semibold shadow-sm disabled:opacity-50 active:scale-[0.98] transition-transform">
           
-            {saving ? "جاري الحفظ..." : "حفظ الحضور"}
+            {saving ? "جاري الحفظ..." : isEditing ? "تعديل الحضور" : "حفظ الحضور"}
           </button>
         </div>
       }
