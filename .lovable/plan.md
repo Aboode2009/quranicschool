@@ -1,39 +1,39 @@
 
 
-# إزالة رقم الورشة من إضافة الورشة + فلترة حسب المشرف
+# تعديل الحضور بعد الحفظ
 
-## الفكرة
-الورشة تكون مثل المحاضرة تماماً — يضاف اسم الورشة + تاريخ + نوع الدورة + ملاحظات فقط (بدون رقم ورشة). عند دخول المشرف على أي ورشة، يشوف فقط طلاب ورشته المحددة (حسب `supervisedWorkshop`). الأدمن ومدير الدورة يشوفون الكل.
+## الوضع الحالي
+النظام **يدعم التعديل فعلياً** — عند الدخول على درس محفوظ، البيانات تُحمّل من قاعدة البيانات وتظهر الحالة السابقة. عند الحفظ مجدداً، يتم حذف القديم وإدراج الجديد. البروفايل والإكسل يقرأون من نفس الجدول فأي تعديل ينعكس تلقائياً.
+
+## ما يحتاج تحسين
+تغيير نص زر الحفظ ليكون واضحاً:
+- إذا كان الحضور محفوظ مسبقاً → **"تعديل الحضور"**
+- إذا كان جديد → **"حفظ الحضور"**
 
 ## التعديلات
 
-### 1. `src/components/AddLessonDialog.tsx`
-- إزالة قسم `WORKSHOP_NUMBERS` من عرض الورشة (سطور 191-209)
-- إبقاء فقط: اسم الورشة → تاريخ → نوع الدورة (`COURSE_TYPES`) → ملاحظات
-- إزالة `workshopNumber` من `handleSubmit`
+### 1. `src/pages/LessonAttendancePage.tsx`
+- إضافة state `isEditing` يتحدد عند `fetchData` — إذا وجدنا سجلات حضور سابقة يكون `true`
+- تغيير نص الزر: `{isEditing ? "تعديل الحضور" : "حفظ الحضور"}`
 
 ### 2. `src/pages/WorkshopAttendancePage.tsx`
-- استيراد `userRole` و `supervisedWorkshop` من `useAuth()`
-- تغيير استعلام الأسماء (سطر 55):
-  - **المشرف**: فلترة حسب `supervisedWorkshop` → `query.eq("workshop_number", supervisedWorkshop)`
-  - **الأدمن/مدير الدورة**: عرض جميع طلاب الورشة (بدون فلتر `workshop_number`)
+- نفس التعديل: إضافة `isEditing` وتغيير نص الزر
+
+## تفاصيل تقنية
 
 ```typescript
-const { permissions, userRole, supervisedWorkshop } = useAuth();
+// في كلا الملفين:
+const [isEditing, setIsEditing] = useState(false);
 
-// في fetchData:
-let peopleQuery = supabase.from("people").select("id, name, workshop_number").eq("category", "warasha");
+// في fetchData بعد جلب بيانات الحضور:
+const hasExistingData = (attRes.data || []).length > 0;
+setIsEditing(hasExistingData);
 
-if (userRole === "supervisor" && supervisedWorkshop) {
-  peopleQuery = peopleQuery.eq("workshop_number", supervisedWorkshop);
-}
+// الزر:
+{saving ? "جاري الحفظ..." : isEditing ? "تعديل الحضور" : "حفظ الحضور"}
 ```
 
-### 3. `src/pages/WarashaPage.tsx`
-- إزالة عرض `courseType` من تفاصيل الورشة في القائمة (اختياري — أو إبقاؤه للتوضيح)
-
 ### الملفات المتأثرة
-- `src/components/AddLessonDialog.tsx` — إزالة رقم الورشة
-- `src/pages/WorkshopAttendancePage.tsx` — فلترة حسب المشرف
-- `src/pages/WarashaPage.tsx` — تحديث العرض
+- `src/pages/LessonAttendancePage.tsx`
+- `src/pages/WorkshopAttendancePage.tsx`
 
