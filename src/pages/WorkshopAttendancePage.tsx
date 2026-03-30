@@ -38,7 +38,7 @@ interface WorkshopAttendancePageProps {
 }
 
 const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps) => {
-  const { permissions } = useAuth();
+  const { permissions, userRole, supervisedWorkshop } = useAuth();
   const [people, setPeople] = useState<Person[]>([]);
   const [attendance, setAttendance] = useState<Record<string, WorkshopDetail>>({});
   const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
@@ -51,8 +51,15 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
   }, [lesson.id]);
 
   const fetchData = async () => {
+    let peopleQuery = supabase.from("people").select("id, name, workshop_number").eq("category", "warasha");
+    
+    // المشرف يشوف فقط طلاب ورشته
+    if (userRole === "supervisor" && supervisedWorkshop) {
+      peopleQuery = peopleQuery.eq("workshop_number", supervisedWorkshop);
+    }
+    
     const [peopleRes, questionsRes] = await Promise.all([
-      supabase.from("people").select("id, name, workshop_number").eq("category", "warasha").eq("workshop_number", lesson.courseType || "").order("created_at", { ascending: true }),
+      peopleQuery.order("created_at", { ascending: true }),
       supabase.from("workshop_questions").select("*").order("sort_order", { ascending: true }),
     ]);
 
