@@ -33,6 +33,21 @@ const WarashaPage = () => {
   const [editingWorkshop, setEditingWorkshop] = useState<Lesson | null>(null);
   const [deletingWorkshop, setDeletingWorkshop] = useState<Lesson | null>(null);
   const [selectedWorkshop, setSelectedWorkshop] = useState<Lesson | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [courseFilter, setCourseFilter] = useState<string | null>(null);
+
+  const COURSE_TYPES = [
+    "دورة اليقظة الايمانية",
+    "دورة التربية الايمانية",
+    "دورة التربية النفسية",
+    "دورة التربية الفكرية",
+  ];
+
+  const filteredWorkshops = workshops.filter((ws) => {
+    const matchesSearch = !searchQuery || ws.surahName.includes(searchQuery);
+    const matchesCourse = !courseFilter || ws.courseType === courseFilter;
+    return matchesSearch && matchesCourse;
+  });
 
   const handleAddWorkshop = async (lesson: Lesson) => {
     const success = await addWorkshop(lesson);

@@ -33,6 +33,21 @@ const MuhaderaPage = () => {
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [deletingLesson, setDeletingLesson] = useState<Lesson | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [courseFilter, setCourseFilter] = useState<string | null>(null);
+
+  const COURSE_TYPES = [
+    "دورة اليقظة الايمانية",
+    "دورة التربية الايمانية",
+    "دورة التربية النفسية",
+    "دورة التربية الفكرية",
+  ];
+
+  const filteredLessons = lessons.filter((lesson) => {
+    const matchesSearch = !searchQuery || lesson.surahName.includes(searchQuery);
+    const matchesCourse = !courseFilter || lesson.courseType === courseFilter;
+    return matchesSearch && matchesCourse;
+  });
 
   const handleAddLesson = async (lesson: Lesson) => {
     const success = await addLesson(lesson);
