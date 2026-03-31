@@ -123,7 +123,7 @@ const MuhaderaPage = () => {
         ) : (
           <div className="flex flex-col gap-2.5">
             <AnimatePresence mode="popLayout">
-              {lessons.map((lesson, i) => (
+              {filteredLessons.map((lesson, i) => (
                 <motion.div
                   key={lesson.id}
                   initial={{ opacity: 0, y: 10 }}

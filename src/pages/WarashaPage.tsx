@@ -124,7 +124,7 @@ const WarashaPage = () => {
         ) : (
           <div className="flex flex-col gap-2.5">
             <AnimatePresence mode="popLayout">
-              {workshops.map((ws, i) => (
+              {filteredWorkshops.map((ws, i) => (
                 <motion.div
                   key={ws.id}
                   initial={{ opacity: 0, y: 10 }}
