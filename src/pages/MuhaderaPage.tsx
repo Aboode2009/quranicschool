@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, Plus, ChevronLeft, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { BookOpen, Plus, ChevronLeft, MoreHorizontal, Pencil, Trash2, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import AddLessonDialog from "@/components/AddLessonDialog";
 import LessonAttendancePage from "./LessonAttendancePage";
 import type { Lesson } from "@/lib/quran-data";
@@ -32,6 +33,21 @@ const MuhaderaPage = () => {
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [deletingLesson, setDeletingLesson] = useState<Lesson | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [courseFilter, setCourseFilter] = useState<string | null>(null);
+
+  const COURSE_TYPES = [
+    "دورة اليقظة الايمانية",
+    "دورة التربية الايمانية",
+    "دورة التربية النفسية",
+    "دورة التربية الفكرية",
+  ];
+
+  const filteredLessons = lessons.filter((lesson) => {
+    const matchesSearch = !searchQuery || lesson.surahName.includes(searchQuery);
+    const matchesCourse = !courseFilter || lesson.courseType === courseFilter;
+    return matchesSearch && matchesCourse;
+  });
 
   const handleAddLesson = async (lesson: Lesson) => {
     const success = await addLesson(lesson);
@@ -67,6 +83,36 @@ const MuhaderaPage = () => {
       <IslamicDecorations variant="lecture" />
       <div className="px-4 pt-3 pb-2 relative z-10">
         <h1 className="text-2xl font-bold text-foreground mb-3">المحاضرة</h1>
+        <div className="relative mb-2">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="بحث بالاسم..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pr-9 text-right"
+          />
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <button
+            onClick={() => setCourseFilter(null)}
+            className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              !courseFilter ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted"
+            }`}
+          >
+            الكل
+          </button>
+          {COURSE_TYPES.map((type) => (
+            <button
+              key={type}
+              onClick={() => setCourseFilter(courseFilter === type ? null : type)}
+              className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                courseFilter === type ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              {type.replace("دورة ", "")}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-4">
@@ -77,7 +123,7 @@ const MuhaderaPage = () => {
         ) : (
           <div className="flex flex-col gap-2.5">
             <AnimatePresence mode="popLayout">
-              {lessons.map((lesson, i) => (
+              {filteredLessons.map((lesson, i) => (
                 <motion.div
                   key={lesson.id}
                   initial={{ opacity: 0, y: 10 }}
