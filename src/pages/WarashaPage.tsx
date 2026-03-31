@@ -82,22 +82,22 @@ const WarashaPage = () => {
   return (
     <div className="flex flex-col h-full relative">
       <IslamicDecorations variant="workshop" />
-      <div className="px-4 pt-3 pb-2 relative z-10">
-        <h1 className="text-2xl font-bold text-foreground mb-3">الورشة</h1>
-        <div className="relative mb-2">
+      <div className="px-4 pt-3 pb-2 relative z-10 space-y-2">
+        <h1 className="text-2xl font-bold text-foreground">الورشة</h1>
+        <div className="relative">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="بحث بالاسم..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pr-9 text-right"
+            className="pr-9 text-right h-9 text-sm rounded-xl bg-muted/30 border-0 focus-visible:ring-1"
           />
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5 -mx-1 px-1" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
           <button
             onClick={() => setCourseFilter(null)}
-            className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              !courseFilter ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted"
+            className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${
+              !courseFilter ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted/40 text-muted-foreground active:bg-muted"
             }`}
           >
             الكل
@@ -106,8 +106,8 @@ const WarashaPage = () => {
             <button
               key={type}
               onClick={() => setCourseFilter(courseFilter === type ? null : type)}
-              className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                courseFilter === type ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted"
+              className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                courseFilter === type ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted/40 text-muted-foreground active:bg-muted"
               }`}
             >
               {type.replace("دورة ", "")}
