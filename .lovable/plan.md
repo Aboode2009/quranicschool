@@ -1,39 +1,40 @@
 
 
-# تعديل الحضور بعد الحفظ
+# إضافة بحث وفلترة حسب نوع الدورة في المحاضرة والورشة
 
-## الوضع الحالي
-النظام **يدعم التعديل فعلياً** — عند الدخول على درس محفوظ، البيانات تُحمّل من قاعدة البيانات وتظهر الحالة السابقة. عند الحفظ مجدداً، يتم حذف القديم وإدراج الجديد. البروفايل والإكسل يقرأون من نفس الجدول فأي تعديل ينعكس تلقائياً.
-
-## ما يحتاج تحسين
-تغيير نص زر الحفظ ليكون واضحاً:
-- إذا كان الحضور محفوظ مسبقاً → **"تعديل الحضور"**
-- إذا كان جديد → **"حفظ الحضور"**
+## الفكرة
+إضافة شريط بحث بالاسم + أزرار فلترة حسب نوع الدورة (الأربعة أنواع) في كل من صفحة المحاضرة وصفحة الورشة. عند الضغط على نوع دورة معين، تظهر فقط المحاضرات/الورشات التابعة لتلك الدورة.
 
 ## التعديلات
 
-### 1. `src/pages/LessonAttendancePage.tsx`
-- إضافة state `isEditing` يتحدد عند `fetchData` — إذا وجدنا سجلات حضور سابقة يكون `true`
-- تغيير نص الزر: `{isEditing ? "تعديل الحضور" : "حفظ الحضور"}`
+### 1. `src/pages/MuhaderaPage.tsx`
+- إضافة state للبحث (`searchQuery`) وفلتر الدورة (`courseFilter`)
+- إضافة حقل بحث (Input) تحت العنوان مباشرة مع أيقونة بحث
+- إضافة صف أزرار أفقي قابل للتمرير يحتوي على أنواع الدورات الأربعة + زر "الكل"
+- فلترة `lessons` حسب `searchQuery` (بحث في `surahName`) و `courseFilter` (مطابقة `courseType`)
 
-### 2. `src/pages/WorkshopAttendancePage.tsx`
-- نفس التعديل: إضافة `isEditing` وتغيير نص الزر
+### 2. `src/pages/WarashaPage.tsx`
+- نفس التعديلات: بحث بالاسم + فلترة حسب نوع الدورة
+- فلترة `workshops` بنفس المنطق
 
-## تفاصيل تقنية
-
+### منطق الفلترة (مشترك)
 ```typescript
-// في كلا الملفين:
-const [isEditing, setIsEditing] = useState(false);
+const [searchQuery, setSearchQuery] = useState("");
+const [courseFilter, setCourseFilter] = useState<string | null>(null);
 
-// في fetchData بعد جلب بيانات الحضور:
-const hasExistingData = (attRes.data || []).length > 0;
-setIsEditing(hasExistingData);
-
-// الزر:
-{saving ? "جاري الحفظ..." : isEditing ? "تعديل الحضور" : "حفظ الحضور"}
+const filteredLessons = lessons.filter((lesson) => {
+  const matchesSearch = !searchQuery || lesson.surahName.includes(searchQuery);
+  const matchesCourse = !courseFilter || lesson.courseType === courseFilter;
+  return matchesSearch && matchesCourse;
+});
 ```
 
+### واجهة البحث والفلترة
+- حقل بحث مع أيقونة Search من lucide
+- صف أزرار أفقي: "الكل" + الدورات الأربعة — الزر النشط يكون بلون `primary`، الباقي بلون فاتح
+- عند الضغط على نفس الفلتر مرة ثانية يُلغى (يرجع "الكل")
+
 ### الملفات المتأثرة
-- `src/pages/LessonAttendancePage.tsx`
-- `src/pages/WorkshopAttendancePage.tsx`
+- `src/pages/MuhaderaPage.tsx`
+- `src/pages/WarashaPage.tsx`
 
