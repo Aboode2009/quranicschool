@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, Plus, ChevronLeft, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { BookOpen, Plus, ChevronLeft, MoreHorizontal, Pencil, Trash2, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import AddLessonDialog from "@/components/AddLessonDialog";
 import LessonAttendancePage from "./LessonAttendancePage";
 import type { Lesson } from "@/lib/quran-data";
