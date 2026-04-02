@@ -221,9 +221,9 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
   };
 
   const statusColor = (detail: WorkshopDetail) => {
-    if (!detail?.status) return "bg-muted text-muted-foreground";
-    if (detail.status === "present") return "bg-primary/10 text-primary border-primary/30";
-    return "bg-destructive/10 text-destructive border-destructive/30";
+    if (!detail?.status) return "bg-muted/50 text-muted-foreground border-border";
+    if (detail.status === "present") return "bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-600";
+    return "bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-600";
   };
 
   return (
