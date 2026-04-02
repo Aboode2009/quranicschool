@@ -902,6 +902,18 @@ const AttendancePage = () => {
             الورشة
           </button>
         </div>
+
+        {/* Search bar */}
+        <div className="relative mt-3">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="ابحث عن شخص..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-9 pr-9 pl-3 rounded-xl border border-border bg-card/60 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-4">
