@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Users, UserPlus, Trash2, BookOpen, GraduationCap, ChevronLeft, ChevronDown, Calendar, Download, Phone, MapPin, Plus, Pencil, X, Save, ArrowRightLeft, FileText, Camera } from "lucide-react";
+import { Users, UserPlus, Trash2, BookOpen, GraduationCap, ChevronLeft, ChevronDown, Calendar, Download, Phone, MapPin, Plus, Pencil, X, Save, ArrowRightLeft, FileText, Camera, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -120,6 +120,7 @@ const AttendancePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<Person>>({});
   const [showTransfer, setShowTransfer] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Lookup maps for lesson/workshop names
   const [lessonMap, setLessonMap] = useState<Record<string, Lesson>>({});
@@ -901,6 +902,18 @@ const AttendancePage = () => {
             الورشة
           </button>
         </div>
+
+        {/* Search bar */}
+        <div className="relative mt-3">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="ابحث عن شخص..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-9 pr-9 pl-3 rounded-xl border border-border bg-card/60 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-4">
@@ -921,7 +934,9 @@ const AttendancePage = () => {
         ) : (
           <div className="flex flex-col gap-2">
             <AnimatePresence mode="popLayout">
-              {people.map((person, i) => {
+              {people
+                .filter((p) => !searchQuery || p.name.includes(searchQuery))
+                .map((person, i) => {
                 const initials = person.name.charAt(0);
                 return (
                   <motion.div
