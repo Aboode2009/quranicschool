@@ -298,13 +298,18 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
                       onClick={() => toggleExpand(person.id)}
                       className="flex items-center justify-between px-4 py-3.5 cursor-pointer active:scale-[0.98] transition-transform"
                     >
-                      <div className="flex-1 min-w-0">
-                        <span className="text-[15px] font-semibold text-foreground block">
-                          {person.name}
-                        </span>
-                        <span className="text-[11px] mt-0.5 block opacity-70">
-                          {statusLabel(detail)}
-                        </span>
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        {detail.status && (
+                          <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${detail.status === "present" ? "bg-green-500" : "bg-red-500"}`} />
+                        )}
+                        <div className="min-w-0">
+                          <span className="text-[15px] font-semibold text-foreground block">
+                            {person.name}
+                          </span>
+                          <span className="text-[11px] mt-0.5 block opacity-70">
+                            {statusLabel(detail)}
+                          </span>
+                        </div>
                       </div>
                       <ChevronDown
                         className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`}

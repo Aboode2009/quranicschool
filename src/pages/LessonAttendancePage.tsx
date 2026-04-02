@@ -239,6 +239,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
                         <span className="text-[11px] mt-0.5 block opacity-70">
                           {statusLabel(detail)}
                         </span>
+                        </div>
                       </div>
                       <ChevronDown
                       className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
