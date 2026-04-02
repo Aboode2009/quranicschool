@@ -120,6 +120,7 @@ const AttendancePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<Person>>({});
   const [showTransfer, setShowTransfer] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Lookup maps for lesson/workshop names
   const [lessonMap, setLessonMap] = useState<Record<string, Lesson>>({});
