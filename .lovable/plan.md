@@ -1,40 +1,26 @@
 
 
-# إضافة بحث وفلترة حسب نوع الدورة في المحاضرة والورشة
+# تحسين ألوان حالة الحضور لتكون واضحة ومستمرة
 
-## الفكرة
-إضافة شريط بحث بالاسم + أزرار فلترة حسب نوع الدورة (الأربعة أنواع) في كل من صفحة المحاضرة وصفحة الورشة. عند الضغط على نوع دورة معين، تظهر فقط المحاضرات/الورشات التابعة لتلك الدورة.
+## المشكلة
+الألوان الحالية خفيفة جداً (شفافية 10%) فما تنلاحظ بسهولة، والشخص ما يقدر يميز بسرعة منو مسوي ومنو لا.
+
+## الحل
+تقوية الألوان + إضافة نقطة ملونة (دائرة صغيرة) بجانب كل اسم:
+- **حاضر**: خلفية خضراء واضحة + نقطة خضراء
+- **غائب**: خلفية حمراء واضحة + نقطة حمراء  
+- **لم يُحدد**: خلفية رمادية بدون نقطة
 
 ## التعديلات
 
-### 1. `src/pages/MuhaderaPage.tsx`
-- إضافة state للبحث (`searchQuery`) وفلتر الدورة (`courseFilter`)
-- إضافة حقل بحث (Input) تحت العنوان مباشرة مع أيقونة بحث
-- إضافة صف أزرار أفقي قابل للتمرير يحتوي على أنواع الدورات الأربعة + زر "الكل"
-- فلترة `lessons` حسب `searchQuery` (بحث في `surahName`) و `courseFilter` (مطابقة `courseType`)
+### 1. `src/pages/LessonAttendancePage.tsx`
+- تقوية `statusColor`: من `bg-primary/10` إلى `bg-green-100 border-green-400` للحاضر، و`bg-red-100 border-red-400` للغائب
+- إضافة نقطة ملونة (div دائري صغير) قبل اسم الشخص
 
-### 2. `src/pages/WarashaPage.tsx`
-- نفس التعديلات: بحث بالاسم + فلترة حسب نوع الدورة
-- فلترة `workshops` بنفس المنطق
-
-### منطق الفلترة (مشترك)
-```typescript
-const [searchQuery, setSearchQuery] = useState("");
-const [courseFilter, setCourseFilter] = useState<string | null>(null);
-
-const filteredLessons = lessons.filter((lesson) => {
-  const matchesSearch = !searchQuery || lesson.surahName.includes(searchQuery);
-  const matchesCourse = !courseFilter || lesson.courseType === courseFilter;
-  return matchesSearch && matchesCourse;
-});
-```
-
-### واجهة البحث والفلترة
-- حقل بحث مع أيقونة Search من lucide
-- صف أزرار أفقي: "الكل" + الدورات الأربعة — الزر النشط يكون بلون `primary`، الباقي بلون فاتح
-- عند الضغط على نفس الفلتر مرة ثانية يُلغى (يرجع "الكل")
+### 2. `src/pages/WorkshopAttendancePage.tsx`
+- نفس التعديلات بالضبط
 
 ### الملفات المتأثرة
-- `src/pages/MuhaderaPage.tsx`
-- `src/pages/WarashaPage.tsx`
+- `src/pages/LessonAttendancePage.tsx`
+- `src/pages/WorkshopAttendancePage.tsx`
 
