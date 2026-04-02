@@ -934,7 +934,9 @@ const AttendancePage = () => {
         ) : (
           <div className="flex flex-col gap-2">
             <AnimatePresence mode="popLayout">
-              {people.map((person, i) => {
+              {people
+                .filter((p) => !searchQuery || p.name.includes(searchQuery))
+                .map((person, i) => {
                 const initials = person.name.charAt(0);
                 return (
                   <motion.div
