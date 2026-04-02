@@ -150,9 +150,9 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
   };
 
   const statusColor = (detail: AttendanceDetail) => {
-    if (!detail?.status) return "bg-muted text-muted-foreground";
-    if (detail.status === "present") return "bg-primary/10 text-primary border-primary/30";
-    return "bg-destructive/10 text-destructive border-destructive/30";
+    if (!detail?.status) return "bg-muted/50 text-muted-foreground border-border";
+    if (detail.status === "present") return "bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-600";
+    return "bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-600";
   };
 
   return (
@@ -228,13 +228,18 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
                     onClick={() => toggleExpand(person.id)}
                     className="flex items-center justify-between px-4 py-3.5 cursor-pointer active:scale-[0.98] transition-transform">
                     
-                      <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        {detail.status && (
+                          <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${detail.status === "present" ? "bg-green-500" : "bg-red-500"}`} />
+                        )}
+                        <div className="min-w-0">
                         <span className="text-[15px] font-semibold text-foreground block">
                           {person.name}
                         </span>
                         <span className="text-[11px] mt-0.5 block opacity-70">
                           {statusLabel(detail)}
                         </span>
+                        </div>
                       </div>
                       <ChevronDown
                       className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
