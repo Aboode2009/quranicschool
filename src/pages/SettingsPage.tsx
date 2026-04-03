@@ -327,10 +327,11 @@ interface SessionNote {
   activities_notes: string;
   financial_notes: string;
   logistics_notes: string;
+  supervisor_attendance_notes: string;
   date: string;
 }
 
-type SessionTab = "assignments" | "lecture" | "workshop" | "resources" | "recitation" | "activities" | "financial" | "logistics";
+type SessionTab = "assignments" | "lecture" | "workshop" | "resources" | "recitation" | "activities" | "financial" | "logistics" | "supervisor_attendance";
 
 const sessionTabs: { id: SessionTab; label: string; icon: React.ElementType }[] = [
   { id: "assignments", label: "نحن والواجبات", icon: ClipboardList },
@@ -341,6 +342,7 @@ const sessionTabs: { id: SessionTab; label: string; icon: React.ElementType }[] 
   { id: "activities", label: "النشاطات", icon: CheckSquare },
   { id: "financial", label: "الأمور المالية", icon: DollarSign },
   { id: "logistics", label: "لوجستية", icon: Wrench },
+  { id: "supervisor_attendance", label: "حضور المشرفين", icon: UserCheck },
 ];
 
 const SessionNoteDetailPage = ({ note, onBack, onDelete, onUpdate }: { note: SessionNote; onBack: () => void; onDelete: (id: string) => void; onUpdate: (id: string, updated: Partial<SessionNote>) => void }) => {
@@ -362,6 +364,7 @@ const SessionNoteDetailPage = ({ note, onBack, onDelete, onUpdate }: { note: Ses
         activities_notes: editData.activities_notes.trim(),
         financial_notes: editData.financial_notes.trim(),
         logistics_notes: editData.logistics_notes.trim(),
+        supervisor_attendance_notes: editData.supervisor_attendance_notes.trim(),
         content: `${editData.lecture_name.trim()} - ${editData.workshop_name.trim()}`,
       })
       .eq("id", note.id);
@@ -380,6 +383,7 @@ const SessionNoteDetailPage = ({ note, onBack, onDelete, onUpdate }: { note: Ses
         activities_notes: editData.activities_notes.trim(),
         financial_notes: editData.financial_notes.trim(),
         logistics_notes: editData.logistics_notes.trim(),
+        supervisor_attendance_notes: editData.supervisor_attendance_notes.trim(),
       });
       setIsEditing(false);
       toast.success("تم التعديل بنجاح");
@@ -399,6 +403,7 @@ const SessionNoteDetailPage = ({ note, onBack, onDelete, onUpdate }: { note: Ses
         activities: { field: "activities_notes", placeholder: "ملاحظات النشاطات..." },
         financial: { field: "financial_notes", placeholder: "ملاحظات الأمور المالية..." },
         logistics: { field: "logistics_notes", placeholder: "ملاحظات لوجستية..." },
+        supervisor_attendance: { field: "supervisor_attendance_notes", placeholder: "ملاحظات حضور المشرفين..." },
       };
       const config = fieldMap[tab];
       return (
@@ -433,6 +438,7 @@ const SessionNoteDetailPage = ({ note, onBack, onDelete, onUpdate }: { note: Ses
       activities: { notes: note.activities_notes },
       financial: { notes: note.financial_notes },
       logistics: { notes: note.logistics_notes },
+      supervisor_attendance: { notes: note.supervisor_attendance_notes },
     };
     const content = contentMap[tab];
     if (!content.name && !content.notes) {
@@ -554,6 +560,7 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
     resources: "", assignments_notes: "",
     recitation_notes: "", activities_notes: "",
     financial_notes: "", logistics_notes: "",
+    supervisor_attendance_notes: "",
   });
 
   useEffect(() => { fetchNotes(); }, []);
@@ -575,6 +582,7 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
       resources: "", assignments_notes: "",
       recitation_notes: "", activities_notes: "",
       financial_notes: "", logistics_notes: "",
+      supervisor_attendance_notes: "",
     });
     setShowAdd(false);
   };
@@ -597,6 +605,7 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
       activities_notes: newData.activities_notes.trim(),
       financial_notes: newData.financial_notes.trim(),
       logistics_notes: newData.logistics_notes.trim(),
+      supervisor_attendance_notes: newData.supervisor_attendance_notes.trim(),
       content: `${newData.lecture_name.trim()} - ${newData.workshop_name.trim()}`,
       date: dateStr,
     }]).select().single();
@@ -641,6 +650,7 @@ const SessionNotesPage = ({ onBack }: { onBack: () => void }) => {
       activities: { field: "activities_notes", placeholder: "ملاحظات النشاطات..." },
       financial: { field: "financial_notes", placeholder: "ملاحظات الأمور المالية..." },
       logistics: { field: "logistics_notes", placeholder: "ملاحظات لوجستية..." },
+      supervisor_attendance: { field: "supervisor_attendance_notes", placeholder: "ملاحظات حضور المشرفين..." },
     };
     const config = fieldMap[tab];
     return (
