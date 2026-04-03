@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { AppRole } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { ChevronLeft, Users, Shield, ShieldCheck, BarChart3, UserCheck, BookOpen, DollarSign, Plus, Trash2, MessageSquarePlus, Crown, Eye, Briefcase, Ban, CheckCircle } from "lucide-react";
+import { ChevronLeft, Users, Shield, ShieldCheck, UserCheck, BookOpen, Plus, Trash2, MessageSquarePlus, Crown, Eye, Briefcase, Ban, CheckCircle } from "lucide-react";
 
 interface Profile {
   id: string;
@@ -37,7 +37,7 @@ const ROLE_CONFIG: { role: AppRole; label: string; icon: typeof Shield; color: s
 
 const AdminPage = ({ onBack }: { onBack: () => void }) => {
   const { user } = useAuth();
-  const [activeSection, setActiveSection] = useState<"users" | "stats" | "questions">("users");
+  const [activeSection, setActiveSection] = useState<"users" | "questions">("users");
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,44 +49,22 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
   const [newOptions, setNewOptions] = useState<string[]>([""]);
   const [addingQuestion, setAddingQuestion] = useState(false);
 
-  // Stats
-  const [stats, setStats] = useState({
-    totalPeople: 0,
-    totalAttendance: 0,
-    totalIncome: 0,
-    totalExpense: 0,
-    totalSessions: 0,
-  });
-
-  useEffect(() => {
+  // Custom questions
     fetchData();
   }, []);
 
   const fetchData = async () => {
     setLoading(true);
     
-    const [profilesRes, rolesRes, peopleRes, attendanceRes, incomeRes, expenseRes, sessionsRes, questionsRes] = await Promise.all([
+    const [profilesRes, rolesRes, questionsRes] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id, role, supervised_workshop"),
-      supabase.from("people").select("id", { count: "exact", head: true }),
-      supabase.from("attendance").select("id", { count: "exact", head: true }),
-      supabase.from("finances").select("amount").eq("type", "income"),
-      supabase.from("finances").select("amount").eq("type", "expense"),
-      supabase.from("session_notes").select("id", { count: "exact", head: true }),
       supabase.from("workshop_questions").select("*").order("sort_order", { ascending: true }),
     ]);
 
     if (profilesRes.data) setProfiles(profilesRes.data as Profile[]);
     if (rolesRes.data) setRoles(rolesRes.data as UserRole[]);
     if (questionsRes.data) setQuestions(questionsRes.data.map((q: any) => ({ ...q, options: Array.isArray(q.options) ? q.options : [] })));
-
-    setStats({
-      totalPeople: peopleRes.count || 0,
-      totalAttendance: attendanceRes.count || 0,
-      totalIncome: (incomeRes.data || []).reduce((s, r) => s + Number(r.amount), 0),
-      totalExpense: (expenseRes.data || []).reduce((s, r) => s + Number(r.amount), 0),
-      totalSessions: sessionsRes.count || 0,
-    });
 
     setLoading(false);
   };
@@ -200,14 +178,6 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
     toast.success("تم حذف السؤال");
   };
 
-  const statCards = [
-    { label: "إجمالي الأشخاص", value: stats.totalPeople, icon: Users, color: "text-primary" },
-    { label: "سجلات الحضور", value: stats.totalAttendance, icon: UserCheck, color: "text-accent" },
-    { label: "الإيرادات", value: `${stats.totalIncome.toLocaleString()} د.ع`, icon: DollarSign, color: "text-accent" },
-    { label: "المصروفات", value: `${stats.totalExpense.toLocaleString()} د.ع`, icon: DollarSign, color: "text-destructive" },
-    { label: "الجلسات", value: stats.totalSessions, icon: BookOpen, color: "text-primary" },
-  ];
-
   return (
     <div className="flex flex-col h-full" dir="rtl">
       <div className="px-4 pt-3 pb-2">
@@ -220,7 +190,6 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
         <div className="flex gap-1 p-1 rounded-xl bg-secondary">
           {[
             { key: "users" as const, icon: Shield, label: "المستخدمين" },
-            { key: "stats" as const, icon: BarChart3, label: "الإحصائيات" },
             { key: "questions" as const, icon: MessageSquarePlus, label: "الأسئلة" },
           ].map((tab) => (
             <button
@@ -387,29 +356,6 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
                 );
               })}
             </AnimatePresence>
-          </div>
-        ) : activeSection === "stats" ? (
-          <div className="flex flex-col gap-3 mt-3">
-            {statCards.map((stat, i) => {
-              const Icon = stat.icon;
-              return (
-                <motion.div key={stat.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="ios-card px-4 py-4 flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center shrink-0">
-                    <Icon className={`w-6 h-6 ${stat.color}`} />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">{stat.label}</p>
-                    <p className="text-xl font-bold text-foreground">{stat.value}</p>
-                  </div>
-                </motion.div>
-              );
-            })}
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="ios-card px-4 py-4">
-              <p className="text-xs text-muted-foreground mb-2">الرصيد الصافي</p>
-              <p className={`text-2xl font-bold ${(stats.totalIncome - stats.totalExpense) >= 0 ? "text-accent" : "text-destructive"}`}>
-                {(stats.totalIncome - stats.totalExpense).toLocaleString()} <span className="text-sm">د.ع</span>
-              </p>
-            </motion.div>
           </div>
         ) : (
           /* Questions section */
