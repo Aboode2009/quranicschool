@@ -6,10 +6,12 @@ import { toast } from "sonner";
 import type { Lesson } from "@/lib/quran-data";
 import { formatSyriacDateString } from "@/lib/syriac-locale";
 import { useAuth } from "@/hooks/useAuth";
+import { buildLinkedPersonMap } from "@/lib/person-links";
 
 interface Person {
   id: string;
   name: string;
+  phone?: string | null;
   workshop_number?: string | null;
 }
 
@@ -52,15 +54,16 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
   }, [lesson.id]);
 
   const fetchData = async () => {
-    let peopleQuery = supabase.from("people").select("id, name, workshop_number").eq("category", "warasha");
+    let peopleQuery = supabase.from("people").select("id, name, phone, workshop_number").eq("category", "warasha");
     
     // المشرف يشوف فقط طلاب ورشته
     if (userRole === "supervisor" && supervisedWorkshop) {
       peopleQuery = peopleQuery.eq("workshop_number", supervisedWorkshop);
     }
     
-    const [peopleRes, questionsRes] = await Promise.all([
+    const [peopleRes, linkedPeopleRes, questionsRes] = await Promise.all([
       peopleQuery.order("created_at", { ascending: true }),
+      supabase.from("people").select("id, name, phone"),
       supabase.from("workshop_questions").select("*").order("sort_order", { ascending: true }),
     ]);
 
@@ -73,46 +76,69 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
     const persons = peopleRes.data || [];
     setPeople(persons);
 
+    const { linkedIds, aliasToVisibleId } = buildLinkedPersonMap(
+      persons,
+      linkedPeopleRes.data || persons
+    );
+
     const questions = (questionsRes.data || []).map((q: any) => ({
       ...q,
       options: Array.isArray(q.options) ? q.options : [],
     }));
     setCustomQuestions(questions);
 
-    const [attRes, answersRes] = await Promise.all([
-      supabase.from("attendance")
-        .select("person_id, is_present, read_material, read_material_status, listened_lecture, extracted_verse, excuse, timing")
-        .eq("lesson_name", lesson.id),
-      supabase.from("workshop_answers")
-        .select("person_id, question_id, answer")
-        .eq("lesson_name", lesson.id),
-    ]);
+    let attData: any[] = [];
+    let answersData: any[] = [];
+
+    if (linkedIds.length > 0) {
+      const [attRes, answersRes] = await Promise.all([
+        supabase.from("attendance")
+          .select("person_id, is_present, read_material, read_material_status, listened_lecture, extracted_verse, excuse, timing")
+          .eq("lesson_name", lesson.id)
+          .in("person_id", linkedIds),
+        supabase.from("workshop_answers")
+          .select("person_id, question_id, answer")
+          .eq("lesson_name", lesson.id)
+          .in("person_id", linkedIds),
+      ]);
+
+      attData = attRes.data || [];
+      answersData = answersRes.data || [];
+    }
 
     const answersMap: Record<string, Record<string, string>> = {};
-    (answersRes.data || []).forEach((a: any) => {
-      if (!answersMap[a.person_id]) answersMap[a.person_id] = {};
-      answersMap[a.person_id][a.question_id] = a.answer;
+    answersData.forEach((a: any) => {
+      const visiblePersonId = aliasToVisibleId.get(a.person_id);
+      if (!visiblePersonId) return;
+
+      if (!answersMap[visiblePersonId]) answersMap[visiblePersonId] = {};
+      answersMap[visiblePersonId][a.question_id] = a.answer;
     });
 
     const map: Record<string, WorkshopDetail> = {};
     persons.forEach((p) => {
       map[p.id] = { status: null, readMaterial: "no", listenedLecture: false, extractedVerse: false, customAnswers: {} };
     });
-    (attRes.data || []).forEach((r: any) => {
+    let matchedAttendanceCount = 0;
+    attData.forEach((r: any) => {
+      const visiblePersonId = aliasToVisibleId.get(r.person_id);
+      if (!visiblePersonId) return;
+
+      matchedAttendanceCount += 1;
       const readStatus = r.read_material_status || (r.read_material ? "yes" : "no");
-      map[r.person_id] = {
+      map[visiblePersonId] = {
         status: r.is_present ? "present" : "absent",
         readMaterial: readStatus,
         listenedLecture: r.listened_lecture || false,
         extractedVerse: r.extracted_verse || false,
         excuse: r.excuse || undefined,
         timing: r.timing || undefined,
-        customAnswers: answersMap[r.person_id] || {},
+        customAnswers: answersMap[visiblePersonId] || {},
       };
     });
 
     setAttendance(map);
-    setIsEditing((attRes.data || []).length > 0);
+    setIsEditing(matchedAttendanceCount > 0);
     setLoading(false);
   };
 
