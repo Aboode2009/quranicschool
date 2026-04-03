@@ -6,10 +6,12 @@ import { toast } from "sonner";
 import type { Lesson } from "@/lib/quran-data";
 import { formatSyriacDateString } from "@/lib/syriac-locale";
 import { useAuth } from "@/hooks/useAuth";
+import { buildLinkedPersonMap } from "@/lib/person-links";
 
 interface Person {
   id: string;
   name: string;
+  phone?: string | null;
 }
 
 type Status = "present" | "absent" | null;
@@ -44,7 +46,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
   }, [lesson.id]);
 
   const fetchData = async () => {
-    let query = supabase.from("people").select("id, name");
+    let query = supabase.from("people").select("id, name, phone");
 
     if (userRole === "supervisor" && supervisedWorkshop) {
       query = query.eq("category", "warasha").eq("workshop_number", supervisedWorkshop);
@@ -52,7 +54,12 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
       query = query.eq("category", category);
     }
 
-    const { data: peopleData, error: peopleErr } = await query.order("created_at", { ascending: true });
+    const [peopleRes, linkedPeopleRes] = await Promise.all([
+      query.order("created_at", { ascending: true }),
+      supabase.from("people").select("id, name, phone")
+    ]);
+
+    const { data: peopleData, error: peopleErr } = peopleRes;
 
     if (peopleErr) {
       toast.error("خطأ في تحميل الأسماء");
@@ -63,17 +70,32 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
     const persons = peopleData || [];
     setPeople(persons);
 
-    const { data: attData } = await supabase.
+    const { linkedIds, aliasToVisibleId } = buildLinkedPersonMap(
+      persons,
+      linkedPeopleRes.data || persons
+    );
+
+    const attendanceRes = linkedIds.length > 0 ?
+    await supabase.
     from("attendance").
     select("person_id, is_present, timing, activity, excuse").
-    eq("lesson_name", lesson.id);
+    eq("lesson_name", lesson.id).
+    in("person_id", linkedIds) :
+    { data: [] as any[] };
+
+    const attData = attendanceRes.data || [];
 
     const map: Record<string, AttendanceDetail> = {};
     persons.forEach((p) => {
       map[p.id] = { status: null };
     });
+    let matchedAttendanceCount = 0;
     (attData || []).forEach((r: any) => {
-      map[r.person_id] = {
+      const visiblePersonId = aliasToVisibleId.get(r.person_id);
+      if (!visiblePersonId) return;
+
+      matchedAttendanceCount += 1;
+      map[visiblePersonId] = {
         status: r.is_present ? "present" : "absent",
         timing: r.timing || undefined,
         activity: r.activity || undefined,
@@ -82,7 +104,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
     });
 
     setAttendance(map);
-    setIsEditing((attData || []).length > 0);
+    setIsEditing(matchedAttendanceCount > 0);
     setLoading(false);
   };
 

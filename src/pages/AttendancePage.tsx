@@ -7,6 +7,7 @@ import * as XLSX from "xlsx";
 import type { Lesson } from "@/lib/quran-data";
 import { useAuth } from "@/hooks/useAuth";
 import IslamicDecorations from "@/components/IslamicDecorations";
+import { buildLinkedPersonMap } from "@/lib/person-links";
 
 const WORKSHOP_NUMBERS = ["ورشة أولى", "ورشة ثانية", "ورشة ثالثة", "ورشة رابعة", "ورشة خامسة"] as const;
 
@@ -294,9 +295,10 @@ const AttendancePage = () => {
     setExpandedSection(null);
 
     // Refresh maps from DB
-    const [lessonsRes, workshopsRes] = await Promise.all([
+    const [lessonsRes, workshopsRes, linkedPeopleRes] = await Promise.all([
       supabase.from("lessons").select("id, surah_name, from_ayah, to_ayah, lesson_date, notes, status, course_type").eq("category", "muhadera"),
       supabase.from("lessons").select("id, surah_name, from_ayah, to_ayah, lesson_date, notes, status, course_type").eq("category", "warasha"),
+      supabase.from("people").select("id, name, phone"),
     ]);
     const freshLessons = (lessonsRes.data || []).map((l: any) => ({ id: l.id, surahName: l.surah_name, fromAyah: l.from_ayah, toAyah: l.to_ayah, date: l.lesson_date, notes: l.notes, status: l.status, courseType: l.course_type || "" }));
     const freshWorkshops = (workshopsRes.data || []).map((w: any) => ({ id: w.id, surahName: w.surah_name, fromAyah: w.from_ayah, toAyah: w.to_ayah, date: w.lesson_date, notes: w.notes, status: w.status, courseType: w.course_type || "" }));
@@ -307,13 +309,18 @@ const AttendancePage = () => {
     setLessonMap(lMap);
     setWorkshopMap(wMap);
 
+    const { linkedIds } = buildLinkedPersonMap(
+      [person],
+      linkedPeopleRes.data || [person]
+    );
+
     const workshopIds = new Set(freshWorkshops.map((w: Lesson) => w.id));
     const lessonIds = new Set(freshLessons.map((l: Lesson) => l.id));
 
     const { data, error } = await supabase
       .from("attendance")
       .select("is_present, lesson_name, lesson_date, excuse, workshop_number")
-      .eq("person_id", person.id);
+      .in("person_id", linkedIds);
 
     if (error) {
       toast.error("خطأ في تحميل الإحصائيات");
