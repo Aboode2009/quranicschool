@@ -49,7 +49,7 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
   const [newOptions, setNewOptions] = useState<string[]>([""]);
   const [addingQuestion, setAddingQuestion] = useState(false);
 
-  // Custom questions
+  useEffect(() => {
     fetchData();
   }, []);
 
