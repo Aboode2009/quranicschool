@@ -210,7 +210,7 @@ const SupervisorAttendancePage = ({ onBack }: { onBack: () => void }) => {
       // جيب عدد المشرفين لكل درس
       const ids = data.map((l: Lesson) => l.id);
       if (ids.length > 0) {
-        const { data: countData } = await supabase
+        const { data: countData } = await (supabase as any)
           .from("supervisor_attendance")
           .select("lesson_id")
           .in("lesson_id", ids);
