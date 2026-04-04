@@ -39,7 +39,7 @@ const LessonDetailPage = ({
 
   const fetchSupervisors = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("supervisor_attendance")
       .select("*")
       .eq("lesson_id", lesson.id)
