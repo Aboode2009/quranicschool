@@ -64,7 +64,7 @@ const LessonDetailPage = ({
   };
 
   const deleteSupervisor = async (id: string) => {
-    const { error } = await supabase.from("supervisor_attendance").delete().eq("id", id);
+    const { error } = await (supabase as any).from("supervisor_attendance").delete().eq("id", id);
     if (error) { toast.error("خطأ في الحذف"); return; }
     setSupervisors((prev) => prev.filter((s) => s.id !== id));
     toast.success("تم الحذف");
