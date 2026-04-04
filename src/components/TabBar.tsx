@@ -1,6 +1,6 @@
 import { BookOpen, Users, Settings, UserCheck, LayoutDashboard } from "lucide-react";
 
-type TabId = "dashboard" | "muhadera" | "warasha" | "settings" | "attendance" | "admin" | "supervisor_attendance";
+type TabId = "dashboard" | "muhadera" | "warasha" | "settings" | "attendance" | "admin" | "supervisor_attendance" | "supervisors_list";
 
 interface TabBarProps {
   activeTab: TabId;
