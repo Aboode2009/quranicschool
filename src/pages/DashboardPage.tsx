@@ -3,7 +3,7 @@ import { BookOpen, Users, UserCheck, Settings, ChevronLeft, Shield } from "lucid
 import { useAuth } from "@/hooks/useAuth";
 import IslamicDecorations from "@/components/IslamicDecorations";
 
-type TabId = "muhadera" | "warasha" | "settings" | "attendance" | "admin";
+type TabId = "muhadera" | "warasha" | "settings" | "attendance" | "admin" | "supervisor_attendance";
 
 interface DashboardProps {
   onNavigate: (tab: TabId) => void;
@@ -52,6 +52,13 @@ const DashboardPage = ({ onNavigate }: DashboardProps) => {
       desc: "متابعة الحضور والأسماء",
       icon: UserCheck,
       bg: "bg-gradient-to-br from-[#7c4dff] to-[#b388ff]",
+    },
+    {
+      id: "supervisor_attendance" as TabId,
+      title: "حضور المشرفين",
+      desc: "تسجيل حضور المشرفين في المحاضرات والورش",
+      icon: UserCheck,
+      bg: "bg-gradient-to-br from-[#00695c] to-[#26a69a]",
     },
     {
       id: "settings" as TabId,

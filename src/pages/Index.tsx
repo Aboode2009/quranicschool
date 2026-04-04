@@ -7,12 +7,13 @@ import SettingsPage from "./SettingsPage";
 import AttendancePage from "./AttendancePage";
 import DashboardPage from "./DashboardPage";
 import AdminPage from "./AdminPage";
+import SupervisorAttendancePage from "./SupervisorAttendancePage";
 import TabBar from "@/components/TabBar";
 
 const Index = () => {
   const { user, loading, isAdmin, userRole } = useAuth();
   const showAdmin = isAdmin || userRole === "course_director";
-  const [activeTab, setActiveTab] = useState<"dashboard" | "muhadera" | "warasha" | "settings" | "attendance" | "admin">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "muhadera" | "warasha" | "settings" | "attendance" | "admin" | "supervisor_attendance">("dashboard");
 
   if (loading) {
     return (
@@ -38,6 +39,7 @@ const Index = () => {
         {activeTab === "warasha" && <WarashaPage />}
         {activeTab === "settings" && <SettingsPage />}
         {activeTab === "admin" && <AdminPage onBack={() => setActiveTab("settings")} />}
+        {activeTab === "supervisor_attendance" && <SupervisorAttendancePage onBack={() => setActiveTab("dashboard")} />}
       </main>
 
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
