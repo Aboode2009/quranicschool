@@ -51,7 +51,7 @@ const LessonDetailPage = ({
   const addSupervisor = async () => {
     const name = newName.trim();
     if (!name) { toast.error("اكتب اسم المشرف"); return; }
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("supervisor_attendance")
       .insert({ name, lesson_id: lesson.id, lesson_category: lesson.category })
       .select()
