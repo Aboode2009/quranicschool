@@ -340,24 +340,33 @@ export type Database = {
       supervisor_attendance: {
         Row: {
           created_at: string
+          excuse: string | null
           id: string
+          is_present: boolean
           lesson_category: string
           lesson_id: string
           name: string
+          supervisor_id: string | null
         }
         Insert: {
           created_at?: string
+          excuse?: string | null
           id?: string
+          is_present?: boolean
           lesson_category?: string
           lesson_id: string
           name: string
+          supervisor_id?: string | null
         }
         Update: {
           created_at?: string
+          excuse?: string | null
           id?: string
+          is_present?: boolean
           lesson_category?: string
           lesson_id?: string
           name?: string
+          supervisor_id?: string | null
         }
         Relationships: [
           {
@@ -367,7 +376,35 @@ export type Database = {
             referencedRelation: "lessons"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "supervisor_attendance_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "supervisors"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      supervisors: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          phone: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          phone?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
