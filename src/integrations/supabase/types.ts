@@ -337,6 +337,38 @@ export type Database = {
         }
         Relationships: []
       }
+      supervisor_attendance: {
+        Row: {
+          created_at: string
+          id: string
+          lesson_category: string
+          lesson_id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lesson_category?: string
+          lesson_id: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lesson_category?: string
+          lesson_id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supervisor_attendance_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string

@@ -39,7 +39,7 @@ const LessonDetailPage = ({
 
   const fetchSupervisors = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("supervisor_attendance")
       .select("*")
       .eq("lesson_id", lesson.id)
@@ -51,7 +51,7 @@ const LessonDetailPage = ({
   const addSupervisor = async () => {
     const name = newName.trim();
     if (!name) { toast.error("اكتب اسم المشرف"); return; }
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("supervisor_attendance")
       .insert({ name, lesson_id: lesson.id, lesson_category: lesson.category })
       .select()
@@ -64,7 +64,7 @@ const LessonDetailPage = ({
   };
 
   const deleteSupervisor = async (id: string) => {
-    const { error } = await supabase.from("supervisor_attendance").delete().eq("id", id);
+    const { error } = await (supabase as any).from("supervisor_attendance").delete().eq("id", id);
     if (error) { toast.error("خطأ في الحذف"); return; }
     setSupervisors((prev) => prev.filter((s) => s.id !== id));
     toast.success("تم الحذف");
@@ -210,7 +210,7 @@ const SupervisorAttendancePage = ({ onBack }: { onBack: () => void }) => {
       // جيب عدد المشرفين لكل درس
       const ids = data.map((l: Lesson) => l.id);
       if (ids.length > 0) {
-        const { data: countData } = await supabase
+        const { data: countData } = await (supabase as any)
           .from("supervisor_attendance")
           .select("lesson_id")
           .in("lesson_id", ids);
