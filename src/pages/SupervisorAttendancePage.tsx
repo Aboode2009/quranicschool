@@ -61,7 +61,7 @@ const LessonSupervisorAttendancePage = ({ lesson, onBack }: { lesson: Lesson; on
     await supabase.from("supervisor_attendance").delete().eq("lesson_id", lesson.id);
     const records = supervisors.map((s) => {
       const d = attendance[s.id];
-      return { supervisor_id: s.id, lesson_id: lesson.id, lesson_category: lesson.category, is_present: d?.status === "present", excuse: d?.status === "absent" ? d.excuse || null : null };
+      return { supervisor_id: s.id, lesson_id: lesson.id, lesson_category: lesson.category, is_present: d?.status === "present", excuse: d?.status === "absent" ? d.excuse || null : null, name: s.name };
     });
     const { error } = await supabase.from("supervisor_attendance").insert(records);
     if (error) toast.error("خطأ في حفظ الحضور");
