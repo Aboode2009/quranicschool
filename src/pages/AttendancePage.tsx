@@ -442,6 +442,86 @@ const AttendancePage = () => {
     toast.success("تم تصدير الملف بنجاح");
   };
 
+  const exportToPDF = (person: Person, data: CategorizedRecords) => {
+    const getLessonName = (id: string) => getLessonDisplayName(id);
+
+    const tableRow = (cols: string[], isHeader = false) =>
+      `<tr>${cols.map(c => `<${isHeader ? "th" : "td"}>${c}</${isHeader ? "th" : "td"}>`).join("")}</tr>`;
+
+    const section = (title: string, rows: AttendanceRecord[], withExcuse: boolean) => {
+      if (rows.length === 0) return `<h3 style="color:#888">${title}: لا يوجد</h3>`;
+      const headers = withExcuse ? ["اسم الدرس", "التاريخ", "العذر"] : ["اسم الدرس", "التاريخ"];
+      return `
+        <h3>${title} (${rows.length})</h3>
+        <table>
+          <thead>${tableRow(headers, true)}</thead>
+          <tbody>
+            ${rows.map(r => tableRow(withExcuse
+              ? [getLessonName(r.lesson_name), r.lesson_date, r.excuse === "with_excuse" ? "بعذر" : "بدون عذر"]
+              : [getLessonName(r.lesson_name), r.lesson_date]
+            )).join("")}
+          </tbody>
+        </table>`;
+    };
+
+    const totalPresent = data.lecturePresent.length + data.workshopPresent.length;
+    const totalAbsent  = data.lectureAbsent.length  + data.workshopAbsent.length;
+    const total        = totalPresent + totalAbsent;
+    const pct          = total > 0 ? Math.round((totalPresent / total) * 100) : 0;
+
+    const html = `<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8"/>
+<title>تقرير ${person.name}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl; padding: 32px; color: #1a1a1a; background: #fff; }
+  h1 { font-size: 22px; margin-bottom: 4px; color: #1a1a1a; }
+  .subtitle { font-size: 13px; color: #666; margin-bottom: 24px; }
+  .summary { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
+  .card { background: #f4f6fb; border-radius: 10px; padding: 12px 20px; min-width: 130px; text-align: center; }
+  .card .val { font-size: 24px; font-weight: 700; color: #2563eb; }
+  .card .lbl { font-size: 12px; color: #666; margin-top: 2px; }
+  .card.green .val { color: #16a34a; }
+  .card.red   .val { color: #dc2626; }
+  h3 { font-size: 15px; margin: 20px 0 8px; border-right: 4px solid #2563eb; padding-right: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 8px; }
+  th { background: #2563eb; color: #fff; padding: 8px 12px; text-align: right; font-weight: 600; }
+  td { padding: 7px 12px; border-bottom: 1px solid #e5e7eb; }
+  tr:nth-child(even) td { background: #f9fafb; }
+  .footer { margin-top: 32px; font-size: 11px; color: #aaa; border-top: 1px solid #e5e7eb; padding-top: 10px; }
+  @media print { body { padding: 16px; } }
+</style>
+</head>
+<body>
+<h1>تقرير حضور: ${person.name}</h1>
+<div class="subtitle">تاريخ الطباعة: ${new Date().toLocaleDateString("ar-IQ")}</div>
+
+<div class="summary">
+  <div class="card"><div class="val">${total}</div><div class="lbl">إجمالي الجلسات</div></div>
+  <div class="card green"><div class="val">${totalPresent}</div><div class="lbl">إجمالي الحضور</div></div>
+  <div class="card red"><div class="val">${totalAbsent}</div><div class="lbl">إجمالي الغياب</div></div>
+  <div class="card"><div class="val">${pct}%</div><div class="lbl">نسبة الحضور</div></div>
+</div>
+
+${section("حضور المحاضرات", data.lecturePresent, false)}
+${section("غياب المحاضرات", data.lectureAbsent, true)}
+${section("حضور الورشات", data.workshopPresent, false)}
+${section("غياب الورشات", data.workshopAbsent, true)}
+
+<div class="footer">تم إنشاء هذا التقرير تلقائياً</div>
+</body>
+</html>`;
+
+    const win = window.open("", "_blank");
+    if (!win) { toast.error("يرجى السماح بالنوافذ المنبثقة"); return; }
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => { win.print(); };
+    toast.success("جاري فتح نافذة الطباعة...");
+  };
+
   const title = activeCategory === "muhadera" ? "أسماء المحاضرة" : "أسماء الورشة";
   const subtitle = "اضغط على الاسم لعرض الإحصائيات";
 
@@ -769,13 +849,22 @@ const AttendancePage = () => {
               </>
             )}
             {records && (
-              <button
-                onClick={() => exportToExcel(selectedPerson, records)}
-                className="mt-3 flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary text-sm font-semibold transition-all active:scale-[0.97]"
-              >
-                <Download className="w-4 h-4" />
-                <span>تصدير Excel</span>
-              </button>
+              <div className="mt-3 flex gap-2 flex-wrap">
+                <button
+                  onClick={() => exportToExcel(selectedPerson, records)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary text-sm font-semibold transition-all active:scale-[0.97]"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>تصدير Excel</span>
+                </button>
+                <button
+                  onClick={() => exportToPDF(selectedPerson, records)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-destructive/10 text-destructive text-sm font-semibold transition-all active:scale-[0.97]"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>تصدير PDF</span>
+                </button>
+              </div>
             )}
           </motion.div>
 
