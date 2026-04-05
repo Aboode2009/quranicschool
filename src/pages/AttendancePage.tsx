@@ -111,6 +111,11 @@ const AttendancePage = () => {
   const [newEducation, setNewEducation] = useState("");
   const [newWorkshopNumber, setNewWorkshopNumber] = useState("");
   const [newNotes, setNewNotes] = useState("");
+  const [newMosqueName, setNewMosqueName] = useState("");
+  const [newJob, setNewJob] = useState("");
+  const [newHasChildren, setNewHasChildren] = useState<boolean | null>(null);
+  const [newFamilyInCourses, setNewFamilyInCourses] = useState("");
+  const [newSkills, setNewSkills] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
@@ -183,6 +188,7 @@ const AttendancePage = () => {
     if (!newJoinDate) { toast.error("يرجى إدخال تاريخ الانضمام"); return; }
     if (!newEducation.trim()) { toast.error("يرجى إدخال التحصيل الدراسي"); return; }
     if (!newWorkshopNumber) { toast.error("يرجى اختيار رقم الورشة"); return; }
+    if (!newMosqueName.trim()) { toast.error("يرجى إدخال اسم المسجد"); return; }
 
     const baseData: any = {
       name: trimmed,
@@ -192,6 +198,11 @@ const AttendancePage = () => {
       join_date: newJoinDate,
       education_level: newEducation.trim(),
       notes: newNotes.trim() || null,
+      mosque_name: newMosqueName.trim() || null,
+      job: newJob.trim() || null,
+      has_children: newHasChildren,
+      family_in_courses: newFamilyInCourses.trim() || null,
+      skills: newSkills.trim() || null,
     };
 
     const records = [
@@ -218,6 +229,11 @@ const AttendancePage = () => {
       setNewEducation("");
       setNewWorkshopNumber("");
       setNewNotes("");
+      setNewMosqueName("");
+      setNewJob("");
+      setNewHasChildren(null);
+      setNewFamilyInCourses("");
+      setNewSkills("");
       setShowAddForm(false);
       toast.success(`تمت إضافة ${trimmed} للمحاضرة والورشة`);
     }
@@ -1077,6 +1093,62 @@ const AttendancePage = () => {
                   className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                 />
               </div>
+
+              {/* --- حقول جديدة --- */}
+              <div className="relative">
+                <FileText className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="اسم المسجد *"
+                  value={newMosqueName}
+                  onChange={(e) => setNewMosqueName(e.target.value)}
+                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              <div className="relative">
+                <FileText className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="العمل (اختياري)"
+                  value={newJob}
+                  onChange={(e) => setNewJob(e.target.value)}
+                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm text-muted-foreground">هل لديه أبناء؟ (اختياري)</label>
+                <div className="flex gap-2">
+                  {[{ label: "نعم", val: true }, { label: "لا", val: false }].map(({ label, val }) => (
+                    <button key={label} type="button"
+                      onClick={() => setNewHasChildren(newHasChildren === val ? null : val)}
+                      className={`px-4 py-2 rounded-lg text-xs transition-colors ${
+                        newHasChildren === val ? "bg-primary text-primary-foreground font-medium" : "bg-muted/50 text-foreground hover:bg-muted"
+                      }`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="relative">
+                <FileText className="absolute right-3 top-3 w-4 h-4 text-muted-foreground" />
+                <textarea
+                  placeholder="هل أفراد أسرته في الدورات؟ (اختياري)"
+                  value={newFamilyInCourses}
+                  onChange={(e) => setNewFamilyInCourses(e.target.value)}
+                  rows={2}
+                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                />
+              </div>
+              <div className="relative">
+                <FileText className="absolute right-3 top-3 w-4 h-4 text-muted-foreground" />
+                <textarea
+                  placeholder="مهارة يجيدها (اختياري)"
+                  value={newSkills}
+                  onChange={(e) => setNewSkills(e.target.value)}
+                  rows={2}
+                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                />
+              </div>
               <div className="flex gap-2">
                 <button
                   onClick={addPerson}
@@ -1086,7 +1158,7 @@ const AttendancePage = () => {
                   <span>إضافة</span>
                 </button>
                 <button
-                  onClick={() => { setShowAddForm(false); setNewName(""); setNewPhone(""); setNewAddress(""); setNewBirthDate(""); setNewJoinDate(""); setNewEducation(""); setNewWorkshopNumber(""); setNewNotes(""); }}
+                  onClick={() => { setShowAddForm(false); setNewName(""); setNewPhone(""); setNewAddress(""); setNewBirthDate(""); setNewJoinDate(""); setNewEducation(""); setNewWorkshopNumber(""); setNewNotes(""); setNewMosqueName(""); setNewJob(""); setNewHasChildren(null); setNewFamilyInCourses(""); setNewSkills(""); }}
                   className="px-4 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold"
                 >
                   إلغاء
