@@ -85,6 +85,7 @@ export function useLessons(category: "muhadera" | "warasha") {
       lesson_date: lesson.date || new Date().toISOString().split("T")[0],
       category,
       course_type: (lesson as any).workshopNumber || (lesson as any).courseType || "",
+      duration_minutes: (lesson as any).durationMinutes || null,
     });
 
     if (error) {

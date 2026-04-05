@@ -40,6 +40,8 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
   const [notes, setNotes] = useState("");
   const [courseType, setCourseType] = useState("");
   const [workshopNumber, setWorkshopNumber] = useState("");
+  const [durationHours, setDurationHours] = useState("0");
+  const [durationMinutes, setDurationMinutes] = useState("0");
 
   const isEdit = !!editLesson;
 
@@ -49,12 +51,17 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
       setNotes(editLesson.notes || "");
       setCourseType((editLesson as any).courseType || "");
       setWorkshopNumber((editLesson as any).workshopNumber || "");
+      const mins = (editLesson as any).durationMinutes || 0;
+      setDurationHours(String(Math.floor(mins / 60)));
+      setDurationMinutes(String(mins % 60));
     } else if (!open) {
       setLessonName("");
       setNotes("");
       setSelectedDate(new Date());
       setCourseType("");
       setWorkshopNumber("");
+      setDurationHours("0");
+      setDurationMinutes("0");
     }
   }, [editLesson, open]);
 
@@ -66,6 +73,7 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
     const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
     const d = String(selectedDate.getDate()).padStart(2, "0");
     const dateStr = `${y}-${m}-${d}`;
+    const totalMins = (parseInt(durationHours) || 0) * 60 + (parseInt(durationMinutes) || 0);
     onAdd({
       id: editLesson?.id || generateId(),
       surahName: lessonName,
@@ -76,6 +84,7 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
       date: editLesson?.date || dateStr,
       courseType: courseType,
       workshopNumber: workshopNumber,
+      durationMinutes: totalMins > 0 ? totalMins : null,
     } as any);
   };
 
@@ -146,6 +155,36 @@ const AddLessonDialog = ({ open, onClose, onAdd, dialogTitle = "درس جديد"
                       </Popover>
                     </div>
                   )}
+
+                  {/* حقل المدة */}
+                  <div className="px-4 py-3 border-b border-ios-separator">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-foreground">مدة المحاضرة</span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          <button type="button" onClick={() => setDurationHours(h => String(Math.max(0, parseInt(h||"0") - 1)))}
+                            className="w-7 h-7 rounded-lg bg-secondary text-foreground text-lg font-bold flex items-center justify-center active:scale-90 transition-transform">−</button>
+                          <span className="w-8 text-center text-sm font-bold text-foreground">{durationHours}</span>
+                          <button type="button" onClick={() => setDurationHours(h => String(parseInt(h||"0") + 1))}
+                            className="w-7 h-7 rounded-lg bg-secondary text-foreground text-lg font-bold flex items-center justify-center active:scale-90 transition-transform">+</button>
+                          <span className="text-xs text-muted-foreground mr-1">ساعة</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button type="button" onClick={() => setDurationMinutes(m => String(Math.max(0, parseInt(m||"0") - 5)))}
+                            className="w-7 h-7 rounded-lg bg-secondary text-foreground text-lg font-bold flex items-center justify-center active:scale-90 transition-transform">−</button>
+                          <span className="w-8 text-center text-sm font-bold text-foreground">{String(parseInt(durationMinutes)||0).padStart(2,"0")}</span>
+                          <button type="button" onClick={() => setDurationMinutes(m => String(Math.min(55, parseInt(m||"0") + 5)))}
+                            className="w-7 h-7 rounded-lg bg-secondary text-foreground text-lg font-bold flex items-center justify-center active:scale-90 transition-transform">+</button>
+                          <span className="text-xs text-muted-foreground mr-1">دقيقة</span>
+                        </div>
+                      </div>
+                    </div>
+                    {(parseInt(durationHours) > 0 || parseInt(durationMinutes) > 0) && (
+                      <p className="text-xs text-primary mt-1.5 text-left">
+                        المدة: {parseInt(durationHours) > 0 ? `${durationHours} ساعة ` : ""}{parseInt(durationMinutes) > 0 ? `${durationMinutes} دقيقة` : ""}
+                      </p>
+                    )}
+                  </div>
                   {showCourseType && (
                     <div className="px-4 py-3">
                       <label className="text-sm text-foreground font-medium mb-2 block">نوع الدورة</label>
