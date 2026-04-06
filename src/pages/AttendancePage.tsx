@@ -1091,8 +1091,12 @@ ${section("غياب الورشات", data.workshopAbsent, true)}
                     onClick={() => openProfile(person)}
                     className="ios-card px-4 py-3.5 flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform"
                   >
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <span className="text-base font-bold text-primary">{initials}</span>
+                    <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 bg-primary/10 flex items-center justify-center">
+                      {person.avatar_url ? (
+                        <img src={person.avatar_url} alt={person.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-base font-bold text-primary">{initials}</span>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <span className="text-[15px] font-medium text-foreground block truncate">{person.name}</span>
