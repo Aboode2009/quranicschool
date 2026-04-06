@@ -333,6 +333,11 @@ const AttendancePage = () => {
     const workshopIds = new Set(freshWorkshops.map((w: Lesson) => w.id));
     const lessonIds = new Set(freshLessons.map((l: Lesson) => l.id));
 
+    // ابني map من lesson_id إلى التاريخ الحقيقي مال المحاضرة/الورشة
+    const lessonDateMap: Record<string, string> = {};
+    freshLessons.forEach((l: Lesson) => { lessonDateMap[l.id] = l.date; });
+    freshWorkshops.forEach((w: Lesson) => { lessonDateMap[w.id] = w.date; });
+
     const { data, error } = await supabase
       .from("attendance")
       .select("is_present, lesson_name, lesson_date, excuse, workshop_number")
@@ -354,7 +359,7 @@ const AttendancePage = () => {
     (data || []).forEach((row) => {
       const rec: AttendanceRecord = {
         lesson_name: row.lesson_name,
-        lesson_date: row.lesson_date,
+        lesson_date: lessonDateMap[row.lesson_name] || row.lesson_date,
         is_present: row.is_present,
         excuse: row.excuse,
         workshop_number: (row as any).workshop_number || null,
