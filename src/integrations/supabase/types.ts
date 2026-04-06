@@ -161,22 +161,28 @@ export type Database = {
         Row: {
           activity_id: string
           created_at: string
+          excuse: string | null
           id: string
           is_active: boolean
+          is_present: boolean
           person_id: string
         }
         Insert: {
           activity_id: string
           created_at?: string
+          excuse?: string | null
           id?: string
           is_active?: boolean
+          is_present?: boolean
           person_id: string
         }
         Update: {
           activity_id?: string
           created_at?: string
+          excuse?: string | null
           id?: string
           is_active?: boolean
+          is_present?: boolean
           person_id?: string
         }
         Relationships: [
