@@ -9,12 +9,13 @@ import DashboardPage from "./DashboardPage";
 import AdminPage from "./AdminPage";
 import SupervisorAttendancePage from "./SupervisorAttendancePage";
 import SupervisorsListPage from "./SupervisorsListPage";
+import ElectronicInteractionPage from "./ElectronicInteractionPage";
 import TabBar from "@/components/TabBar";
 
 const Index = () => {
   const { user, loading, isAdmin, userRole } = useAuth();
   const showAdmin = isAdmin || userRole === "course_director";
-  const [activeTab, setActiveTab] = useState<"dashboard" | "muhadera" | "warasha" | "settings" | "attendance" | "admin" | "supervisor_attendance" | "supervisors_list">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "muhadera" | "warasha" | "settings" | "attendance" | "admin" | "supervisor_attendance" | "supervisors_list" | "electronic_interaction">("dashboard");
 
   if (loading) {
     return (
@@ -42,6 +43,7 @@ const Index = () => {
         {activeTab === "admin" && <AdminPage onBack={() => setActiveTab("settings")} />}
         {activeTab === "supervisor_attendance" && <SupervisorAttendancePage onBack={() => setActiveTab("dashboard")} />}
         {activeTab === "supervisors_list" && <SupervisorsListPage onBack={() => setActiveTab("dashboard")} />}
+        {activeTab === "electronic_interaction" && <ElectronicInteractionPage onBack={() => setActiveTab("dashboard")} />}
       </main>
 
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />

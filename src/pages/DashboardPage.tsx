@@ -3,7 +3,7 @@ import { BookOpen, Users, UserCheck, Settings, ChevronLeft, Shield } from "lucid
 import { useAuth } from "@/hooks/useAuth";
 import IslamicDecorations from "@/components/IslamicDecorations";
 
-type TabId = "muhadera" | "warasha" | "settings" | "attendance" | "admin" | "supervisor_attendance" | "supervisors_list";
+type TabId = "muhadera" | "warasha" | "settings" | "attendance" | "admin" | "supervisor_attendance" | "supervisors_list" | "electronic_interaction";
 
 interface DashboardProps {
   onNavigate: (tab: TabId) => void;
@@ -66,6 +66,13 @@ const DashboardPage = ({ onNavigate }: DashboardProps) => {
       desc: "إدارة قائمة المشرفين",
       icon: UserCheck,
       bg: "bg-gradient-to-br from-[#5c6bc0] to-[#9575cd]",
+    },
+    {
+      id: "electronic_interaction" as TabId,
+      title: "التفاعل الإلكتروني",
+      desc: "فعاليات التفاعل لكل ورشة",
+      icon: Users,
+      bg: "bg-gradient-to-br from-[#e65100] to-[#ff6d00]",
     },
     {
       id: "settings" as TabId,

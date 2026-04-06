@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Users, UserPlus, Trash2, BookOpen, GraduationCap, ChevronLeft, ChevronDown, Calendar, Download, Phone, MapPin, Plus, Pencil, X, Save, ArrowRightLeft, FileText, Camera, Search } from "lucide-react";
+import { Users, UserPlus, Trash2, BookOpen, GraduationCap, ChevronLeft, ChevronDown, Calendar, Download, Phone, MapPin, Plus, Pencil, X, Save, ArrowRightLeft, FileText, Camera, Search, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -124,6 +124,8 @@ const AttendancePage = () => {
   const [statsLoading, setStatsLoading] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [detailView, setDetailView] = useState<{ items: AttendanceRecord[]; type: "present" | "absent"; label: string } | null>(null);
+  const [electronicActive, setElectronicActive] = useState<{ id: string; name: string; date: string }[]>([]);
+  const [electronicInactive, setElectronicInactive] = useState<{ id: string; name: string; date: string }[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<Person>>({});
   const [showTransfer, setShowTransfer] = useState(false);
@@ -387,6 +389,38 @@ const AttendancePage = () => {
     });
 
     setRecords(categorized);
+
+    // جلب بيانات التفاعل الإلكتروني
+    const { data: elecResp } = await supabase
+      .from("electronic_activity_responses")
+      .select("activity_id, is_active")
+      .eq("person_id", person.id);
+
+    if (elecResp && elecResp.length > 0) {
+      const activityIds = elecResp.map((r: any) => r.activity_id);
+      const { data: actData } = await supabase
+        .from("electronic_activities")
+        .select("id, name, date")
+        .in("id", activityIds);
+
+      const actMap: Record<string, { id: string; name: string; date: string }> = {};
+      (actData || []).forEach((a: any) => { actMap[a.id] = a; });
+
+      const active: { id: string; name: string; date: string }[] = [];
+      const inactive: { id: string; name: string; date: string }[] = [];
+      elecResp.forEach((r: any) => {
+        const act = actMap[r.activity_id];
+        if (!act) return;
+        if (r.is_active) active.push(act);
+        else inactive.push(act);
+      });
+      setElectronicActive(active);
+      setElectronicInactive(inactive);
+    } else {
+      setElectronicActive([]);
+      setElectronicInactive([]);
+    }
+
     setStatsLoading(false);
   };
 
@@ -981,6 +1015,53 @@ ${section("غياب الورشات", data.workshopAbsent, true)}
                   />
                 </div>
               </motion.div>
+
+              {/* التفاعل الإلكتروني */}
+              {(electronicActive.length > 0 || electronicInactive.length > 0) && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
+                  className="ios-card p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Zap className="w-5 h-5 text-primary" />
+                    <h3 className="text-base font-semibold text-foreground">التفاعل الإلكتروني</h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="rounded-xl bg-green-500/10 p-3 text-center">
+                      <p className="text-2xl font-bold text-green-600">{electronicActive.length}</p>
+                      <p className="text-xs text-muted-foreground mt-1">متفاعل</p>
+                    </div>
+                    <div className="rounded-xl bg-destructive/10 p-3 text-center">
+                      <p className="text-2xl font-bold text-destructive">{electronicInactive.length}</p>
+                      <p className="text-xs text-muted-foreground mt-1">غير متفاعل</p>
+                    </div>
+                  </div>
+                  {electronicActive.length > 0 && (
+                    <div className="mb-2">
+                      <p className="text-xs font-bold text-green-600 mb-1.5">فعاليات متفاعل بها</p>
+                      <div className="flex flex-col gap-1.5">
+                        {electronicActive.map((a) => (
+                          <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded-xl bg-green-500/5">
+                            <span className="text-sm text-foreground">{a.name}</span>
+                            <span className="text-xs text-muted-foreground">{a.date}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {electronicInactive.length > 0 && (
+                    <div>
+                      <p className="text-xs font-bold text-destructive mb-1.5">فعاليات غير متفاعل بها</p>
+                      <div className="flex flex-col gap-1.5">
+                        {electronicInactive.map((a) => (
+                          <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded-xl bg-destructive/5">
+                            <span className="text-sm text-foreground">{a.name}</span>
+                            <span className="text-xs text-muted-foreground">{a.date}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
 
               {/* Total */}
               <motion.div
