@@ -31,6 +31,7 @@ interface AttendanceRecord {
   is_present: boolean;
   excuse: string | null;
   workshop_number: string | null;
+  activity?: string | null;
 }
 
 interface CategorizedRecords {
@@ -340,7 +341,7 @@ const AttendancePage = () => {
 
     const { data, error } = await supabase
       .from("attendance")
-      .select("is_present, lesson_name, lesson_date, excuse, workshop_number")
+      .select("is_present, lesson_name, lesson_date, excuse, workshop_number, activity")
       .in("person_id", linkedIds);
 
     if (error) {
@@ -363,6 +364,7 @@ const AttendancePage = () => {
         is_present: row.is_present,
         excuse: row.excuse,
         workshop_number: (row as any).workshop_number || null,
+        activity: (row as any).activity || null,
       };
       const isWorkshop = workshopIds.has(row.lesson_name);
       const isLecture = lessonIds.has(row.lesson_name);
@@ -636,6 +638,15 @@ ${section("غياب الورشات", data.workshopAbsent, true)}
                         : "bg-destructive/10 text-destructive"
                     }`}>
                       {rec.excuse === "with_excuse" ? "بعذر" : "بدون عذر"}
+                    </span>
+                  )}
+                  {detailView.type === "present" && rec.activity && (
+                    <span className={`text-xs px-2.5 py-1 rounded-full shrink-0 font-medium ${
+                      rec.activity === "active"  ? "bg-green-100 text-green-700" :
+                      rec.activity === "average" ? "bg-orange-100 text-orange-700" :
+                                                   "bg-red-100 text-red-700"
+                    }`}>
+                      {rec.activity === "active" ? "نشط" : rec.activity === "average" ? "متوسط" : "خامل"}
                     </span>
                   )}
                 </motion.div>

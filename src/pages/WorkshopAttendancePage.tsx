@@ -26,12 +26,13 @@ interface CustomQuestion {
 
 interface WorkshopDetail {
   status: Status;
-  readMaterial: string; // 'yes' | 'no' | 'incomplete'
+  readMaterial: string;
   listenedLecture: boolean;
   extractedVerse: boolean;
   excuse?: "with_excuse" | "without_excuse";
   timing?: "on_time" | "late";
-  customAnswers: Record<string, string>; // question_id -> answer
+  activity?: "active" | "average" | "idle";
+  customAnswers: Record<string, string>;
 }
 
 interface WorkshopAttendancePageProps {
@@ -117,7 +118,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
 
     const map: Record<string, WorkshopDetail> = {};
     persons.forEach((p) => {
-      map[p.id] = { status: null, readMaterial: "no", listenedLecture: false, extractedVerse: false, customAnswers: {} };
+      map[p.id] = { status: null, readMaterial: "no", listenedLecture: false, extractedVerse: false, activity: undefined, customAnswers: {} };
     });
     let matchedAttendanceCount = 0;
     attData.forEach((r: any) => {
@@ -133,6 +134,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
         extractedVerse: r.extracted_verse || false,
         excuse: r.excuse || undefined,
         timing: r.timing || undefined,
+        activity: r.activity || undefined,
         customAnswers: answersMap[visiblePersonId] || {},
       };
     });
@@ -198,6 +200,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
         extracted_verse: isPresent ? (detail?.extractedVerse || false) : false,
         excuse: detail?.status === "absent" ? (detail?.excuse || null) : null,
         timing: isPresent ? (detail?.timing || null) : null,
+        activity: isPresent ? (detail?.activity || null) : null,
         workshop_number: p.workshop_number || null,
       };
     });
@@ -389,6 +392,16 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
                                   <div className="flex gap-2">
                                     <Chip label="استخرج" active={detail.extractedVerse === true} activeClass="bg-primary text-primary-foreground" onClick={() => setField(person.id, "extractedVerse", true)} />
                                     <Chip label="لا" active={detail.extractedVerse === false} activeClass="bg-destructive text-destructive-foreground" onClick={() => setField(person.id, "extractedVerse", false)} />
+                                  </div>
+                                </div>
+
+                                {/* النشاط */}
+                                <div>
+                                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">النشاط</p>
+                                  <div className="flex gap-2">
+                                    <Chip label="نشط" active={detail.activity === "active"} activeClass="bg-green-500 text-white" onClick={() => setField(person.id, "activity", "active")} />
+                                    <Chip label="متوسط" active={detail.activity === "average"} activeClass="bg-orange-500 text-white" onClick={() => setField(person.id, "activity", "average")} />
+                                    <Chip label="خامل" active={detail.activity === "idle"} activeClass="bg-destructive text-destructive-foreground" onClick={() => setField(person.id, "activity", "idle")} />
                                   </div>
                                 </div>
 
