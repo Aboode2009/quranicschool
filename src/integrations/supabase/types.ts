@@ -165,6 +165,7 @@ export type Database = {
           category: string
           course_type: string
           created_at: string
+          duration_minutes: number | null
           from_ayah: number
           id: string
           lesson_date: string
@@ -179,6 +180,7 @@ export type Database = {
           category?: string
           course_type?: string
           created_at?: string
+          duration_minutes?: number | null
           from_ayah?: number
           id?: string
           lesson_date?: string
@@ -193,6 +195,7 @@ export type Database = {
           category?: string
           course_type?: string
           created_at?: string
+          duration_minutes?: number | null
           from_ayah?: number
           id?: string
           lesson_date?: string
