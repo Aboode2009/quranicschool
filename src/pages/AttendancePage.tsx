@@ -395,7 +395,7 @@ const AttendancePage = () => {
     // جلب بيانات التفاعل الإلكتروني
     const { data: elecResp } = await supabase
       .from("electronic_activity_responses")
-      .select("activity_id, is_active")
+      .select("activity_id, is_active, is_present, excuse")
       .eq("person_id", person.id);
 
     if (elecResp && elecResp.length > 0) {
@@ -410,17 +410,26 @@ const AttendancePage = () => {
 
       const active: { id: string; name: string; date: string }[] = [];
       const inactive: { id: string; name: string; date: string }[] = [];
+      const present: { id: string; name: string; date: string; is_active: boolean }[] = [];
+      const absent: { id: string; name: string; date: string; excuse: string | null }[] = [];
+
       elecResp.forEach((r: any) => {
         const act = actMap[r.activity_id];
         if (!act) return;
         if (r.is_active) active.push(act);
         else inactive.push(act);
+        if (r.is_present) present.push({ ...act, is_active: r.is_active });
+        else absent.push({ ...act, excuse: r.excuse });
       });
       setElectronicActive(active);
       setElectronicInactive(inactive);
+      setElectronicPresent(present);
+      setElectronicAbsent(absent);
     } else {
       setElectronicActive([]);
       setElectronicInactive([]);
+      setElectronicPresent([]);
+      setElectronicAbsent([]);
     }
 
     setStatsLoading(false);
