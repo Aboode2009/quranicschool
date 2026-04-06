@@ -126,6 +126,8 @@ const AttendancePage = () => {
   const [detailView, setDetailView] = useState<{ items: AttendanceRecord[]; type: "present" | "absent"; label: string } | null>(null);
   const [electronicActive, setElectronicActive] = useState<{ id: string; name: string; date: string }[]>([]);
   const [electronicInactive, setElectronicInactive] = useState<{ id: string; name: string; date: string }[]>([]);
+  const [electronicPresent, setElectronicPresent] = useState<{ id: string; name: string; date: string; is_active: boolean }[]>([]);
+  const [electronicAbsent, setElectronicAbsent] = useState<{ id: string; name: string; date: string; excuse: string | null }[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<Person>>({});
   const [showTransfer, setShowTransfer] = useState(false);
@@ -393,7 +395,7 @@ const AttendancePage = () => {
     // جلب بيانات التفاعل الإلكتروني
     const { data: elecResp } = await supabase
       .from("electronic_activity_responses")
-      .select("activity_id, is_active")
+      .select("activity_id, is_active, is_present, excuse")
       .eq("person_id", person.id);
 
     if (elecResp && elecResp.length > 0) {
@@ -408,17 +410,26 @@ const AttendancePage = () => {
 
       const active: { id: string; name: string; date: string }[] = [];
       const inactive: { id: string; name: string; date: string }[] = [];
+      const present: { id: string; name: string; date: string; is_active: boolean }[] = [];
+      const absent: { id: string; name: string; date: string; excuse: string | null }[] = [];
+
       elecResp.forEach((r: any) => {
         const act = actMap[r.activity_id];
         if (!act) return;
         if (r.is_active) active.push(act);
         else inactive.push(act);
+        if (r.is_present) present.push({ ...act, is_active: r.is_active });
+        else absent.push({ ...act, excuse: r.excuse });
       });
       setElectronicActive(active);
       setElectronicInactive(inactive);
+      setElectronicPresent(present);
+      setElectronicAbsent(absent);
     } else {
       setElectronicActive([]);
       setElectronicInactive([]);
+      setElectronicPresent([]);
+      setElectronicAbsent([]);
     }
 
     setStatsLoading(false);
@@ -1017,43 +1028,65 @@ ${section("غياب الورشات", data.workshopAbsent, true)}
               </motion.div>
 
               {/* التفاعل الإلكتروني */}
-              {(electronicActive.length > 0 || electronicInactive.length > 0) && (
+              {(electronicPresent.length > 0 || electronicAbsent.length > 0) && (
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
                   className="ios-card p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Zap className="w-5 h-5 text-primary" />
                     <h3 className="text-base font-semibold text-foreground">التفاعل الإلكتروني</h3>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 mb-3">
-                    <div className="rounded-xl bg-green-500/10 p-3 text-center">
-                      <p className="text-2xl font-bold text-green-600">{electronicActive.length}</p>
-                      <p className="text-xs text-muted-foreground mt-1">متفاعل</p>
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    <div className="rounded-xl bg-accent/10 p-3 text-center">
+                      <p className="text-2xl font-bold text-accent">{electronicPresent.length}</p>
+                      <p className="text-xs text-muted-foreground mt-1">حاضر</p>
                     </div>
                     <div className="rounded-xl bg-destructive/10 p-3 text-center">
-                      <p className="text-2xl font-bold text-destructive">{electronicInactive.length}</p>
-                      <p className="text-xs text-muted-foreground mt-1">غير متفاعل</p>
+                      <p className="text-2xl font-bold text-destructive">{electronicAbsent.length}</p>
+                      <p className="text-xs text-muted-foreground mt-1">غائب</p>
+                    </div>
+                    <div className="rounded-xl bg-primary/10 p-3 text-center">
+                      <p className="text-2xl font-bold text-primary">{electronicActive.length}</p>
+                      <p className="text-xs text-muted-foreground mt-1">متفاعل</p>
                     </div>
                   </div>
-                  {electronicActive.length > 0 && (
+
+                  {/* فعاليات حضرها */}
+                  {electronicPresent.length > 0 && (
                     <div className="mb-2">
-                      <p className="text-xs font-bold text-green-600 mb-1.5">فعاليات متفاعل بها</p>
+                      <p className="text-xs font-bold text-accent mb-1.5">فعاليات حضرها</p>
                       <div className="flex flex-col gap-1.5">
-                        {electronicActive.map((a) => (
-                          <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded-xl bg-green-500/5">
-                            <span className="text-sm text-foreground">{a.name}</span>
+                        {electronicPresent.map((a) => (
+                          <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded-xl bg-accent/5">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-foreground">{a.name}</span>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                                a.is_active ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                              }`}>
+                                {a.is_active ? "متفاعل" : "غير متفاعل"}
+                              </span>
+                            </div>
                             <span className="text-xs text-muted-foreground">{a.date}</span>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
-                  {electronicInactive.length > 0 && (
+
+                  {/* فعاليات غاب عنها */}
+                  {electronicAbsent.length > 0 && (
                     <div>
-                      <p className="text-xs font-bold text-destructive mb-1.5">فعاليات غير متفاعل بها</p>
+                      <p className="text-xs font-bold text-destructive mb-1.5">فعاليات غاب عنها</p>
                       <div className="flex flex-col gap-1.5">
-                        {electronicInactive.map((a) => (
+                        {electronicAbsent.map((a) => (
                           <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded-xl bg-destructive/5">
-                            <span className="text-sm text-foreground">{a.name}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-foreground">{a.name}</span>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                                a.excuse === "with_excuse" ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" : "bg-destructive/10 text-destructive"
+                              }`}>
+                                {a.excuse === "with_excuse" ? "بعذر" : "بدون عذر"}
+                              </span>
+                            </div>
                             <span className="text-xs text-muted-foreground">{a.date}</span>
                           </div>
                         ))}

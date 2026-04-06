@@ -1,0 +1,4 @@
+
+ALTER TABLE public.electronic_activity_responses 
+ADD COLUMN IF NOT EXISTS is_present BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN IF NOT EXISTS excuse TEXT DEFAULT NULL;
