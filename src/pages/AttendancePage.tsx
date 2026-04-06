@@ -447,7 +447,7 @@ const AttendancePage = () => {
     toast.success("تم تصدير الملف بنجاح");
   };
 
-  const exportToPDF = (person: Person, data: CategorizedRecords) => {
+  const exportToPDF = async (person: Person, data: CategorizedRecords) => {
     const getLessonName = (id: string) => getLessonDisplayName(id);
 
     const tableRow = (cols: string[], isHeader = false) =>
@@ -502,23 +502,49 @@ const AttendancePage = () => {
 <body>
 <h1>تقرير حضور: ${person.name}</h1>
 <div class="subtitle">تاريخ الطباعة: ${new Date().toLocaleDateString("ar-IQ")}</div>
-
 <div class="summary">
   <div class="card"><div class="val">${total}</div><div class="lbl">إجمالي الجلسات</div></div>
   <div class="card green"><div class="val">${totalPresent}</div><div class="lbl">إجمالي الحضور</div></div>
   <div class="card red"><div class="val">${totalAbsent}</div><div class="lbl">إجمالي الغياب</div></div>
   <div class="card"><div class="val">${pct}%</div><div class="lbl">نسبة الحضور</div></div>
 </div>
-
 ${section("حضور المحاضرات", data.lecturePresent, false)}
 ${section("غياب المحاضرات", data.lectureAbsent, true)}
 ${section("حضور الورشات", data.workshopPresent, false)}
 ${section("غياب الورشات", data.workshopAbsent, true)}
-
 <div class="footer">تم إنشاء هذا التقرير تلقائياً</div>
 </body>
 </html>`;
 
+    const blob = new Blob([html], { type: "text/html" });
+    const fileName = `${person.name}_تقرير_الحضور.html`;
+
+    // موبايل — Web Share API
+    if (navigator.share && navigator.canShare) {
+      const file = new File([blob], fileName, { type: "text/html" });
+      if (navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            title: `تقرير حضور: ${person.name}`,
+            text: `نسبة الحضور: ${pct}% | حضر ${totalPresent} من ${total} جلسة`,
+            files: [file],
+          });
+          return;
+        } catch (e: any) {
+          if (e?.name === "AbortError") return; // المستخدم ضغط إلغاء
+        }
+      }
+      // إذا ما يدعم مشاركة الملفات، شارك كنص
+      try {
+        await navigator.share({
+          title: `تقرير حضور: ${person.name}`,
+          text: `تقرير حضور ${person.name}\nنسبة الحضور: ${pct}%\nإجمالي الحضور: ${totalPresent}\nإجمالي الغياب: ${totalAbsent}\nإجمالي الجلسات: ${total}`,
+        });
+        return;
+      } catch {}
+    }
+
+    // ديسكتوب أو متصفحات لا تدعم Share — افتح نافذة طباعة
     const win = window.open("", "_blank");
     if (!win) { toast.error("يرجى السماح بالنوافذ المنبثقة"); return; }
     win.document.write(html);
@@ -867,7 +893,7 @@ ${section("غياب الورشات", data.workshopAbsent, true)}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-destructive/10 text-destructive text-sm font-semibold transition-all active:scale-[0.97]"
                 >
                   <Download className="w-4 h-4" />
-                  <span>تصدير PDF</span>
+                  <span>{"share" in navigator ? "مشاركة / PDF" : "تصدير PDF"}</span>
                 </button>
               </div>
             )}
