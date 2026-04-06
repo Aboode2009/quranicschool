@@ -126,6 +126,8 @@ const AttendancePage = () => {
   const [detailView, setDetailView] = useState<{ items: AttendanceRecord[]; type: "present" | "absent"; label: string } | null>(null);
   const [electronicActive, setElectronicActive] = useState<{ id: string; name: string; date: string }[]>([]);
   const [electronicInactive, setElectronicInactive] = useState<{ id: string; name: string; date: string }[]>([]);
+  const [electronicPresent, setElectronicPresent] = useState<{ id: string; name: string; date: string; is_active: boolean }[]>([]);
+  const [electronicAbsent, setElectronicAbsent] = useState<{ id: string; name: string; date: string; excuse: string | null }[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<Person>>({});
   const [showTransfer, setShowTransfer] = useState(false);
