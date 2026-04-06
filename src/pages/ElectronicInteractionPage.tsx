@@ -28,8 +28,9 @@ interface Person {
   workshop_number: string | null;
 }
 
-interface Response {
-  person_id: string;
+interface PersonResponse {
+  is_present: boolean;
+  excuse: string | null;
   is_active: boolean;
 }
 
@@ -47,12 +48,12 @@ const Chip = ({ label, active, activeClass, onClick }: {
   </button>
 );
 
-// ─── صفحة تفاصيل الفعالية (أسماء الورشة + تفاعلهم) ──────
+// ─── صفحة تفاصيل الفعالية ──────
 const ActivityDetailPage = ({
   activity, onBack,
 }: { activity: Activity; onBack: () => void }) => {
   const [people, setPeople] = useState<Person[]>([]);
-  const [responses, setResponses] = useState<Record<string, boolean | null>>({});
+  const [responses, setResponses] = useState<Record<string, PersonResponse>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -69,21 +70,27 @@ const ActivityDetailPage = ({
         .eq("workshop_number", activity.workshop_number)
         .order("created_at", { ascending: true }),
       supabase.from("electronic_activity_responses")
-        .select("person_id, is_active")
+        .select("person_id, is_active, is_present, excuse")
         .eq("activity_id", activity.id),
     ]);
 
     const persons = (peopleRes.data || []) as Person[];
     setPeople(persons);
 
-    const map: Record<string, boolean | null> = {};
-    persons.forEach((p) => { map[p.id] = null; });
+    const map: Record<string, PersonResponse> = {};
+    persons.forEach((p) => {
+      map[p.id] = { is_present: false, excuse: null, is_active: false };
+    });
 
     let matched = 0;
     (respRes.data || []).forEach((r: any) => {
       if (map[r.person_id] !== undefined) {
         matched++;
-        map[r.person_id] = r.is_active;
+        map[r.person_id] = {
+          is_present: r.is_present ?? false,
+          excuse: r.excuse || null,
+          is_active: r.is_active ?? false,
+        };
       }
     });
 
@@ -92,21 +99,43 @@ const ActivityDetailPage = ({
     setLoading(false);
   };
 
-  const setResponse = (personId: string, val: boolean) => {
-    setResponses((prev) => ({ ...prev, [personId]: val }));
+  const setPresent = (personId: string, present: boolean) => {
+    setResponses((prev) => ({
+      ...prev,
+      [personId]: {
+        ...prev[personId],
+        is_present: present,
+        excuse: present ? null : prev[personId]?.excuse || null,
+        is_active: present ? prev[personId]?.is_active || false : false,
+      },
+    }));
+  };
+
+  const setExcuse = (personId: string, excuse: string) => {
+    setResponses((prev) => ({
+      ...prev,
+      [personId]: { ...prev[personId], excuse },
+    }));
+  };
+
+  const setActive = (personId: string, active: boolean) => {
+    setResponses((prev) => ({
+      ...prev,
+      [personId]: { ...prev[personId], is_active: active },
+    }));
     setExpanded(null);
   };
 
   const save = async () => {
     setSaving(true);
     await supabase.from("electronic_activity_responses").delete().eq("activity_id", activity.id);
-    const records = people
-      .filter((p) => responses[p.id] !== null)
-      .map((p) => ({
-        activity_id: activity.id,
-        person_id: p.id,
-        is_active: responses[p.id] as boolean,
-      }));
+    const records = people.map((p) => ({
+      activity_id: activity.id,
+      person_id: p.id,
+      is_present: responses[p.id]?.is_present ?? false,
+      excuse: responses[p.id]?.excuse || null,
+      is_active: responses[p.id]?.is_active ?? false,
+    }));
     if (records.length > 0) {
       const { error } = await supabase.from("electronic_activity_responses").insert(records);
       if (error) { toast.error("خطأ في الحفظ"); setSaving(false); return; }
@@ -116,12 +145,15 @@ const ActivityDetailPage = ({
     setIsEditing(true);
   };
 
-  const activeCount  = Object.values(responses).filter((v) => v === true).length;
-  const inactiveCount = Object.values(responses).filter((v) => v === false).length;
+  const presentCount = Object.values(responses).filter((v) => v.is_present).length;
+  const absentCount = people.length - presentCount;
+  const activeCount = Object.values(responses).filter((v) => v.is_present && v.is_active).length;
+  const inactiveCount = Object.values(responses).filter((v) => v.is_present && !v.is_active).length;
 
-  const statusColor = (val: boolean | null) => {
-    if (val === true)  return "bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-600";
-    if (val === false) return "bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-600";
+  const statusColor = (r: PersonResponse) => {
+    if (r.is_present && r.is_active) return "bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-600";
+    if (r.is_present && !r.is_active) return "bg-orange-100 text-orange-800 border-orange-400 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-600";
+    if (!r.is_present) return "bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-600";
     return "bg-muted/50 text-muted-foreground border-border";
   };
 
@@ -141,15 +173,20 @@ const ActivityDetailPage = ({
         </div>
 
         {!loading && people.length > 0 && (
-          <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-secondary mb-1">
+          <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-secondary mb-1 flex-wrap">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-muted-foreground">متفاعل</span>
-              <span className="text-sm font-bold text-green-500">{activeCount}</span>
+              <span className="text-xs text-muted-foreground">حاضر</span>
+              <span className="text-sm font-bold text-green-500">{presentCount}</span>
             </div>
             <div className="w-px h-4 bg-border" />
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-muted-foreground">غير متفاعل</span>
-              <span className="text-sm font-bold text-destructive">{inactiveCount}</span>
+              <span className="text-xs text-muted-foreground">غائب</span>
+              <span className="text-sm font-bold text-destructive">{absentCount}</span>
+            </div>
+            <div className="w-px h-4 bg-border" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground">متفاعل</span>
+              <span className="text-sm font-bold text-primary">{activeCount}</span>
             </div>
             <div className="w-px h-4 bg-border" />
             <div className="flex items-center gap-1.5">
@@ -173,19 +210,21 @@ const ActivityDetailPage = ({
           <div className="flex flex-col gap-2">
             <AnimatePresence mode="popLayout">
               {people.map((person, i) => {
-                const val = responses[person.id];
+                const r = responses[person.id] || { is_present: false, excuse: null, is_active: false };
                 const isExp = expanded === person.id;
-                const label = val === true ? "متفاعل" : val === false ? "غير متفاعل" : "لم يُحدد";
+                const label = r.is_present
+                  ? (r.is_active ? "حاضر · متفاعل" : "حاضر · غير متفاعل")
+                  : (r.excuse === "with_excuse" ? "غائب · بعذر" : r.excuse === "without_excuse" ? "غائب · بدون عذر" : "غائب");
                 return (
                   <motion.div key={person.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.03 }}
-                    className={`rounded-2xl border overflow-hidden transition-all ${statusColor(val)}`}>
+                    className={`rounded-2xl border overflow-hidden transition-all ${statusColor(r)}`}>
                     <div onClick={() => setExpanded(isExp ? null : person.id)}
                       className="flex items-center justify-between px-4 py-3.5 cursor-pointer active:scale-[0.98] transition-transform">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
-                        {val !== null && (
-                          <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${val ? "bg-green-500" : "bg-red-500"}`} />
-                        )}
+                        <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                          r.is_present ? (r.is_active ? "bg-green-500" : "bg-orange-500") : "bg-red-500"
+                        }`} />
                         <div className="min-w-0">
                           <span className="text-[15px] font-semibold text-foreground block">{person.name}</span>
                           <span className="text-[11px] mt-0.5 block opacity-70">{label}</span>
@@ -198,12 +237,37 @@ const ActivityDetailPage = ({
                       {isExp && (
                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
-                          <div className="px-4 pb-4">
-                            <p className="text-[11px] font-medium text-muted-foreground mb-1.5">حالة التفاعل</p>
-                            <div className="flex gap-2">
-                              <Chip label="متفاعل" active={val === true} activeClass="bg-green-500 text-white" onClick={() => setResponse(person.id, true)} />
-                              <Chip label="غير متفاعل" active={val === false} activeClass="bg-destructive text-destructive-foreground" onClick={() => setResponse(person.id, false)} />
+                          <div className="px-4 pb-4 flex flex-col gap-3">
+                            {/* الخطوة 1: الحضور */}
+                            <div>
+                              <p className="text-[11px] font-medium text-muted-foreground mb-1.5">الحضور</p>
+                              <div className="flex gap-2">
+                                <Chip label="حاضر" active={r.is_present} activeClass="bg-green-500 text-white" onClick={() => setPresent(person.id, true)} />
+                                <Chip label="غائب" active={!r.is_present} activeClass="bg-destructive text-destructive-foreground" onClick={() => setPresent(person.id, false)} />
+                              </div>
                             </div>
+
+                            {/* إذا غائب: سبب الغياب */}
+                            {!r.is_present && (
+                              <div>
+                                <p className="text-[11px] font-medium text-muted-foreground mb-1.5">سبب الغياب</p>
+                                <div className="flex gap-2">
+                                  <Chip label="بعذر" active={r.excuse === "with_excuse"} activeClass="bg-amber-500 text-white" onClick={() => setExcuse(person.id, "with_excuse")} />
+                                  <Chip label="بدون عذر" active={r.excuse === "without_excuse"} activeClass="bg-destructive text-destructive-foreground" onClick={() => setExcuse(person.id, "without_excuse")} />
+                                </div>
+                              </div>
+                            )}
+
+                            {/* إذا حاضر: حالة التفاعل */}
+                            {r.is_present && (
+                              <div>
+                                <p className="text-[11px] font-medium text-muted-foreground mb-1.5">حالة التفاعل</p>
+                                <div className="flex gap-2">
+                                  <Chip label="متفاعل" active={r.is_active} activeClass="bg-green-500 text-white" onClick={() => setActive(person.id, true)} />
+                                  <Chip label="غير متفاعل" active={!r.is_active} activeClass="bg-orange-500 text-white" onClick={() => setActive(person.id, false)} />
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </motion.div>
                       )}
