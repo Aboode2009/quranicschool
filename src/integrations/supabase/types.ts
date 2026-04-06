@@ -130,6 +130,72 @@ export type Database = {
           },
         ]
       }
+      electronic_activities: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date: string
+          id: string
+          name: string
+          workshop_number: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          id?: string
+          name: string
+          workshop_number: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          id?: string
+          name?: string
+          workshop_number?: string
+        }
+        Relationships: []
+      }
+      electronic_activity_responses: {
+        Row: {
+          activity_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          person_id: string
+        }
+        Insert: {
+          activity_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          person_id: string
+        }
+        Update: {
+          activity_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          person_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "electronic_activity_responses_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "electronic_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "electronic_activity_responses_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       finances: {
         Row: {
           amount: number
