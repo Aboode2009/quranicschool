@@ -89,13 +89,27 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
     persons.forEach((p) => {
       map[p.id] = { status: null };
     });
-    let matchedAttendanceCount = 0;
+
+    // نعطي الأولوية لسجل الشخص نفسه (نفس الـ id)، ثم لأي سجل مرتبط
+    // ونفضّل سجل الحضور على الغياب عند تعدد السجلات لنفس الشخص لتفادي الكتابة فوق الحضور
+    const ownById = new Map<string, any>();
+    const linkedById = new Map<string, any>();
     (attData || []).forEach((r: any) => {
       const visiblePersonId = aliasToVisibleId.get(r.person_id);
       if (!visiblePersonId) return;
+      const target = r.person_id === visiblePersonId ? ownById : linkedById;
+      const existing = target.get(visiblePersonId);
+      if (!existing || (r.is_present && !existing.is_present)) {
+        target.set(visiblePersonId, r);
+      }
+    });
 
+    let matchedAttendanceCount = 0;
+    persons.forEach((p) => {
+      const r = ownById.get(p.id) || linkedById.get(p.id);
+      if (!r) return;
       matchedAttendanceCount += 1;
-      map[visiblePersonId] = {
+      map[p.id] = {
         status: r.is_present ? "present" : "absent",
         timing: r.timing || undefined,
         activity: r.activity || undefined,
@@ -147,22 +161,10 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
       return;
     }
 
-    const visibleIds = people.map((p) => p.id);
     const lessonDate = lesson.date || new Date().toISOString().split("T")[0];
 
-    // نحذف فقط سجلات الأشخاص الظاهرين للمستخدم الحالي حتى لا نمسح حضور بقية الورش/المشرفين
-    const { error: delError } = await supabase
-      .from("attendance")
-      .delete()
-      .eq("lesson_name", lesson.id)
-      .in("person_id", visibleIds);
-
-    if (delError) {
-      toast.error("خطأ في حفظ الحضور");
-      setSaving(false);
-      return;
-    }
-
+    // حفظ آمن باستخدام upsert على (person_id, lesson_name, lesson_date)
+    // لا نحذف أي سجلات — فقط نحدث/نُدخل سجلات الأشخاص المحددين
     const records = peopleToSave.map((p) => {
       const detail = attendance[p.id];
       const isPresent = detail.status === "present";
@@ -177,7 +179,10 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
       };
     });
 
-    const { error } = await supabase.from("attendance").insert(records);
+    const { error } = await supabase
+      .from("attendance")
+      .upsert(records, { onConflict: "person_id,lesson_name,lesson_date" });
+
     if (error) {
       toast.error("خطأ في حفظ الحضور");
     } else {
