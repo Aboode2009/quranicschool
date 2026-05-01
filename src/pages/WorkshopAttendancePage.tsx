@@ -180,36 +180,57 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
   const saveAttendance = async () => {
     setSaving(true);
 
-    // Delete old attendance and answers
-    await Promise.all([
-      supabase.from("attendance").delete().eq("lesson_name", lesson.id),
-      supabase.from("workshop_answers").delete().eq("lesson_name", lesson.id),
+    // فقط الأشخاص الذين حُدّدت حالتهم
+    const peopleToSave = people.filter((p) => {
+      const d = attendance[p.id];
+      return d?.status === "present" || d?.status === "absent";
+    });
+
+    if (peopleToSave.length === 0) {
+      toast.error("لم يتم تحديد حالة أي شخص");
+      setSaving(false);
+      return;
+    }
+
+    const visibleIds = people.map((p) => p.id);
+    const lessonDate = lesson.date || new Date().toISOString().split("T")[0];
+
+    // نحذف فقط سجلات الأشخاص الظاهرين للمستخدم الحالي
+    const [delAttRes, delAnsRes] = await Promise.all([
+      supabase.from("attendance").delete().eq("lesson_name", lesson.id).in("person_id", visibleIds),
+      supabase.from("workshop_answers").delete().eq("lesson_name", lesson.id).in("person_id", visibleIds),
     ]);
 
-    const records = people.map((p) => {
+    if (delAttRes.error || delAnsRes.error) {
+      toast.error("خطأ في حفظ الحضور");
+      setSaving(false);
+      return;
+    }
+
+    const records = peopleToSave.map((p) => {
       const detail = attendance[p.id];
-      const isPresent = detail?.status === "present";
+      const isPresent = detail.status === "present";
       return {
         person_id: p.id,
         lesson_name: lesson.id,
-        lesson_date: new Date().toISOString().split("T")[0],
+        lesson_date: lessonDate,
         is_present: isPresent,
-        read_material: isPresent ? detail?.readMaterial === "yes" : false,
-        read_material_status: isPresent ? (detail?.readMaterial || "no") : null,
-        listened_lecture: isPresent ? (detail?.listenedLecture || false) : false,
-        extracted_verse: isPresent ? (detail?.extractedVerse || false) : false,
-        excuse: detail?.status === "absent" ? (detail?.excuse || null) : null,
-        timing: isPresent ? (detail?.timing || null) : null,
-        activity: isPresent ? (detail?.activity || null) : null,
+        read_material: isPresent ? detail.readMaterial === "yes" : false,
+        read_material_status: isPresent ? (detail.readMaterial || "no") : null,
+        listened_lecture: isPresent ? (detail.listenedLecture || false) : false,
+        extracted_verse: isPresent ? (detail.extractedVerse || false) : false,
+        excuse: !isPresent ? (detail.excuse || "without_excuse") : null,
+        timing: isPresent ? (detail.timing || null) : null,
+        activity: isPresent ? (detail.activity || null) : null,
         workshop_number: p.workshop_number || null,
       };
     });
 
-    // Collect custom answers
+    // أجوبة الأسئلة المخصصة للحاضرين فقط
     const answerRecords: { person_id: string; lesson_name: string; question_id: string; answer: string }[] = [];
-    people.forEach((p) => {
+    peopleToSave.forEach((p) => {
       const detail = attendance[p.id];
-      if (detail?.status === "present" && detail.customAnswers) {
+      if (detail.status === "present" && detail.customAnswers) {
         Object.entries(detail.customAnswers).forEach(([qId, ans]) => {
           if (ans) {
             answerRecords.push({ person_id: p.id, lesson_name: lesson.id, question_id: qId, answer: ans });
@@ -228,6 +249,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
       toast.error("خطأ في حفظ الحضور");
     } else {
       toast.success("تم حفظ الحضور ✓");
+      setIsEditing(true);
     }
     setSaving(false);
   };

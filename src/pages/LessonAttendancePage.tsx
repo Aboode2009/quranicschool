@@ -134,18 +134,46 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
 
   const saveAttendance = async () => {
     setSaving(true);
-    await supabase.from("attendance").delete().eq("lesson_name", lesson.id);
 
-    const records = people.map((p) => {
+    // نأخذ فقط الأشخاص الذين حُدّدت حالتهم فعلاً (لا نحول غير المحدد إلى غياب)
+    const peopleToSave = people.filter((p) => {
+      const d = attendance[p.id];
+      return d?.status === "present" || d?.status === "absent";
+    });
+
+    if (peopleToSave.length === 0) {
+      toast.error("لم يتم تحديد حالة أي شخص");
+      setSaving(false);
+      return;
+    }
+
+    const visibleIds = people.map((p) => p.id);
+    const lessonDate = lesson.date || new Date().toISOString().split("T")[0];
+
+    // نحذف فقط سجلات الأشخاص الظاهرين للمستخدم الحالي حتى لا نمسح حضور بقية الورش/المشرفين
+    const { error: delError } = await supabase
+      .from("attendance")
+      .delete()
+      .eq("lesson_name", lesson.id)
+      .in("person_id", visibleIds);
+
+    if (delError) {
+      toast.error("خطأ في حفظ الحضور");
+      setSaving(false);
+      return;
+    }
+
+    const records = peopleToSave.map((p) => {
       const detail = attendance[p.id];
+      const isPresent = detail.status === "present";
       return {
         person_id: p.id,
         lesson_name: lesson.id,
-        lesson_date: new Date().toISOString().split("T")[0],
-        is_present: detail?.status === "present",
-        timing: detail?.status === "present" ? detail.timing || null : null,
-        activity: detail?.status === "present" ? detail.activity || null : null,
-        excuse: detail?.status === "absent" ? detail.excuse || null : null
+        lesson_date: lessonDate,
+        is_present: isPresent,
+        timing: isPresent ? detail.timing || null : null,
+        activity: isPresent ? detail.activity || null : null,
+        excuse: !isPresent ? detail.excuse || "without_excuse" : null,
       };
     });
 
@@ -154,6 +182,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
       toast.error("خطأ في حفظ الحضور");
     } else {
       toast.success("تم حفظ الحضور ✓");
+      setIsEditing(true);
     }
     setSaving(false);
   };
