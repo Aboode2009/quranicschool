@@ -34,19 +34,16 @@ const WarashaPage = () => {
   const [deletingWorkshop, setDeletingWorkshop] = useState<Lesson | null>(null);
   const [selectedWorkshop, setSelectedWorkshop] = useState<Lesson | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [courseFilter, setCourseFilter] = useState<string | null>(null);
+  const [workshopFilter, setWorkshopFilter] = useState<string | null>(null);
 
-  const COURSE_TYPES = [
-    "دورة اليقظة الايمانية",
-    "دورة التربية الايمانية",
-    "دورة التربية النفسية",
-    "دورة التربية الفكرية",
+  const WORKSHOP_NUMBERS = [
+    "ورشة أولى", "ورشة ثانية", "ورشة ثالثة", "ورشة رابعة", "ورشة خامسة",
   ];
 
   const filteredWorkshops = workshops.filter((ws) => {
     const matchesSearch = !searchQuery || ws.surahName.includes(searchQuery);
-    const matchesCourse = !courseFilter || ws.courseType === courseFilter;
-    return matchesSearch && matchesCourse;
+    const matchesWorkshop = !workshopFilter || (ws as any).courseType === workshopFilter;
+    return matchesSearch && matchesWorkshop;
   });
 
   const handleAddWorkshop = async (lesson: Lesson) => {
@@ -95,22 +92,22 @@ const WarashaPage = () => {
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-0.5 -mx-1 px-1" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
           <button
-            onClick={() => setCourseFilter(null)}
+            onClick={() => setWorkshopFilter(null)}
             className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${
-              !courseFilter ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted/40 text-muted-foreground active:bg-muted"
+              !workshopFilter ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted/40 text-muted-foreground active:bg-muted"
             }`}
           >
             الكل
           </button>
-          {COURSE_TYPES.map((type) => (
+          {WORKSHOP_NUMBERS.map((ws) => (
             <button
-              key={type}
-              onClick={() => setCourseFilter(courseFilter === type ? null : type)}
+              key={ws}
+              onClick={() => setWorkshopFilter(workshopFilter === ws ? null : ws)}
               className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${
-                courseFilter === type ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted/40 text-muted-foreground active:bg-muted"
+                workshopFilter === ws ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted/40 text-muted-foreground active:bg-muted"
               }`}
             >
-              {type.replace("دورة ", "")}
+              {ws.replace("ورشة ", "")}
             </button>
           ))}
         </div>
