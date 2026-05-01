@@ -120,14 +120,27 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
     persons.forEach((p) => {
       map[p.id] = { status: null, readMaterial: "no", listenedLecture: false, extractedVerse: false, activity: undefined, customAnswers: {} };
     });
-    let matchedAttendanceCount = 0;
+
+    // الأولوية لسجل الشخص نفسه، ثم تفضيل الحضور على الغياب
+    const ownById = new Map<string, any>();
+    const linkedById = new Map<string, any>();
     attData.forEach((r: any) => {
       const visiblePersonId = aliasToVisibleId.get(r.person_id);
       if (!visiblePersonId) return;
+      const target = r.person_id === visiblePersonId ? ownById : linkedById;
+      const existing = target.get(visiblePersonId);
+      if (!existing || (r.is_present && !existing.is_present)) {
+        target.set(visiblePersonId, r);
+      }
+    });
 
+    let matchedAttendanceCount = 0;
+    persons.forEach((p) => {
+      const r = ownById.get(p.id) || linkedById.get(p.id);
+      if (!r) return;
       matchedAttendanceCount += 1;
       const readStatus = r.read_material_status || (r.read_material ? "yes" : "no");
-      map[visiblePersonId] = {
+      map[p.id] = {
         status: r.is_present ? "present" : "absent",
         readMaterial: readStatus,
         listenedLecture: r.listened_lecture || false,
@@ -135,7 +148,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
         excuse: r.excuse || undefined,
         timing: r.timing || undefined,
         activity: r.activity || undefined,
-        customAnswers: answersMap[visiblePersonId] || {},
+        customAnswers: answersMap[p.id] || {},
       };
     });
 
@@ -192,20 +205,7 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
       return;
     }
 
-    const visibleIds = people.map((p) => p.id);
     const lessonDate = lesson.date || new Date().toISOString().split("T")[0];
-
-    // نحذف فقط سجلات الأشخاص الظاهرين للمستخدم الحالي
-    const [delAttRes, delAnsRes] = await Promise.all([
-      supabase.from("attendance").delete().eq("lesson_name", lesson.id).in("person_id", visibleIds),
-      supabase.from("workshop_answers").delete().eq("lesson_name", lesson.id).in("person_id", visibleIds),
-    ]);
-
-    if (delAttRes.error || delAnsRes.error) {
-      toast.error("خطأ في حفظ الحضور");
-      setSaving(false);
-      return;
-    }
 
     const records = peopleToSave.map((p) => {
       const detail = attendance[p.id];
@@ -239,10 +239,16 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
       }
     });
 
-    const attResult = await supabase.from("attendance").insert(records);
+    // حفظ آمن: upsert بدون حذف، حتى لا نمسح حضور غيرنا
+    const attResult = await supabase
+      .from("attendance")
+      .upsert(records, { onConflict: "person_id,lesson_name,lesson_date" });
+
     let ansResult: any = { error: null };
     if (answerRecords.length > 0) {
-      ansResult = await supabase.from("workshop_answers").insert(answerRecords);
+      ansResult = await supabase
+        .from("workshop_answers")
+        .upsert(answerRecords, { onConflict: "person_id,lesson_name,question_id" });
     }
 
     if (attResult.error || ansResult.error) {
