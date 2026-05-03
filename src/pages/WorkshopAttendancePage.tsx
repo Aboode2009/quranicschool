@@ -253,9 +253,47 @@ const WorkshopAttendancePage = ({ lesson, onBack }: WorkshopAttendancePageProps)
 
     if (attResult.error || ansResult.error) {
       toast.error("خطأ في حفظ الحضور");
+      setSaving(false);
+      return;
+    }
+
+    // تحقق تلقائي: إعادة الجلب ومقارنة الحالات المحفوظة
+    const personIds = peopleToSave.map((p) => p.id);
+    const { data: verifyData, error: verifyErr } = await supabase
+      .from("attendance")
+      .select("person_id, is_present, timing, activity, excuse, read_material, read_material_status, listened_lecture, extracted_verse")
+      .eq("lesson_name", lesson.id)
+      .eq("lesson_date", lessonDate)
+      .in("person_id", personIds);
+
+    if (verifyErr) {
+      toast.error("تم الحفظ لكن فشل التحقق");
+      setSaving(false);
+      return;
+    }
+
+    const byId = new Map((verifyData || []).map((r: any) => [r.person_id, r]));
+    const mismatches = records.filter((rec) => {
+      const got = byId.get(rec.person_id);
+      if (!got) return true;
+      return (
+        got.is_present !== rec.is_present ||
+        (got.timing || null) !== (rec.timing || null) ||
+        (got.activity || null) !== (rec.activity || null) ||
+        (got.excuse || null) !== (rec.excuse || null) ||
+        Boolean(got.read_material) !== Boolean(rec.read_material) ||
+        (got.read_material_status || null) !== (rec.read_material_status || null) ||
+        Boolean(got.listened_lecture) !== Boolean(rec.listened_lecture) ||
+        Boolean(got.extracted_verse) !== Boolean(rec.extracted_verse)
+      );
+    });
+
+    if (mismatches.length > 0) {
+      toast.error(`فشل التحقق: ${mismatches.length} سجل لم يُحفظ بشكل صحيح`);
     } else {
-      toast.success("تم حفظ الحضور ✓");
+      toast.success(`تم حفظ الحضور والتحقق ✓ (${records.length} سجل)`);
       setIsEditing(true);
+      fetchData();
     }
     setSaving(false);
   };
