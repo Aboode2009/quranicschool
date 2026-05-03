@@ -185,9 +185,43 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
 
     if (error) {
       toast.error("خطأ في حفظ الحضور");
+      setSaving(false);
+      return;
+    }
+
+    // تحقق تلقائي: إعادة جلب السجلات والتأكد من تطابق ما حُفظ
+    const personIds = peopleToSave.map((p) => p.id);
+    const { data: verifyData, error: verifyErr } = await supabase
+      .from("attendance")
+      .select("person_id, is_present, timing, activity, excuse")
+      .eq("lesson_name", lesson.id)
+      .eq("lesson_date", lessonDate)
+      .in("person_id", personIds);
+
+    if (verifyErr) {
+      toast.error("تم الحفظ لكن فشل التحقق");
+      setSaving(false);
+      return;
+    }
+
+    const byId = new Map((verifyData || []).map((r: any) => [r.person_id, r]));
+    const mismatches = records.filter((rec) => {
+      const got = byId.get(rec.person_id);
+      if (!got) return true;
+      if (got.is_present !== rec.is_present) return true;
+      if ((got.timing || null) !== (rec.timing || null)) return true;
+      if ((got.activity || null) !== (rec.activity || null)) return true;
+      if ((got.excuse || null) !== (rec.excuse || null)) return true;
+      return false;
+    });
+
+    if (mismatches.length > 0) {
+      toast.error(`فشل التحقق: ${mismatches.length} سجل لم يُحفظ بشكل صحيح`);
     } else {
-      toast.success("تم حفظ الحضور ✓");
+      toast.success(`تم حفظ الحضور والتحقق ✓ (${records.length} سجل)`);
       setIsEditing(true);
+      // إعادة تحميل لضمان عرض الحالة المحفوظة فعلياً
+      fetchData();
     }
     setSaving(false);
   };
