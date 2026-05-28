@@ -265,6 +265,11 @@ const AttendancePage = () => {
       education_level: person.education_level || "",
       workshop_number: person.workshop_number || "",
       notes: person.notes || "",
+      mosque_name: person.mosque_name || "",
+      job: person.job || "",
+      has_children: person.has_children ?? null,
+      family_in_courses: person.family_in_courses || "",
+      skills: person.skills || "",
     });
     setIsEditing(true);
   };
@@ -280,6 +285,11 @@ const AttendancePage = () => {
       education_level: editData.education_level?.trim() || null,
       workshop_number: editData.workshop_number || null,
       notes: (editData as any).notes?.trim() || null,
+      mosque_name: (editData as any).mosque_name?.trim() || null,
+      job: (editData as any).job?.trim() || null,
+      has_children: (editData as any).has_children ?? null,
+      family_in_courses: (editData as any).family_in_courses?.trim() || null,
+      skills: (editData as any).skills?.trim() || null,
     };
     const { error } = await supabase.from("people").update(updateData).eq("id", selectedPerson.id);
     if (error) {
@@ -825,6 +835,49 @@ ${section("غياب الورشات", data.workshopAbsent, true)}
                   rows={3}
                   className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                 />
+              </div>
+              {/* حقول إضافية */}
+              <div className="relative">
+                <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input type="text" placeholder="اسم المسجد *"
+                  value={(editData as any).mosque_name || ""}
+                  onChange={(e) => setEditData({ ...editData, mosque_name: e.target.value } as any)}
+                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+              </div>
+              <div className="relative">
+                <FileText className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input type="text" placeholder="العمل (اختياري)"
+                  value={(editData as any).job || ""}
+                  onChange={(e) => setEditData({ ...editData, job: e.target.value } as any)}
+                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm text-muted-foreground">هل لديه أبناء؟ (اختياري)</label>
+                <div className="flex gap-2">
+                  {[{ label: "نعم", val: true }, { label: "لا", val: false }].map(({ label, val }) => (
+                    <button key={label} type="button"
+                      onClick={() => setEditData({ ...editData, has_children: (editData as any).has_children === val ? null : val } as any)}
+                      className={`px-4 py-2 rounded-lg text-xs transition-colors ${(editData as any).has_children === val ? "bg-primary text-primary-foreground font-medium" : "bg-muted/50 text-foreground"}`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="relative">
+                <FileText className="absolute right-3 top-3 w-4 h-4 text-muted-foreground" />
+                <textarea placeholder="هل أفراد أسرته في الدورات؟ (اختياري)"
+                  value={(editData as any).family_in_courses || ""}
+                  onChange={(e) => setEditData({ ...editData, family_in_courses: e.target.value } as any)}
+                  rows={2}
+                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none" />
+              </div>
+              <div className="relative">
+                <FileText className="absolute right-3 top-3 w-4 h-4 text-muted-foreground" />
+                <textarea placeholder="مهارة يجيدها (اختياري)"
+                  value={(editData as any).skills || ""}
+                  onChange={(e) => setEditData({ ...editData, skills: e.target.value } as any)}
+                  rows={2}
+                  className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none" />
               </div>
               <div className="flex gap-2 mt-1">
                 <button

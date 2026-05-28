@@ -429,7 +429,7 @@ const ElectronicInteractionPage = ({ onBack }: { onBack: () => void }) => {
                       <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">{act.workshop_number}</span>
                     </div>
                   </div>
-                  {(isAdmin) && (
+                  {(isAdmin || (isSupervisor && act.created_by === user?.id)) && (
                     <button onClick={() => deleteActivity(act.id)}
                       className="w-8 h-8 flex items-center justify-center rounded-lg bg-destructive/10 text-destructive shrink-0">
                       <Trash2 className="w-3.5 h-3.5" />
