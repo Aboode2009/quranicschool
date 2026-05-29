@@ -1377,11 +1377,7 @@ const SettingsPage = () => {
           >
             <button
               onClick={async () => {
-                const { useAuth } = await import("@/hooks/useAuth");
-                const { signOut } = useAuth();
-                // Can't use hook dynamically, use supabase directly
-                const { supabase: sb } = await import("@/integrations/supabase/client");
-                await sb.auth.signOut();
+                await supabase.auth.signOut();
                 window.location.reload();
               }}
               className="w-full ios-card p-4 cursor-pointer active:scale-[0.98] transition-transform"

@@ -948,6 +948,40 @@ ${section("غياب الورشات", data.workshopAbsent, true)}
                 <span>{selectedPerson.notes}</span>
               </div>
             )}
+            {(selectedPerson.mosque_name || selectedPerson.job || selectedPerson.has_children !== null && selectedPerson.has_children !== undefined || selectedPerson.family_in_courses || selectedPerson.skills) && (
+              <div className="mt-3 flex flex-col gap-1.5 text-sm text-muted-foreground border-t border-border pt-3">
+                {selectedPerson.mosque_name && (
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 shrink-0" />
+                    <span>المسجد: {selectedPerson.mosque_name}</span>
+                  </div>
+                )}
+                {selectedPerson.job && (
+                  <div className="flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 shrink-0" />
+                    <span>العمل: {selectedPerson.job}</span>
+                  </div>
+                )}
+                {selectedPerson.has_children !== null && selectedPerson.has_children !== undefined && (
+                  <div className="flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 shrink-0" />
+                    <span>لديه أبناء: {selectedPerson.has_children ? "نعم" : "لا"}</span>
+                  </div>
+                )}
+                {selectedPerson.family_in_courses && (
+                  <div className="flex items-start gap-1.5">
+                    <Users className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                    <span>أفراد أسرته في الدورات: {selectedPerson.family_in_courses}</span>
+                  </div>
+                )}
+                {selectedPerson.skills && (
+                  <div className="flex items-start gap-1.5">
+                    <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                    <span>المهارات: {selectedPerson.skills}</span>
+                  </div>
+                )}
+              </div>
+            )}
             {selectedPerson.category === "warasha" && permissions.canEditData && (
               <>
                 {!showTransfer ? (

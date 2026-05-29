@@ -443,7 +443,7 @@ const ElectronicInteractionPage = ({ onBack }: { onBack: () => void }) => {
         )}
       </div>
 
-      {!showAdd && (
+      {!showAdd && (isAdmin || isSupervisor) && (
         <div className="px-4 pb-4">
           <button onClick={() => setShowAdd(true)}
             className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform">
