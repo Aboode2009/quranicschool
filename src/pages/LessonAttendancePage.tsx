@@ -46,7 +46,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
   }, [lesson.id]);
 
   const fetchData = async () => {
-    let query = supabase.from("people").select("id, name, phone");
+    let query = supabase.from("people").select("id, name, phone, avatar_url, workshop_number");
 
     if (userRole === "supervisor" && supervisedWorkshop) {
       query = query.eq("category", "warasha").eq("workshop_number", supervisedWorkshop);
@@ -56,7 +56,7 @@ const LessonAttendancePage = ({ lesson, onBack, category = "muhadera" }: LessonA
 
     const [peopleRes, linkedPeopleRes] = await Promise.all([
       query.order("created_at", { ascending: true }),
-      supabase.from("people").select("id, name, phone")
+      supabase.from("people").select("id, name, phone, avatar_url, workshop_number")
     ]);
 
     const { data: peopleData, error: peopleErr } = peopleRes;
