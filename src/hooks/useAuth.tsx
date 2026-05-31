@@ -35,7 +35,7 @@ const defaultPermissions: Permissions = {
   isReadOnly: false,
 };
 
-const getPermissions = (role: AppRole | null): Permissions => {
+const getPermissions = (role: AppRole | null, supervisorCanAccessFinances = false): Permissions => {
   switch (role) {
     case "admin":
     case "course_director":
@@ -54,7 +54,7 @@ const getPermissions = (role: AppRole | null): Permissions => {
         canCreateWorkshops: true,
         canAddPeople: true,
         canEditData: true,
-        canAccessFinances: false,
+        canAccessFinances: supervisorCanAccessFinances,
         canManageUsers: false,
         isReadOnly: false,
       };
@@ -93,18 +93,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState<AppRole | null>(null);
   const [supervisedWorkshop, setSupervisedWorkshop] = useState<string | null>(null);
+  const [supervisorCanAccessFinances, setSupervisorCanAccessFinances] = useState(false);
 
   const checkRole = async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from("user_roles")
-        .select("role, supervised_workshop")
+        .select("role, supervised_workshop, can_access_finances")
         .eq("user_id", userId);
 
       if (error || !data || data.length === 0) {
         setIsAdmin(false);
         setUserRole("user");
         setSupervisedWorkshop(null);
+        setSupervisorCanAccessFinances(false);
         return;
       }
 
@@ -113,23 +115,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsAdmin(true);
         setUserRole("admin");
         setSupervisedWorkshop(null);
+        setSupervisorCanAccessFinances(false);
       } else if (roles.includes("course_director")) {
         setIsAdmin(true);
         setUserRole("course_director");
         setSupervisedWorkshop(null);
+        setSupervisorCanAccessFinances(false);
       } else if (roles.includes("supervisor")) {
         setIsAdmin(false);
         setUserRole("supervisor");
         const supervisorRow = data.find((r) => r.role === "supervisor");
         setSupervisedWorkshop((supervisorRow as any)?.supervised_workshop || null);
+        setSupervisorCanAccessFinances((supervisorRow as any)?.can_access_finances || false);
       } else if (roles.includes("province_manager")) {
         setIsAdmin(false);
         setUserRole("province_manager");
         setSupervisedWorkshop(null);
+        setSupervisorCanAccessFinances(false);
       } else {
         setIsAdmin(false);
         setUserRole("user");
         setSupervisedWorkshop(null);
+        setSupervisorCanAccessFinances(false);
       }
     } catch {
       setIsAdmin(false);
@@ -190,7 +197,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSupervisedWorkshop(null);
   };
 
-  const permissions = getPermissions(userRole);
+  const permissions = getPermissions(userRole, supervisorCanAccessFinances);
 
   return (
     <AuthContext.Provider value={{ user, session, loading, isAdmin, userRole, supervisedWorkshop, permissions, signOut }}>

@@ -17,6 +17,7 @@ interface UserRole {
   user_id: string;
   role: string;
   supervised_workshop?: string | null;
+  can_access_finances?: boolean | null;
 }
 
 const WORKSHOP_NUMBERS = ["ورشة أولى", "ورشة ثانية", "ورشة ثالثة", "ورشة رابعة", "ورشة خامسة"] as const;
@@ -58,7 +59,7 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
     
     const [profilesRes, rolesRes, questionsRes] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
-      supabase.from("user_roles").select("user_id, role, supervised_workshop"),
+      supabase.from("user_roles").select("user_id, role, supervised_workshop, can_access_finances"),
       supabase.from("workshop_questions").select("*").order("sort_order", { ascending: true }),
     ]);
 
@@ -81,6 +82,20 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
   const getUserWorkshop = (userId: string): string | null => {
     const supervisorRole = roles.find((r) => r.user_id === userId && r.role === "supervisor");
     return supervisorRole?.supervised_workshop || null;
+  };
+
+  const getUserFinances = (userId: string) => {
+    return roles.find((r) => r.user_id === userId)?.can_access_finances || false;
+  };
+
+  const toggleFinancesAccess = async (userId: string, value: boolean) => {
+    const { error } = await supabase
+      .from("user_roles")
+      .update({ can_access_finances: value })
+      .eq("user_id", userId);
+    if (error) { toast.error("خطأ في تحديث الصلاحية"); return; }
+    setRoles((prev) => prev.map((r) => r.user_id === userId ? { ...r, can_access_finances: value } : r));
+    toast.success(value ? "تم منح صلاحية المشتريات ✓" : "تم إلغاء صلاحية المشتريات");
   };
 
   const getRoleLabel = (role: AppRole | null): string => {
@@ -308,6 +323,23 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
                                               {ws}
                                             </button>
                                           ))}
+                                        </div>
+                                        {/* صلاحية المشتريات */}
+                                        <div className="mt-3 flex items-center justify-between px-3 py-2.5 rounded-xl bg-secondary">
+                                          <div>
+                                            <p className="text-[11px] font-semibold text-foreground">مسؤول المشتريات</p>
+                                            <p className="text-[10px] text-muted-foreground mt-0.5">صلاحية الوصول للأمور المالية</p>
+                                          </div>
+                                          <button
+                                            onClick={() => toggleFinancesAccess(profile.id, !getUserFinances(profile.id))}
+                                            className={`relative w-11 h-6 rounded-full transition-colors ${
+                                              getUserFinances(profile.id) ? "bg-primary" : "bg-muted"
+                                            }`}
+                                          >
+                                            <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                                              getUserFinances(profile.id) ? "translate-x-1" : "translate-x-6"
+                                            }`} />
+                                          </button>
                                         </div>
                                       </div>
                                     )}
