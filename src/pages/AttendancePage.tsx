@@ -132,6 +132,7 @@ const AttendancePage = () => {
   const [editData, setEditData] = useState<Partial<Person>>({});
   const [showTransfer, setShowTransfer] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [workshopNumberFilter, setWorkshopNumberFilter] = useState<string | null>(null);
 
   // Lookup maps for lesson/workshop names
   const [lessonMap, setLessonMap] = useState<Record<string, Lesson>>({});
@@ -140,6 +141,11 @@ const AttendancePage = () => {
   useEffect(() => {
     fetchPeople();
   }, [activeCategory, userRole, supervisedWorkshop]);
+
+  useEffect(() => {
+    setWorkshopNumberFilter(null);
+    setSearchQuery("");
+  }, [activeCategory]);
 
   useEffect(() => {
     const fetchLessonMaps = async () => {
@@ -1258,6 +1264,31 @@ ${section("غياب الورشات", data.workshopAbsent, true)}
           </button>
         </div>
 
+        {/* فلتر أرقام الورش — يظهر فقط بتبويب الورشة */}
+        {activeCategory === "warasha" && (
+          <div className="flex gap-1.5 overflow-x-auto pb-1 mt-3 -mx-1 px-1" style={{ scrollbarWidth: "none" }}>
+            <button
+              onClick={() => setWorkshopNumberFilter(null)}
+              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                !workshopNumberFilter ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted/50 text-muted-foreground"
+              }`}
+            >
+              الكل
+            </button>
+            {WORKSHOP_NUMBERS.map((ws) => (
+              <button
+                key={ws}
+                onClick={() => setWorkshopNumberFilter(workshopNumberFilter === ws ? null : ws)}
+                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                  workshopNumberFilter === ws ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted/50 text-muted-foreground"
+                }`}
+              >
+                {ws.replace("ورشة ", "")}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Search bar */}
         <div className="relative mt-3">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -1291,6 +1322,7 @@ ${section("غياب الورشات", data.workshopAbsent, true)}
             <AnimatePresence mode="popLayout">
               {people
                 .filter((p) => !searchQuery || p.name.includes(searchQuery))
+                .filter((p) => !workshopNumberFilter || p.workshop_number === workshopNumberFilter)
                 .map((person, i) => {
                 const initials = person.name.charAt(0);
                 return (
