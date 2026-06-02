@@ -77,14 +77,12 @@ const ActivityDetailPage = ({
     const persons = (peopleRes.data || []) as Person[];
     setPeople(persons);
 
+    // نملأ responses فقط للأشخاص الذين لديهم سجل محفوظ مسبقاً
+    // البقية تبقى undefined حتى يلمسها المستخدم، فلا تُحفظ كغياب تلقائي
     const map: Record<string, PersonResponse> = {};
-    persons.forEach((p) => {
-      map[p.id] = { is_present: false, excuse: null, is_active: false };
-    });
-
     let matched = 0;
     (respRes.data || []).forEach((r: any) => {
-      if (map[r.person_id] !== undefined) {
+      if (persons.some((p) => p.id === r.person_id)) {
         matched++;
         map[r.person_id] = {
           is_present: r.is_present ?? false,
