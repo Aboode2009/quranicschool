@@ -58,14 +58,65 @@ const LessonSupervisorAttendancePage = ({ lesson, onBack }: { lesson: Lesson; on
 
   const saveAttendance = async () => {
     setSaving(true);
-    await supabase.from("supervisor_attendance").delete().eq("lesson_id", lesson.id);
-    const records = supervisors.map((s) => {
+
+    // نأخذ فقط المشرفين الذين حُدّدت حالتهم
+    const supsToSave = supervisors.filter((s) => {
       const d = attendance[s.id];
-      return { supervisor_id: s.id, lesson_id: lesson.id, lesson_category: lesson.category, is_present: d?.status === "present", excuse: d?.status === "absent" ? d.excuse || null : null };
+      return d?.status === "present" || d?.status === "absent";
     });
-    const { error } = await supabase.from("supervisor_attendance").insert(records);
-    if (error) toast.error("خطأ في حفظ الحضور");
-    else toast.success("تم حفظ الحضور ✓");
+
+    if (supsToSave.length === 0) {
+      toast.error("لم يتم تحديد حالة أي مشرف");
+      setSaving(false);
+      return;
+    }
+
+    const records = supsToSave.map((s) => {
+      const d = attendance[s.id];
+      return {
+        supervisor_id: s.id,
+        lesson_id: lesson.id,
+        lesson_category: lesson.category,
+        name: s.name,
+        is_present: d?.status === "present",
+        excuse: d?.status === "absent" ? d.excuse || null : null,
+      };
+    });
+
+    // حفظ آمن: upsert بدل delete+insert كي لا نمسح بيانات مشرفين آخرين
+    const { error } = await supabase
+      .from("supervisor_attendance")
+      .upsert(records, { onConflict: "lesson_id,supervisor_id" });
+
+    if (error) {
+      toast.error("خطأ في حفظ الحضور");
+      setSaving(false);
+      return;
+    }
+
+    // تحقق تلقائي
+    const supIds = supsToSave.map((s) => s.id);
+    const { data: verify } = await supabase
+      .from("supervisor_attendance")
+      .select("supervisor_id, is_present, excuse")
+      .eq("lesson_id", lesson.id)
+      .in("supervisor_id", supIds);
+
+    const byId = new Map((verify || []).map((r: any) => [r.supervisor_id, r]));
+    const mismatches = records.filter((rec) => {
+      const got = byId.get(rec.supervisor_id);
+      if (!got) return true;
+      if (got.is_present !== rec.is_present) return true;
+      if ((got.excuse || null) !== (rec.excuse || null)) return true;
+      return false;
+    });
+
+    if (mismatches.length > 0) {
+      toast.error(`فشل التحقق: ${mismatches.length} سجل لم يُحفظ بشكل صحيح`);
+    } else {
+      toast.success(`تم الحفظ والتحقق ✓ (${records.length} سجل)`);
+      setIsEditing(true);
+    }
     setSaving(false);
   };
 

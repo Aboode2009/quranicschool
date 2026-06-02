@@ -1,0 +1,1 @@
+ALTER TABLE public.supervisor_attendance ADD CONSTRAINT supervisor_attendance_lesson_supervisor_key UNIQUE (lesson_id, supervisor_id);

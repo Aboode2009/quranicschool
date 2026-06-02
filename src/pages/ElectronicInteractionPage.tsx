@@ -77,14 +77,12 @@ const ActivityDetailPage = ({
     const persons = (peopleRes.data || []) as Person[];
     setPeople(persons);
 
+    // نملأ responses فقط للأشخاص الذين لديهم سجل محفوظ مسبقاً
+    // البقية تبقى undefined حتى يلمسها المستخدم، فلا تُحفظ كغياب تلقائي
     const map: Record<string, PersonResponse> = {};
-    persons.forEach((p) => {
-      map[p.id] = { is_present: false, excuse: null, is_active: false };
-    });
-
     let matched = 0;
     (respRes.data || []).forEach((r: any) => {
-      if (map[r.person_id] !== undefined) {
+      if (persons.some((p) => p.id === r.person_id)) {
         matched++;
         map[r.person_id] = {
           is_present: r.is_present ?? false,
@@ -128,21 +126,60 @@ const ActivityDetailPage = ({
 
   const save = async () => {
     setSaving(true);
-    await supabase.from("electronic_activity_responses").delete().eq("activity_id", activity.id);
-    const records = people.map((p) => ({
+
+    // نحفظ فقط الأشخاص الذين تم تعديل حالتهم (موجودون في responses)
+    const peopleToSave = people.filter((p) => responses[p.id] !== undefined);
+
+    if (peopleToSave.length === 0) {
+      toast.error("لم يتم تحديد حالة أي شخص");
+      setSaving(false);
+      return;
+    }
+
+    const records = peopleToSave.map((p) => ({
       activity_id: activity.id,
       person_id: p.id,
       is_present: responses[p.id]?.is_present ?? false,
       excuse: responses[p.id]?.excuse || null,
       is_active: responses[p.id]?.is_active ?? false,
     }));
-    if (records.length > 0) {
-      const { error } = await supabase.from("electronic_activity_responses").insert(records);
-      if (error) { toast.error("خطأ في الحفظ"); setSaving(false); return; }
+
+    // upsert آمن بدل delete+insert
+    const { error } = await supabase
+      .from("electronic_activity_responses")
+      .upsert(records, { onConflict: "activity_id,person_id" });
+
+    if (error) {
+      toast.error("خطأ في الحفظ");
+      setSaving(false);
+      return;
     }
-    toast.success("تم الحفظ ✓");
+
+    // تحقق تلقائي
+    const personIds = peopleToSave.map((p) => p.id);
+    const { data: verify } = await supabase
+      .from("electronic_activity_responses")
+      .select("person_id, is_present, excuse, is_active")
+      .eq("activity_id", activity.id)
+      .in("person_id", personIds);
+
+    const byId = new Map((verify || []).map((r: any) => [r.person_id, r]));
+    const mismatches = records.filter((rec) => {
+      const got = byId.get(rec.person_id);
+      if (!got) return true;
+      if (got.is_present !== rec.is_present) return true;
+      if (got.is_active !== rec.is_active) return true;
+      if ((got.excuse || null) !== (rec.excuse || null)) return true;
+      return false;
+    });
+
+    if (mismatches.length > 0) {
+      toast.error(`فشل التحقق: ${mismatches.length} سجل لم يُحفظ بشكل صحيح`);
+    } else {
+      toast.success(`تم الحفظ والتحقق ✓ (${records.length} سجل)`);
+      setIsEditing(true);
+    }
     setSaving(false);
-    setIsEditing(true);
   };
 
   const presentCount = Object.values(responses).filter((v) => v.is_present).length;
