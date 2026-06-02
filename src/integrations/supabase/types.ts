@@ -288,11 +288,16 @@ export type Database = {
           category: string
           created_at: string
           education_level: string | null
+          family_in_courses: string | null
+          has_children: boolean | null
           id: string
+          job: string | null
           join_date: string | null
+          mosque_name: string | null
           name: string
           notes: string | null
           phone: string | null
+          skills: string | null
           updated_at: string
           workshop_number: string | null
         }
@@ -303,11 +308,16 @@ export type Database = {
           category?: string
           created_at?: string
           education_level?: string | null
+          family_in_courses?: string | null
+          has_children?: boolean | null
           id?: string
+          job?: string | null
           join_date?: string | null
+          mosque_name?: string | null
           name: string
           notes?: string | null
           phone?: string | null
+          skills?: string | null
           updated_at?: string
           workshop_number?: string | null
         }
@@ -318,11 +328,16 @@ export type Database = {
           category?: string
           created_at?: string
           education_level?: string | null
+          family_in_courses?: string | null
+          has_children?: boolean | null
           id?: string
+          job?: string | null
           join_date?: string | null
+          mosque_name?: string | null
           name?: string
           notes?: string | null
           phone?: string | null
+          skills?: string | null
           updated_at?: string
           workshop_number?: string | null
         }
@@ -367,6 +382,7 @@ export type Database = {
           logistics_notes: string
           recitation_notes: string
           resources: string
+          supervisor_attendance_notes: string
           updated_at: string
           workshop_date: string | null
           workshop_name: string
@@ -386,6 +402,7 @@ export type Database = {
           logistics_notes?: string
           recitation_notes?: string
           resources?: string
+          supervisor_attendance_notes?: string
           updated_at?: string
           workshop_date?: string | null
           workshop_name?: string
@@ -405,6 +422,7 @@ export type Database = {
           logistics_notes?: string
           recitation_notes?: string
           resources?: string
+          supervisor_attendance_notes?: string
           updated_at?: string
           workshop_date?: string | null
           workshop_name?: string
@@ -483,18 +501,21 @@ export type Database = {
       }
       user_roles: {
         Row: {
+          can_access_finances: boolean
           id: string
           role: Database["public"]["Enums"]["app_role"]
           supervised_workshop: string | null
           user_id: string
         }
         Insert: {
+          can_access_finances?: boolean
           id?: string
           role: Database["public"]["Enums"]["app_role"]
           supervised_workshop?: string | null
           user_id: string
         }
         Update: {
+          can_access_finances?: boolean
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           supervised_workshop?: string | null
