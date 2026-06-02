@@ -23,6 +23,11 @@ interface Person {
   workshop_number?: string | null;
   notes?: string | null;
   avatar_url?: string | null;
+  mosque_name?: string | null;
+  job?: string | null;
+  has_children?: boolean | null;
+  family_in_courses?: string | null;
+  skills?: string | null;
 }
 
 interface AttendanceRecord {
