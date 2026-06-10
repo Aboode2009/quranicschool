@@ -116,6 +116,7 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
 
     // Remove all existing roles for this user
     const existingRoles = roles.filter((r) => r.user_id === userId);
+    const preservedFinances = existingRoles.find((r) => r.can_access_finances === true)?.can_access_finances ?? false;
     if (existingRoles.length > 0) {
       const { error } = await supabase.from("user_roles").delete().eq("user_id", userId);
       if (error) { toast.error("خطأ في تحديث الصلاحية"); return; }
@@ -126,9 +127,12 @@ const AdminPage = ({ onBack }: { onBack: () => void }) => {
       if (newRole === "supervisor" && workshopNum) {
         insertData.supervised_workshop = workshopNum;
       }
+      if (newRole === "supervisor" && preservedFinances) {
+        insertData.can_access_finances = true;
+      }
       const { error } = await supabase.from("user_roles").insert(insertData);
       if (error) { toast.error("خطأ في إضافة الصلاحية"); return; }
-      setRoles((prev) => [...prev.filter((r) => r.user_id !== userId), { user_id: userId, role: newRole, supervised_workshop: workshopNum || null }]);
+      setRoles((prev) => [...prev.filter((r) => r.user_id !== userId), { user_id: userId, role: newRole, supervised_workshop: workshopNum || null, can_access_finances: newRole === "supervisor" ? preservedFinances : null }]);
       toast.success(`تم تعيين الدور: ${getRoleLabel(newRole)}${workshopNum ? ` - ${workshopNum}` : ""}`);
     } else {
       setRoles((prev) => prev.filter((r) => r.user_id !== userId));
